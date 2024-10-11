@@ -1,7 +1,7 @@
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 
-import { QUEUE_NAMES } from '@/config/constants';
+import { EXCHANGE_NAMES, QUEUE_NAMES } from '@/config/constants';
 import { ChannelType } from '@/modules/database/entities/enums';
 
 @Injectable()
@@ -11,12 +11,13 @@ export class OutboundBillingConsumer {
   private readonly logger = new Logger(OutboundBillingConsumer.name);
 
   @RabbitSubscribe({
-    exchange: QUEUE_NAMES.OUTBOUND,
+    exchange: EXCHANGE_NAMES.OUTBOUND,
     routingKey: `${ChannelType.RCS}.#`,
-    queue: `ms-channels-gateway.${ChannelType.RCS}.billing`,
+    queue: QUEUE_NAMES.RCS_BILLING,
     createQueueIfNotExists: true,
     queueOptions: {
       autoDelete: true,
+      durable: true,
     },
   })
   public async rcsBillingHandler() {

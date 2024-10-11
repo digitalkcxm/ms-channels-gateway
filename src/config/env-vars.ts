@@ -17,4 +17,5 @@ export type EnvVars = {
 
   RCS_INBOUND_EXCHANGE_NAME: string;
   RCS_OUTBOUND_EXCHANGE_NAME: string;
+  RCS_OUTBOUND_EXCHANGE_DLX_NAME: string;
 };

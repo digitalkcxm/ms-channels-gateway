@@ -35,6 +35,10 @@ export class ChannelLinkDto {
   }
 
   static fromEntity(entity: DeepPartial<ChannelLinkEntity>): ChannelLinkDto {
+    if (!entity) {
+      return null;
+    }
+
     const dto = new ChannelLinkDto();
 
     dto.id = entity?.id;

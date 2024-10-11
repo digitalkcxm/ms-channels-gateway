@@ -50,6 +50,10 @@ export class ChannelConfigDto {
   static fromEntity(
     entity: DeepPartial<ChannelConfigEntity>,
   ): ChannelConfigDto {
+    if (!entity) {
+      return null;
+    }
+
     const dto = new ChannelConfigDto();
 
     dto.id = entity?.id;

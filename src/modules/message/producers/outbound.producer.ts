@@ -2,9 +2,11 @@ import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { QUEUE_NAMES } from '@/config/constants';
+import { EXCHANGE_NAMES } from '@/config/constants';
 import { EnvVars } from '@/config/env-vars';
 import { BrokerType, ChannelType } from '@/modules/database/entities/enums';
+
+import { RcsMessageModel } from '../models/rsc-message.model';
 
 @Injectable()
 export class OutboundProducer {
@@ -16,9 +18,9 @@ export class OutboundProducer {
   async publish(
     channelType: ChannelType,
     brokerType: BrokerType,
-    data: unknown,
+    message: RcsMessageModel,
   ) {
-    const exchangeName = QUEUE_NAMES.OUTBOUND;
+    const exchangeName = EXCHANGE_NAMES.OUTBOUND;
     const routingKey = `${channelType}.${brokerType}`;
 
     const channel = this.amqpConnection.channel;
@@ -26,18 +28,14 @@ export class OutboundProducer {
     await channel.assertExchange(exchangeName, 'topic', {
       autoDelete: true,
       durable: true,
+      alternateExchange: EXCHANGE_NAMES.OUTBOUND_DLX,
     });
 
     const sentToQueue = channel.publish(
       exchangeName,
       routingKey,
-      Buffer.from(
-        JSON.stringify({
-          data,
-        }),
-      ),
+      Buffer.from(JSON.stringify(message)),
       {
-        expiration: 60 * 60 * 1,
         persistent: true,
         mandatory: true,
       },

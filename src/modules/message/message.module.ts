@@ -2,7 +2,7 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { QUEUE_NAMES } from '@/config/constants';
+import { EXCHANGE_NAMES, QUEUE_NAMES } from '@/config/constants';
 import { EnvVars } from '@/config/env-vars';
 import { DatabaseModule } from '@/modules/database/database.module';
 
@@ -35,11 +35,32 @@ import { OutboundProducer } from './producers/outbound.producer';
           name: 'ms-channels-gateway',
           exchanges: [
             {
-              name: QUEUE_NAMES.OUTBOUND,
+              name: EXCHANGE_NAMES.OUTBOUND,
               type: 'topic',
               createExchangeIfNotExists: true,
               options: {
                 autoDelete: true,
+                durable: true,
+                alternateExchange: EXCHANGE_NAMES.OUTBOUND_DLX,
+              },
+            },
+            {
+              name: EXCHANGE_NAMES.OUTBOUND_DLX,
+              type: 'fanout',
+              createExchangeIfNotExists: true,
+              options: {
+                autoDelete: false,
+                durable: true,
+              },
+            },
+          ],
+          queues: [
+            {
+              name: QUEUE_NAMES.OUTBOUND_DEAD,
+              exchange: EXCHANGE_NAMES.OUTBOUND_DLX,
+              routingKey: '#',
+              options: {
+                autoDelete: false,
                 durable: true,
               },
             },

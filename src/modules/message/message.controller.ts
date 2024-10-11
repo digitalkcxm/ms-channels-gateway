@@ -1,5 +1,6 @@
-import { Body, Controller, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 
+import { RcsMessageModel } from './models/rsc-message.model';
 import { OutboundProducer } from './producers/outbound.producer';
 
 import { BrokerType, ChannelType } from '../database/entities/enums';
@@ -10,14 +11,15 @@ export class MessageController {
 
   @Post('publish')
   async publish(
-    @Headers('Authorization') companyToken: string,
-    @Body() body: { channel: ChannelType; broker: BrokerType; data: unknown },
+    @Body()
+    body: {
+      channel: ChannelType;
+      broker: BrokerType;
+      data: RcsMessageModel;
+    },
   ) {
     const { channel, broker, data } = body;
 
-    return this.outboundProducer.publish(channel, broker, {
-      companyToken,
-      data,
-    });
+    return this.outboundProducer.publish(channel, broker, data);
   }
 }
