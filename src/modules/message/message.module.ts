@@ -42,6 +42,7 @@ import { OutboundProducer } from './producers/outbound.producer';
                 autoDelete: true,
                 durable: true,
                 alternateExchange: EXCHANGE_NAMES.OUTBOUND_DLX,
+                deadLetterExchange: EXCHANGE_NAMES.OUTBOUND_DLX,
               },
             },
             {

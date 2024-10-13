@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { Nack, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -27,10 +27,16 @@ export class OutboundRcsConsumer {
       durable: true,
       autoDelete: true,
       deadLetterExchange: EXCHANGE_NAMES.OUTBOUND_DLX,
+      deadLetterRoutingKey: `${ChannelType.RCS}.${BrokerType.PONTAL_TECH}`,
     },
   })
   public async rcsPontalTechHandler(message: RcsMessageModel) {
-    this.logger.log('rcsPontalTechHandler :: Message received', message);
-    return await this.outboundRcsProducer.publish(message);
+    try {
+      this.logger.log('rcsPontalTechHandler :: Message received', message);
+      return await this.outboundRcsProducer.publish(message);
+    } catch (error) {
+      this.logger.error('rcsPontalTechHandler', error);
+      return new Nack(false);
+    }
   }
 }

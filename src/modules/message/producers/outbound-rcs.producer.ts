@@ -1,5 +1,5 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { EnvVars } from '@/config/env-vars';
@@ -13,6 +13,8 @@ export class OutboundRcsProducer {
     private readonly amqpConnection: AmqpConnection,
     private readonly configService: ConfigService<EnvVars>,
   ) {}
+
+  private readonly logger = new Logger(OutboundRcsProducer.name);
 
   async publish(message: RcsMessageModel) {
     try {
@@ -45,7 +47,8 @@ export class OutboundRcsProducer {
         throw new Error('Failed to send message to queue');
       }
     } catch (error) {
-      console.error(error);
+      this.logger.error('publish', error);
+      throw error;
     }
   }
 }
