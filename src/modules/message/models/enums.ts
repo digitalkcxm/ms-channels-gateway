@@ -1,4 +1,4 @@
-export enum InboundEvents {
+export enum InboundEventType {
   MESSAGE = 'message',
   STATUS = 'status',
 }

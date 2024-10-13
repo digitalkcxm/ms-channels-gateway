@@ -5,7 +5,9 @@ import { ConfigService } from '@nestjs/config';
 import { EXCHANGE_NAMES, QUEUE_NAMES } from '@/config/constants';
 import { EnvVars } from '@/config/env-vars';
 import { DatabaseModule } from '@/modules/database/database.module';
+import { EntityManagerModule } from '@/modules/entity-manager/entity-manager.module';
 
+import { InboundRcsConsumer } from './consumers/inbound-rcs.consumer';
 import { OutboundBillingConsumer } from './consumers/outbound-billing.consumer';
 import { OutboundRcsConsumer } from './consumers/outbound-rcs.consumer';
 import { MessageController } from './message.controller';
@@ -15,7 +17,6 @@ import { OutboundProducer } from './producers/outbound.producer';
 
 @Module({
   imports: [
-    DatabaseModule,
     RabbitMQModule.forRootAsync(RabbitMQModule, {
       inject: [ConfigService],
       useFactory: (configService: ConfigService<EnvVars>) => {
@@ -34,6 +35,17 @@ import { OutboundProducer } from './producers/outbound.producer';
           },
           name: 'ms-channels-gateway',
           exchanges: [
+            {
+              name: EXCHANGE_NAMES.RCS_INBOUND,
+              type: 'topic',
+              createExchangeIfNotExists: true,
+              options: {
+                autoDelete: true,
+                durable: true,
+                alternateExchange: EXCHANGE_NAMES.RCS_INBOUND_DLX,
+                deadLetterExchange: EXCHANGE_NAMES.RCS_INBOUND_DLX,
+              },
+            },
             {
               name: EXCHANGE_NAMES.OUTBOUND,
               type: 'topic',
@@ -57,6 +69,15 @@ import { OutboundProducer } from './producers/outbound.producer';
           ],
           queues: [
             {
+              name: QUEUE_NAMES.INBOUND_DEAD,
+              exchange: EXCHANGE_NAMES.RCS_INBOUND_DLX,
+              routingKey: '#',
+              options: {
+                autoDelete: false,
+                durable: true,
+              },
+            },
+            {
               name: QUEUE_NAMES.OUTBOUND_DEAD,
               exchange: EXCHANGE_NAMES.OUTBOUND_DLX,
               routingKey: '#',
@@ -70,10 +91,13 @@ import { OutboundProducer } from './producers/outbound.producer';
         };
       },
     }),
+    DatabaseModule,
+    EntityManagerModule,
   ],
   controllers: [MessageController],
   providers: [
     InboundProducer,
+    InboundRcsConsumer,
     OutboundBillingConsumer,
     OutboundProducer,
     OutboundRcsConsumer,

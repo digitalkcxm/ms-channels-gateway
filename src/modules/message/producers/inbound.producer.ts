@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { EnvVars } from '@/config/env-vars';
 
-import { InboundEvents } from '../enums';
+import { InboundMessage } from '../models/inbound-message.model';
 
 @Injectable()
 export class InboundProducer {
@@ -13,11 +13,7 @@ export class InboundProducer {
     private readonly configService: ConfigService<EnvVars>,
   ) {}
 
-  async publish(
-    companyToken: string,
-    inboundEvent: InboundEvents,
-    data: unknown,
-  ) {
+  async publish(companyToken: string, message: InboundMessage) {
     const queueName = `ms-channels-gateway.${companyToken}`;
 
     const channel = this.amqpConnection.channel;
@@ -26,12 +22,7 @@ export class InboundProducer {
 
     const sentToQueue = channel.sendToQueue(
       queueName,
-      Buffer.from(
-        JSON.stringify({
-          type: inboundEvent,
-          data,
-        }),
-      ),
+      Buffer.from(JSON.stringify(message)),
       {
         persistent: true,
       },

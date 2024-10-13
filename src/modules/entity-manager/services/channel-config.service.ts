@@ -11,9 +11,9 @@ export class ChannelConfigService {
     private readonly channelConfigRepository: ChannelConfigRepository,
   ) {}
 
-  async getById(id: string) {
+  async getById(id: string, includeLinks = true) {
     return await this.channelConfigRepository
-      .getById(id)
+      .getById(id, includeLinks)
       .then(ChannelConfigDto.fromEntity);
   }
 

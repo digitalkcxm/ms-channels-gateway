@@ -1,3 +1,5 @@
+import type { MessageBaseModel } from './message.model';
+
 export type RcsMessageType =
   | 'text'
   | 'image'
@@ -5,12 +7,6 @@ export type RcsMessageType =
   | 'pdf'
   | 'richCard'
   | 'carousel';
-
-type RcsMessageBaseModel = {
-  account: string;
-  destinationNumbers: string[];
-  chatId: string;
-};
 
 export type RcsMessageTextContentModel = {
   text: string;
@@ -86,12 +82,12 @@ export type RcsMessageContentAllModels =
   | RcsMessageRichCardContentModel
   | RcsMessageCarouselContentModel;
 
-export type BasicRcsMessageModel = RcsMessageBaseModel &
+export type BasicRcsMessageModel = MessageBaseModel &
   RcsMessageTextModel & {
     type: 'basic';
   };
 
-export type StandardRcsMessageModel = RcsMessageBaseModel &
+export type StandardRcsMessageModel = MessageBaseModel &
   RcsMessageAllModels & {
     type: 'standard';
   };

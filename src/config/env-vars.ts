@@ -1,5 +1,7 @@
 export type EnvVars = {
   PORT?: number;
+  NODE_ENV?: 'development' | 'production' | 'test';
+  LOG_LEVEL?: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
   DB_HOST: string;
   DB_READ_HOST: string;
@@ -15,7 +17,15 @@ export type EnvVars = {
   RABBITMQ_PASSWORD: string;
   RABBITMQ_SECURE?: boolean;
 
+  DEFAULT_CACHE_TTL?: number;
+
+  REDIS_HOST: string;
+  REDIS_PORT?: number;
+  REDIS_USERNAME?: string;
+  REDIS_PASSWORD?: string;
+
   RCS_INBOUND_EXCHANGE_NAME: string;
+  RCS_INBOUND_EXCHANGE_DLX_NAME: string;
   RCS_OUTBOUND_EXCHANGE_NAME: string;
   RCS_OUTBOUND_EXCHANGE_DLX_NAME: string;
 };

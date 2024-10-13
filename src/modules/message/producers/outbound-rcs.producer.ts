@@ -47,7 +47,7 @@ export class OutboundRcsProducer {
         throw new Error('Failed to send message to queue');
       }
     } catch (error) {
-      this.logger.error('publish', error);
+      this.logger.error(error, 'publish');
       throw error;
     }
   }

@@ -20,11 +20,11 @@ export class ChannelConfigRepository {
     });
   }
 
-  async getById(id: string) {
+  async getById(id: string, includeLinks = true) {
     return await this.channelConfigRepository.findOne({
       where: { id },
       relations: {
-        links: true,
+        links: includeLinks,
       },
     });
   }

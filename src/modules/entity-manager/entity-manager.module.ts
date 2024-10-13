@@ -10,5 +10,6 @@ import { ChannelLinkService } from '@/modules/entity-manager/services/channel-li
   imports: [DatabaseModule],
   controllers: [ChannelConfigController, ChannelLinkController],
   providers: [ChannelConfigService, ChannelLinkService],
+  exports: [ChannelConfigService, ChannelLinkService],
 })
 export class EntityManagerModule {}

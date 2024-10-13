@@ -32,10 +32,10 @@ export class OutboundRcsConsumer {
   })
   public async rcsPontalTechHandler(message: RcsMessageModel) {
     try {
-      this.logger.log('rcsPontalTechHandler :: Message received', message);
+      this.logger.log(message, 'rcsPontalTechHandler :: Message received');
       return await this.outboundRcsProducer.publish(message);
     } catch (error) {
-      this.logger.error('rcsPontalTechHandler', error);
+      this.logger.error(error, 'rcsPontalTechHandler');
       return new Nack(false);
     }
   }
