@@ -20,7 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@golevelup/nestjs-modules": "^0.7.1",
     "@golevelup/nestjs-rabbitmq": "^5.4.1",
+    "@nestjs/axios": "^3.0.3",
     "@nestjs/cache-manager": "^2.2.2",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.3",
@@ -30,6 +32,7 @@
     "@nestjs/typeorm": "^10.0.2",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.4",
+    "axios": "^1.7.7",
     "cache-manager": "^5.7.6",
     "cache-manager-redis-store": "^3.0.1",
     "class-transformer": "^0.5.1",

@@ -2,7 +2,7 @@ import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { EXCHANGE_NAMES, QUEUE_NAMES } from '@/config/constants';
-import { ChannelType } from '@/modules/database/entities/enums';
+import { ChannelType } from '@/modules/database/channels-gateway/entities/enums';
 
 @Injectable()
 export class OutboundBillingConsumer {

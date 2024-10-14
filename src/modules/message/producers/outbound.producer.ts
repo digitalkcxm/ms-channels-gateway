@@ -1,39 +1,40 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
 import { EXCHANGE_NAMES } from '@/config/constants';
-import { EnvVars } from '@/config/env-vars';
-import { BrokerType, ChannelType } from '@/modules/database/entities/enums';
-
-import { RcsMessageModel } from '../models/rsc-message.model';
+import { OutboundMessage } from '@/models/outbound-message.model';
+import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/services/channel-config.service';
 
 @Injectable()
 export class OutboundProducer {
   constructor(
     private readonly amqpConnection: AmqpConnection,
-    private readonly configService: ConfigService<EnvVars>,
+    private readonly channelConfigService: ChannelConfigService,
   ) {}
 
-  async publish(
-    channelType: ChannelType,
-    brokerType: BrokerType,
-    message: RcsMessageModel,
-  ) {
-    const exchangeName = EXCHANGE_NAMES.OUTBOUND;
-    const routingKey = `${channelType}.${brokerType}`;
+  async publish(message: OutboundMessage) {
+    const { channelConfigId } = message;
 
-    const channel = this.amqpConnection.channel;
+    const channelConfig =
+      await this.channelConfigService.getById(channelConfigId);
 
-    await channel.assertExchange(exchangeName, 'topic', {
+    if (!channelConfig) {
+      throw new Error('Channel config not found');
+    }
+
+    const { broker, channel } = channelConfig;
+
+    const rabbitChannel = this.amqpConnection.channel;
+
+    await rabbitChannel.assertExchange(EXCHANGE_NAMES.OUTBOUND, 'topic', {
       autoDelete: true,
       durable: true,
       alternateExchange: EXCHANGE_NAMES.OUTBOUND_DLX,
     });
 
-    const sentToQueue = channel.publish(
-      exchangeName,
-      routingKey,
+    const sentToQueue = rabbitChannel.publish(
+      EXCHANGE_NAMES.OUTBOUND,
+      `${channel}.${broker}`,
       Buffer.from(JSON.stringify(message)),
       {
         persistent: true,

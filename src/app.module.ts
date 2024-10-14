@@ -5,9 +5,12 @@ import { redisStore } from 'cache-manager-redis-store';
 import { LoggerModule } from 'nestjs-pino';
 
 import { EnvVars } from './config/env-vars';
+import { PontalTechModule } from './modules/brokers/pontal-tech/pontal-tech.module';
 import { DatabaseModule } from './modules/database/database.module';
 import { EntityManagerModule } from './modules/entity-manager/entity-manager.module';
 import { MessageModule } from './modules/message/message.module';
+import { RcsModule } from './modules/rcs/rcs.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -39,12 +42,13 @@ import { MessageModule } from './modules/message/message.module';
           level: configService.get<string>('LOG_LEVEL', 'trace'),
           transport: {
             targets: [
+              true ||
               configService.get<string>('NODE_ENV', 'development') ===
-              'development'
+                'development'
                 ? {
                     target: 'pino-pretty',
                     options: {
-                      singleLine: true,
+                      // singleLine: true,
                     },
                   }
                 : undefined,
@@ -56,6 +60,10 @@ import { MessageModule } from './modules/message/message.module';
     DatabaseModule,
     EntityManagerModule,
     MessageModule,
+    PontalTechModule,
+    WebhooksModule,
+    RcsModule,
   ],
+  providers: [],
 })
 export class AppModule {}

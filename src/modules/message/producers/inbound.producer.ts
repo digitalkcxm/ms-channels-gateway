@@ -3,8 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { EnvVars } from '@/config/env-vars';
-
-import { InboundMessage } from '../models/inbound-message.model';
+import { InboundMessage } from '@/models/inbound-message.model';
 
 @Injectable()
 export class InboundProducer {
