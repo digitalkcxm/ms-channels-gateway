@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 
-import { BrokerType } from '@/modules/database/rcs/entities/enums';
+import { BrokerType } from '@/models/enums';
 import { RcsAccountEntity } from '@/modules/database/rcs/entities/rcs-account.entity';
 
 @Injectable()

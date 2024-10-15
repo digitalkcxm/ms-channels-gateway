@@ -85,6 +85,20 @@ export type PontalTechWebhookDirection = 'inbound' | 'outbound';
 
 export type PontalTechWebhookType = 'text' | 'DELIVERED' | 'READ';
 
+export type PontalTechWebhookContentType =
+  | 'text'
+  | 'image'
+  | 'video'
+  | 'pdf'
+  | 'richCard'
+  | 'carousel';
+
+export type PontalTechWebhookMessageType = {
+  contentType?: PontalTechWebhookContentType;
+} & {
+  [key in PontalTechWebhookContentType]: any;
+};
+
 export type PontalTechWebhookApiRequest = {
   reference: string;
   event_id: string;
@@ -93,49 +107,70 @@ export type PontalTechWebhookApiRequest = {
   timestamp: Date;
   channel: string;
   type: PontalTechWebhookType;
-  message?: {
-    contentType?: 'text' | 'image' | 'video' | 'pdf' | 'richCard' | 'carousel';
-    [prop: string]: any;
-  };
+  message?: PontalTechWebhookMessageType;
   vars?: { [propName: string]: string };
 };
 
 export class PontalTechRcsApiRequestMapper {
   public static fromMessageModel(
     account: string,
-    model: RcsMessageModel,
-  ): PontalTechRcsMessageApiRequest {
-    switch (model.type) {
-      case 'basic':
-        return {
+    message: RcsMessageModel,
+  ): [string, PontalTechRcsMessageApiRequest] {
+    if (message.messageType === 'text' && message.content.text.length > 5000) {
+      throw new Error('Text message too long. Max 5000 characters');
+    }
+
+    if (
+      message.messageType === 'richCard' &&
+      message.content.description?.length > 2000
+    ) {
+      throw new Error('Content description too long. Max 2000 characters');
+    }
+
+    const type =
+      message.messageType !== 'text' ||
+      (message.messageType === 'text' && message.content.text.length > 160)
+        ? 'standard'
+        : 'basic';
+
+    if (message.messageType === 'text' && type === 'basic') {
+      return [
+        type,
+        {
           account,
-          messages: model.recipients.map((number) => ({
+          messages: message.recipients.map((number) => ({
             number,
             vars: {
-              chatId: model.chatId,
+              chatId: message.chatId,
             },
           })),
           content: {
             text: {
-              message: model.content.text,
+              message: message.content.text,
             },
           },
-        };
-      case 'standard':
-        return {
-          account,
-          messages: model.recipients.map((number) => ({
-            number,
-            vars: {
-              chatId: model.chatId,
-            },
-          })),
-          content: PontalTechRcsApiRequestMapper.parseContent(model),
-        };
+        },
+      ];
     }
+
+    return [
+      type,
+      {
+        account,
+        messages: message.recipients.map((number) => ({
+          number,
+          vars: {
+            chatId: message.chatId,
+          },
+        })),
+        content: PontalTechRcsApiRequestMapper.parseContent(message),
+      },
+    ];
   }
 
-  static parseContent(model: RcsMessageModel): PontalTechRcsMessageContentsAll {
+  private static parseContent(
+    model: RcsMessageModel,
+  ): PontalTechRcsMessageContentsAll {
     switch (model.messageType) {
       case 'text':
         return {

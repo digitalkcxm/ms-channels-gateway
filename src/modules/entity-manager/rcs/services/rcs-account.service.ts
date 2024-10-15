@@ -1,7 +1,7 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
-import { BrokerType } from '@/modules/database/channels-gateway/entities/enums';
+import { BrokerType } from '@/models/enums';
 import { RcsAccountRepository } from '@/modules/database/rcs/repositories/rcs-account.repository';
 import { CreateRcsAccountDto } from '@/modules/entity-manager/rcs/models/create-rcs-account.dto';
 import { RcsAccountDto } from '@/modules/entity-manager/rcs/models/rcs-account.dto';
@@ -19,7 +19,7 @@ export class RcsAccountService {
       throw new BadRequestException('Broker is required');
     }
 
-    const cacheKey = `rcs-account-${id}`;
+    const cacheKey = `rcs-account-${id}-${broker}`;
 
     const cached = await this.cacheManager.get<RcsAccountDto>(cacheKey);
 
@@ -41,7 +41,7 @@ export class RcsAccountService {
       throw new BadRequestException('Broker is required');
     }
 
-    const cacheKey = `rcs-account-reference-${referenceId}`;
+    const cacheKey = `rcs-account-reference-${referenceId}-${broker}`;
 
     const cached = await this.cacheManager.get<RcsAccountDto>(cacheKey);
 

@@ -1,18 +1,13 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
-import { EnvVars } from '@/config/env-vars';
-import { InboundMessage } from '@/models/inbound-message.model';
+import { SyncModel } from '@/models/sync-message.model';
 
 @Injectable()
 export class InboundProducer {
-  constructor(
-    private readonly amqpConnection: AmqpConnection,
-    private readonly configService: ConfigService<EnvVars>,
-  ) {}
+  constructor(private readonly amqpConnection: AmqpConnection) {}
 
-  async publish(companyToken: string, message: InboundMessage) {
+  async publish(companyToken: string, message: SyncModel) {
     const queueName = `ms-channels-gateway.${companyToken}`;
 
     const channel = this.amqpConnection.channel;

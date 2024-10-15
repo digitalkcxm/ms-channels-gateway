@@ -50,7 +50,14 @@ export class MessageRepository {
     entity: DeepPartial<MessageEntity>,
     repository?: Repository<MessageEntity>,
   ) {
-    return await (repository || this.messageRepository).update({ id }, entity);
+    const updatedEntity: DeepPartial<MessageEntity> = {
+      ...entity,
+      updatedAt: new Date(),
+    };
+
+    await (repository || this.messageRepository).update({ id }, updatedEntity);
+
+    return updatedEntity as MessageEntity;
   }
 
   async delete(id: string, repository?: Repository<MessageEntity>) {

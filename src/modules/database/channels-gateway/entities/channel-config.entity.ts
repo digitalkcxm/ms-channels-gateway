@@ -7,8 +7,10 @@ import {
   Unique,
 } from 'typeorm';
 
+import { BrokerType, ChannelType } from '@/models/enums';
+
 import { ChannelLinkEntity } from './channel-link.entity';
-import { BrokerType, ChannelConfigStatus, ChannelType } from './enums';
+import { ChannelConfigStatus } from './enums';
 
 @Entity({ name: 'channel_configs', schema: 'public' })
 @Index('idx_channel_configs_company_token', (entity: ChannelConfigEntity) => [

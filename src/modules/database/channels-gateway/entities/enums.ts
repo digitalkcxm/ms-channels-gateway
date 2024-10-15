@@ -1,11 +1,3 @@
-export enum ChannelType {
-  RCS = 'rcs',
-}
-
-export enum BrokerType {
-  PONTAL_TECH = 'pontal-tech',
-}
-
 export enum ChannelDirection {
   ACTIVE = 'active',
   RECEPTIVE = 'receptive',

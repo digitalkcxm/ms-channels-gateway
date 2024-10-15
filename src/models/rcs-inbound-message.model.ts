@@ -1,7 +1,4 @@
-import {
-  MessageDirection,
-  MessageStatus,
-} from '@/modules/database/rcs/entities/enums';
+import { MessageDirection, MessageStatus } from '@/models/enums';
 
 export type RcsInboundMessage = {
   rcsAccountId: string;
@@ -9,5 +6,5 @@ export type RcsInboundMessage = {
   brokerMessageId: string;
   direction: MessageDirection;
   status: MessageStatus;
-  message: any;
+  message?: any;
 };

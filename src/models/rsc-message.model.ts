@@ -89,6 +89,7 @@ export type BasicRcsMessageModel = MessageBaseModel &
 
 export type StandardRcsMessageModel = MessageBaseModel &
   RcsMessageAllModels & {
+    messageType: RcsMessageType;
     type: 'standard';
   };
 

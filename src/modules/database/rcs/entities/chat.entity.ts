@@ -12,8 +12,8 @@ import {
 import { RcsAccountEntity } from './rcs-account.entity';
 
 @Entity({ name: 'chats', schema: 'rcs' })
-@Index('idx_chats_rcs_account_id', (entity: ChatEntity) => [
-  entity.rcsAccountId,
+@Index('idx_chats_rcs_broker_chat_id', (entity: ChatEntity) => [
+  entity.brokerChatId,
 ])
 export class ChatEntity {
   @PrimaryGeneratedColumn('uuid', {
@@ -21,8 +21,8 @@ export class ChatEntity {
   })
   id: string;
 
-  @Column()
-  rcsAccountId: string;
+  @Column({ nullable: true })
+  rcsAccountId?: string;
 
   @ManyToOne(() => RcsAccountEntity, (entity) => entity.id)
   @JoinColumn({

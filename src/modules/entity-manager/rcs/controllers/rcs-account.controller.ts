@@ -10,7 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 
-import { BrokerType } from '@/modules/database/channels-gateway/entities/enums';
+import { BrokerType } from '@/models/enums';
 
 import { CreateRcsAccountDto } from '../models/create-rcs-account.dto';
 import { UpdateRcsAccountDto } from '../models/update-rcs-account.dto';

@@ -14,7 +14,7 @@ export class ChannelConfigService {
   ) {}
 
   async getById(id: string, includeLinks = true) {
-    const cacheKey = `channel-config-${id}`;
+    const cacheKey = `channel-config-${id}-${includeLinks}`;
 
     const cached = await this.cacheManager.get<ChannelConfigDto>(cacheKey);
 

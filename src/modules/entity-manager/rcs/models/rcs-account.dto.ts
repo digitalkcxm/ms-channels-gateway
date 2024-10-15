@@ -2,7 +2,7 @@ import { Type } from 'class-transformer';
 import { IsEmpty, IsEnum, IsString, IsUUID } from 'class-validator';
 import { DeepPartial } from 'typeorm';
 
-import { BrokerType } from '@/modules/database/channels-gateway/entities/enums';
+import { BrokerType } from '@/models/enums';
 import { RcsAccountEntity } from '@/modules/database/rcs/entities/rcs-account.entity';
 
 import { PontalTechRcsAccountDto } from './pontal-tech-rcs-account.dto';

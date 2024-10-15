@@ -9,8 +9,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { MessageDirection, MessageStatus } from '@/models/enums';
+
 import { ChatEntity } from './chat.entity';
-import { MessageDirection, MessageStatus } from './enums';
 
 @Entity({ name: 'messages', schema: 'rcs' })
 @Index('idx_messages_chat_id', (entity: MessageEntity) => [entity.chatId])
@@ -52,7 +53,7 @@ export class MessageEntity {
   status: MessageStatus;
 
   @Column({ nullable: true })
-  errorStatusMessage?: string;
+  errorMessage?: string;
 
   @Column({ type: 'jsonb' })
   rawMessage: any;

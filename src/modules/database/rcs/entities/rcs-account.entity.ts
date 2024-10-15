@@ -8,7 +8,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { BrokerType } from './enums';
+import { BrokerType } from '@/models/enums';
+
 import { PontalTechRcsAccountEntity } from './pontal-tech-rcs-account.entity';
 
 @Entity({ name: 'rcs_accounts', schema: 'rcs' })

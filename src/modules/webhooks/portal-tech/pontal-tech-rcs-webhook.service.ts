@@ -1,11 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { MessageDirection, MessageStatus } from '@/models/enums';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
 import { PontalTechWebhookApiRequest } from '@/modules/brokers/pontal-tech/pontal-tech-rcs.models';
-import {
-  MessageDirection,
-  MessageStatus,
-} from '@/modules/database/rcs/entities/enums';
 import { ChatRepository } from '@/modules/database/rcs/repositories/chat.repository';
 import { MessageRepository } from '@/modules/database/rcs/repositories/message.repository';
 import { RcsMessageService } from '@/modules/message/services/rcs-message.service';
@@ -40,18 +37,6 @@ export class PontalTechRcsWebhookService {
 
     const status = TYPE_TO_STATUS[webhook.type] || MessageStatus.ERROR;
 
-    const message: RcsInboundMessage = {
-      brokerChatId: webhook.reference,
-      brokerMessageId: webhook.event_id,
-      direction:
-        webhook.direction === 'inbound'
-          ? MessageDirection.INBOUND
-          : MessageDirection.OUTBOUND,
-      message: webhook.message,
-      rcsAccountId: chat.rcsAccountId,
-      status,
-    };
-
     const existingMessage = await this.messageRepository.getBy({
       brokerMessageId: webhook.event_id,
       chatId: chat.id,
@@ -61,6 +46,18 @@ export class PontalTechRcsWebhookService {
     this.logger.debug(existingMessage, 'existingMessage');
 
     if (existingMessage) {
+      const message: RcsInboundMessage = {
+        brokerChatId: webhook.reference,
+        brokerMessageId: webhook.event_id,
+        direction:
+          webhook.direction === 'inbound'
+            ? MessageDirection.INBOUND
+            : MessageDirection.OUTBOUND,
+        message: webhook.message,
+        rcsAccountId: chat.rcsAccountId,
+        status,
+      };
+
       await this.rcsMessageService.syncStatus(
         chat.rcsAccount.referenceId,
         existingMessage,
@@ -73,9 +70,19 @@ export class PontalTechRcsWebhookService {
     const isReplyingMessage =
       webhook.event_id !== existingMessage?.brokerMessageId;
 
-    this.logger.debug(isReplyingMessage, 'isReplyingMessage');
-
     if (isReplyingMessage) {
+      const message: RcsInboundMessage = {
+        brokerChatId: webhook.reference,
+        brokerMessageId: webhook.event_id,
+        direction:
+          webhook.direction === 'inbound'
+            ? MessageDirection.INBOUND
+            : MessageDirection.OUTBOUND,
+        message: webhook.message[webhook.message.contentType],
+        rcsAccountId: chat.rcsAccountId,
+        status,
+      };
+
       await this.rcsMessageService.replyMessage(
         chat.rcsAccount.referenceId,
         message,

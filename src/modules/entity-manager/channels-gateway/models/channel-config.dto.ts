@@ -2,12 +2,9 @@ import { Type } from 'class-transformer';
 import { IsArray, IsEmpty, IsEnum, IsString, IsUUID } from 'class-validator';
 import { DeepPartial } from 'typeorm';
 
+import { BrokerType, ChannelType } from '@/models/enums';
 import { ChannelConfigEntity } from '@/modules/database/channels-gateway/entities/channel-config.entity';
-import {
-  BrokerType,
-  ChannelConfigStatus,
-  ChannelType,
-} from '@/modules/database/channels-gateway/entities/enums';
+import { ChannelConfigStatus } from '@/modules/database/channels-gateway/entities/enums';
 
 import { ChannelLinkDto } from './channel-link.dto';
 

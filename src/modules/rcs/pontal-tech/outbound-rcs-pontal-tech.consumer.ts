@@ -2,18 +2,15 @@ import { Nack, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { EXCHANGE_NAMES } from '@/config/constants';
+import { BrokerType, ChannelType } from '@/models/enums';
 import { OutboundMessage } from '@/models/outbound-message.model';
-import {
-  BrokerType,
-  ChannelType,
-} from '@/modules/database/channels-gateway/entities/enums';
 import { RcsPontalTechService } from '@/modules/rcs/pontal-tech/rcs-pontal-tech.service';
 
 @Injectable()
-export class OutboundRcsConsumer {
+export class OutboundRcsPontalTechConsumer {
   constructor(private readonly rcsPontalTechService: RcsPontalTechService) {}
 
-  private readonly logger = new Logger(OutboundRcsConsumer.name);
+  private readonly logger = new Logger(OutboundRcsPontalTechConsumer.name);
 
   @RabbitRPC({
     exchange: EXCHANGE_NAMES.OUTBOUND,
@@ -29,10 +26,7 @@ export class OutboundRcsConsumer {
   public async consume(message: OutboundMessage) {
     try {
       this.logger.debug(message, 'consume :: Message received');
-      await this.rcsPontalTechService.sendMessage(
-        message.channelConfigId,
-        message.data,
-      );
+      await this.rcsPontalTechService.sendMessage(message);
     } catch (error) {
       this.logger.error(error, 'consume');
       return new Nack(false);

@@ -7,6 +7,7 @@ import { ChannelLinkController } from './channels-gateway/controllers/channel-li
 import { ChannelConfigService } from './channels-gateway/services/channel-config.service';
 import { ChannelLinkService } from './channels-gateway/services/channel-link.service';
 import { RcsAccountController } from './rcs/controllers/rcs-account.controller';
+import { ChatService } from './rcs/services/chat.service';
 import { RcsAccountService } from './rcs/services/rcs-account.service';
 
 @Module({
@@ -16,7 +17,17 @@ import { RcsAccountService } from './rcs/services/rcs-account.service';
     ChannelLinkController,
     RcsAccountController,
   ],
-  providers: [ChannelConfigService, ChannelLinkService, RcsAccountService],
-  exports: [ChannelConfigService, ChannelLinkService, RcsAccountService],
+  providers: [
+    ChannelConfigService,
+    ChannelLinkService,
+    ChatService,
+    RcsAccountService,
+  ],
+  exports: [
+    ChannelConfigService,
+    ChannelLinkService,
+    ChatService,
+    RcsAccountService,
+  ],
 })
 export class EntityManagerModule {}
