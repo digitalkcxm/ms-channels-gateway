@@ -8,6 +8,7 @@ import { EnvVars } from './config/env-vars';
 import { PontalTechModule } from './modules/brokers/pontal-tech/pontal-tech.module';
 import { DatabaseModule } from './modules/database/database.module';
 import { EntityManagerModule } from './modules/entity-manager/entity-manager.module';
+import { HealthModule } from './modules/health/health.module';
 import { MessageModule } from './modules/message/message.module';
 import { RcsModule } from './modules/rcs/rcs.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
@@ -63,6 +64,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     PontalTechModule,
     WebhooksModule,
     RcsModule,
+    HealthModule,
   ],
   providers: [],
 })
