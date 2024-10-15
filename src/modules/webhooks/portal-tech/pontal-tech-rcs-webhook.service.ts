@@ -26,7 +26,7 @@ export class PontalTechRcsWebhookService {
 
   private readonly logger = new Logger(PontalTechRcsWebhookService.name);
 
-  public async inboundMessage(webhook: PontalTechWebhookApiRequest) {
+  public async process(webhook: PontalTechWebhookApiRequest) {
     // TODO: get from cache
     const chat = await this.chatRepository.getByBrokerChat(
       webhook.reference,
@@ -34,10 +34,7 @@ export class PontalTechRcsWebhookService {
     );
 
     if (!chat) {
-      this.logger.error(
-        webhook,
-        'PontalTechRcsWebhookController :: webhook :: chat not found',
-      );
+      this.logger.error(webhook, 'process :: chat not found');
       return;
     }
 
@@ -55,22 +52,13 @@ export class PontalTechRcsWebhookService {
       status,
     };
 
-    const existingMessage = await this.messageRepository.getByChat(chat.id);
+    const existingMessage = await this.messageRepository.getBy({
+      brokerMessageId: webhook.event_id,
+      chatId: chat.id,
+    });
 
-    this.logger.debug(webhook, 'PontalTechRcsWebhookController :: webhook');
-    this.logger.debug(
-      existingMessage,
-      'PontalTechRcsWebhookController :: existingMessage',
-    );
-
-    //TODO verificar se é uma resposta e fazer um fluxo especifico
-    const isReplyingMessage =
-      webhook.event_id !== existingMessage?.brokerMessageId;
-
-    this.logger.debug(
-      isReplyingMessage,
-      'PontalTechRcsWebhookController :: isReplyingMessage',
-    );
+    this.logger.debug(webhook, 'webhook');
+    this.logger.debug(existingMessage, 'existingMessage');
 
     if (existingMessage) {
       await this.rcsMessageService.syncStatus(
@@ -78,11 +66,22 @@ export class PontalTechRcsWebhookService {
         existingMessage,
         message,
       );
-    } else {
-      await this.rcsMessageService.inboundMessage(
+
+      return;
+    }
+
+    const isReplyingMessage =
+      webhook.event_id !== existingMessage?.brokerMessageId;
+
+    this.logger.debug(isReplyingMessage, 'isReplyingMessage');
+
+    if (isReplyingMessage) {
+      await this.rcsMessageService.replyMessage(
         chat.rcsAccount.referenceId,
         message,
       );
+
+      return;
     }
   }
 }

@@ -12,6 +12,6 @@ export class PontalTechRcsWebhookController {
 
   @Post('pontal-tech/rcs')
   public async webhook(@Body() body: PontalTechWebhookApiRequest) {
-    await this.rcsWebhookService.inboundMessage(body);
+    await this.rcsWebhookService.process(body);
   }
 }

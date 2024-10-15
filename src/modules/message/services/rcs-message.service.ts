@@ -1,11 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, DeepPartial } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import { InboundEventType } from '@/models/enums';
 import { InboundMessage } from '@/models/inbound-message.model';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
-import { BrokerType } from '@/modules/database/channels-gateway/entities/enums';
 import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
 import {
   MessageDirection,
@@ -31,7 +30,7 @@ export class RcsMessageService {
   private readonly logger = new Logger(RcsMessageService.name);
 
   public async outboundMessage(
-    broker: BrokerType,
+    channelConfigId: string,
     brokerMessageId: string,
     direction: MessageDirection,
     status: MessageStatus,
@@ -51,19 +50,33 @@ export class RcsMessageService {
         chat,
       });
 
-      //TODO notificar status de QUEUED
+      const notifyMessage: RcsInboundMessage = {
+        brokerChatId: chat.brokerChatId,
+        brokerMessageId,
+        direction,
+        message,
+        rcsAccountId: chat.rcsAccountId,
+        status,
+      };
+
+      await this.notifyChangeStatus(
+        InboundEventType.STATUS,
+        notifyMessage,
+        channelConfigId,
+      );
 
       return result;
     } catch (error) {
-      this.logger.error(error, 'MessageService :: saveMessage :: error');
+      this.logger.error(error, 'outboundMessage');
+      throw error;
     }
   }
 
-  public async inboundMessage(
+  public async replyMessage(
     channelConfigId: string,
     inboundMessage: RcsInboundMessage,
   ) {
-    this.logger.log(inboundMessage, 'inboundMessage :: Message received');
+    this.logger.log(inboundMessage, 'replyMessage :: Message received');
     const {
       rcsAccountId,
       brokerChatId,
@@ -88,7 +101,7 @@ export class RcsMessageService {
       const messageRepository =
         queryRunner.manager.getRepository(MessageEntity);
 
-      const result = await this.messageRepository.create(
+      await this.messageRepository.create(
         {
           brokerMessageId,
           chatId,
@@ -101,18 +114,13 @@ export class RcsMessageService {
 
       await queryRunner.commitTransaction();
 
-      delete message.rcsAccountId;
-
-      const { companyToken } = await this.channelConfigService.getById(
+      await this.notifyChangeStatus(
+        InboundEventType.MESSAGE,
+        message,
         channelConfigId,
-        false,
       );
-
-      await this.inboundProducer.publish(companyToken, message);
-
-      return result;
     } catch (error) {
-      this.logger.error(error, 'MessageService :: saveMessage :: error');
+      this.logger.error(error, 'replyMessage');
 
       await queryRunner.rollbackTransaction();
     } finally {
@@ -131,10 +139,6 @@ export class RcsMessageService {
         incomingMessage.status,
       );
 
-      if (newStatus === message.status) {
-        return [false, message];
-      }
-
       this.logger.debug(
         {
           message,
@@ -145,30 +149,42 @@ export class RcsMessageService {
         'syncStatus',
       );
 
-      const result = await this.messageRepository.update(message.id, {
-        status: newStatus,
-      });
+      if (newStatus !== message.status) {
+        await this.messageRepository.update(message.id, {
+          status: newStatus,
+        });
 
-      delete incomingMessage.rcsAccountId;
-
-      const { companyToken } = await this.channelConfigService.getById(
-        channelConfigId,
-        false,
-      );
-
-      const inboundMessage: InboundMessage = {
-        type: incomingMessage.message
-          ? InboundEventType.MESSAGE
-          : InboundEventType.STATUS,
-        data: incomingMessage,
-      };
-
-      await this.inboundProducer.publish(companyToken, inboundMessage);
-
-      return result.raw as DeepPartial<MessageEntity>;
+        await this.notifyChangeStatus(
+          InboundEventType.STATUS,
+          { ...incomingMessage, status: newStatus },
+          channelConfigId,
+        );
+      }
     } catch (error) {
       this.logger.error(error, 'syncStatus');
     }
+  }
+
+  private async notifyChangeStatus(
+    type: InboundEventType,
+    incomingMessage: RcsInboundMessage,
+    channelConfigId: string,
+  ) {
+    delete incomingMessage.rcsAccountId;
+
+    const inboundMessage: InboundMessage = {
+      type,
+      data: incomingMessage,
+    };
+
+    const { companyToken } = await this.channelConfigService.getById(
+      channelConfigId,
+      false,
+    );
+
+    this.logger.debug({ companyToken, inboundMessage }, 'notifyChangeStatus');
+
+    await this.inboundProducer.publish(companyToken, inboundMessage);
   }
 
   private getNewStatus(currentStatus: MessageStatus, newStatus: MessageStatus) {

@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import {
+  DeepPartial,
+  FindOptionsRelations,
+  FindOptionsWhere,
+  Repository,
+} from 'typeorm';
 
 import { MessageEntity } from '@/modules/database/rcs/entities/message.entity';
 
@@ -10,6 +15,16 @@ export class MessageRepository {
     @InjectRepository(MessageEntity)
     private readonly messageRepository: Repository<MessageEntity>,
   ) {}
+
+  async getBy(
+    where: FindOptionsWhere<MessageEntity>,
+    relations?: FindOptionsRelations<MessageEntity>,
+  ) {
+    return await this.messageRepository.findOne({
+      where,
+      relations,
+    });
+  }
 
   async getById(id: string) {
     return await this.messageRepository.findOne({

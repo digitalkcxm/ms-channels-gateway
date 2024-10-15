@@ -52,7 +52,7 @@ export class RcsPontalTechService {
           data.messages.map((dataMessage) =>
             this.messageService
               .outboundMessage(
-                BrokerType.PONTAL_TECH,
+                channelConfigId,
                 dataMessage.id,
                 MessageDirection.OUTBOUND,
                 MessageStatus.QUEUED,
