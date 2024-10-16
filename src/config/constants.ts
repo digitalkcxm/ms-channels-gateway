@@ -1,3 +1,8 @@
+export const CHANNELS_PREFETCH = {
+  INBOUND: 'inbound',
+  OUTBOUND: 'outbound',
+} as const;
+
 export const EXCHANGE_NAMES = {
   OUTBOUND: 'ms-channels-gateway.outbound',
   OUTBOUND_DLX: 'ms-channels-gateway.outbound.dlx',

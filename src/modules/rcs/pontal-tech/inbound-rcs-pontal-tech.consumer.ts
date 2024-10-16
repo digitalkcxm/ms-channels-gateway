@@ -2,7 +2,11 @@ import { Nack, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConsumeMessage } from 'amqplib';
 
-import { EXCHANGE_NAMES, QUEUE_MESSAGE_HEADERS } from '@/config/constants';
+import {
+  CHANNELS_PREFETCH,
+  EXCHANGE_NAMES,
+  QUEUE_MESSAGE_HEADERS,
+} from '@/config/constants';
 import { BrokerType, ChannelType } from '@/models/enums';
 import { InboundMessage } from '@/models/inbound-message.model';
 import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service';
@@ -25,6 +29,7 @@ export class InboundRcsPontalTechConsumer {
     queue: `ms-channels-gateway.${ChannelType.RCS}.${BrokerType.PONTAL_TECH}.inbound`,
     createQueueIfNotExists: true,
     queueOptions: {
+      channel: CHANNELS_PREFETCH.INBOUND,
       durable: true,
       autoDelete: true,
       deadLetterExchange: EXCHANGE_NAMES.INBOUND_DLX,

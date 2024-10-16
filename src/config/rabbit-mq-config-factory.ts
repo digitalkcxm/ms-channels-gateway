@@ -3,7 +3,7 @@ import { RabbitMQConfig } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { EXCHANGE_NAMES, QUEUE_NAMES } from './constants';
+import { CHANNELS_PREFETCH, EXCHANGE_NAMES, QUEUE_NAMES } from './constants';
 import { EnvVars } from './env-vars';
 
 @Injectable()
@@ -27,6 +27,18 @@ export class RabbitMQConfigFactory
         wait: false,
       },
       name: 'ms-channels-gateway',
+      channels: {
+        DEFAULT: {
+          default: true,
+          prefetchCount: 1,
+        },
+        [CHANNELS_PREFETCH.INBOUND]: {
+          prefetchCount: 10,
+        },
+        [CHANNELS_PREFETCH.OUTBOUND]: {
+          prefetchCount: 5,
+        },
+      },
       exchanges: [
         {
           name: EXCHANGE_NAMES.INBOUND,
