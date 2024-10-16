@@ -29,6 +29,25 @@ export class RabbitMQConfigFactory
       name: 'ms-channels-gateway',
       exchanges: [
         {
+          name: EXCHANGE_NAMES.INBOUND,
+          type: 'topic',
+          createExchangeIfNotExists: true,
+          options: {
+            autoDelete: true,
+            durable: true,
+            alternateExchange: EXCHANGE_NAMES.INBOUND_DLX,
+          },
+        },
+        {
+          name: EXCHANGE_NAMES.INBOUND_DLX,
+          type: 'fanout',
+          createExchangeIfNotExists: true,
+          options: {
+            autoDelete: false,
+            durable: true,
+          },
+        },
+        {
           name: EXCHANGE_NAMES.OUTBOUND,
           type: 'topic',
           createExchangeIfNotExists: true,
@@ -49,6 +68,15 @@ export class RabbitMQConfigFactory
         },
       ],
       queues: [
+        {
+          name: QUEUE_NAMES.INBOUND_DEAD,
+          exchange: EXCHANGE_NAMES.INBOUND_DLX,
+          routingKey: '#',
+          options: {
+            autoDelete: false,
+            durable: true,
+          },
+        },
         {
           name: QUEUE_NAMES.OUTBOUND_DEAD,
           exchange: EXCHANGE_NAMES.OUTBOUND_DLX,

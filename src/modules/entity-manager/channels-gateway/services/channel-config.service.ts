@@ -26,7 +26,9 @@ export class ChannelConfigService {
       .getById(id, includeLinks)
       .then(ChannelConfigDto.fromEntity);
 
-    await this.cacheManager.set(cacheKey, data);
+    if (data) {
+      await this.cacheManager.set(cacheKey, data);
+    }
 
     return data;
   }
@@ -44,7 +46,9 @@ export class ChannelConfigService {
       .getAllByCompany(companyToken)
       .then((rows) => rows?.map(ChannelConfigDto.fromEntity));
 
-    await this.cacheManager.set(cacheKey, data);
+    if (data) {
+      await this.cacheManager.set(cacheKey, data);
+    }
 
     return data;
   }
@@ -55,7 +59,7 @@ export class ChannelConfigService {
       .then(ChannelConfigDto.fromEntity);
 
     await this.cacheManager.del(`channel-configs-by-company-${companyToken}`);
-    await this.cacheManager.del(`channel-config-${data.id}`);
+    await this.cacheManager.del(`channel-config-${data.id}-*`);
 
     return data;
   }
@@ -71,7 +75,7 @@ export class ChannelConfigService {
     );
 
     await this.cacheManager.del(`channel-configs-by-company-${companyToken}`);
-    await this.cacheManager.del(`channel-config-${id}`);
+    await this.cacheManager.del(`channel-config-${id}-*`);
 
     return data;
   }
@@ -80,6 +84,6 @@ export class ChannelConfigService {
     await this.channelConfigRepository.delete(companyToken, id);
 
     await this.cacheManager.del(`channel-configs-by-company-${companyToken}`);
-    await this.cacheManager.del(`channel-config-${id}`);
+    await this.cacheManager.del(`channel-config-${id}-*`);
   }
 }

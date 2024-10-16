@@ -15,7 +15,7 @@ export class OutboundRcsPontalTechConsumer {
   @RabbitRPC({
     exchange: EXCHANGE_NAMES.OUTBOUND,
     routingKey: `${ChannelType.RCS}.${BrokerType.PONTAL_TECH}`,
-    queue: `ms-channels-gateway.${ChannelType.RCS}.${BrokerType.PONTAL_TECH}`,
+    queue: `ms-channels-gateway.${ChannelType.RCS}.${BrokerType.PONTAL_TECH}.outbound`,
     createQueueIfNotExists: true,
     queueOptions: {
       durable: true,

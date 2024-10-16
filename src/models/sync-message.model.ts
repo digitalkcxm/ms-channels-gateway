@@ -104,6 +104,7 @@ export class SyncMessageMapper {
     inboundMessage: RcsInboundMessage,
     errorMessage?: string,
   ): SyncModel {
+    //TODO: Implement this method
     const message: SyncMessageModel = {
       type: 'text',
       text: inboundMessage.message,

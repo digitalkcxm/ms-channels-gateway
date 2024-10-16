@@ -4,7 +4,8 @@ import { Repository } from 'typeorm';
 
 import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
 import { ChatRepository } from '@/modules/database/rcs/repositories/chat.repository';
-import { RcsAccountDto } from '@/modules/entity-manager/rcs/models/rcs-account.dto';
+
+import { ChatDto } from '../models/chat.dto';
 
 @Injectable()
 export class ChatService {
@@ -20,7 +21,7 @@ export class ChatService {
 
     const cacheKey = `channels-gateway-chat-${brokerChatId}-${includeRcsAccount}`;
 
-    const cached = await this.cacheManager.get<RcsAccountDto>(cacheKey);
+    const cached = await this.cacheManager.get<ChatDto>(cacheKey);
 
     if (cached) {
       return cached;
@@ -28,9 +29,11 @@ export class ChatService {
 
     const data = await this.chatRepository
       .getByBrokerChat(brokerChatId, includeRcsAccount)
-      .then(RcsAccountDto.fromEntity);
+      .then(ChatDto.fromEntity);
 
-    await this.cacheManager.set(cacheKey, data);
+    if (data) {
+      await this.cacheManager.set(cacheKey, data);
+    }
 
     return data;
   }
@@ -54,7 +57,7 @@ export class ChatService {
         },
         chatRepository,
       )
-      .then(RcsAccountDto.fromEntity);
+      .then(ChatDto.fromEntity);
 
     return data;
   }

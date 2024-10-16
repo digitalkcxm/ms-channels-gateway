@@ -5,11 +5,10 @@ import { EntityManagerModule } from '@/modules/entity-manager/entity-manager.mod
 import { MessageModule } from '@/modules/message/message.module';
 
 import { PontalTechRcsWebhookController } from './portal-tech/pontal-tech-rcs-webhook.controller';
-import { PontalTechRcsWebhookService } from './portal-tech/pontal-tech-rcs-webhook.service';
 
 @Module({
   imports: [DatabaseModule, EntityManagerModule, MessageModule],
   controllers: [PontalTechRcsWebhookController],
-  providers: [PontalTechRcsWebhookService],
+  providers: [],
 })
 export class WebhooksModule {}

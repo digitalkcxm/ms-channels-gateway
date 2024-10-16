@@ -31,7 +31,9 @@ export class RcsAccountService {
       .getById(id, broker)
       .then(RcsAccountDto.fromEntity);
 
-    await this.cacheManager.set(cacheKey, data);
+    if (data) {
+      await this.cacheManager.set(cacheKey, data);
+    }
 
     return data;
   }
@@ -53,7 +55,9 @@ export class RcsAccountService {
       .getByReference(referenceId, broker)
       .then(RcsAccountDto.fromEntity);
 
-    await this.cacheManager.set(cacheKey, data);
+    if (data) {
+      await this.cacheManager.set(cacheKey, data);
+    }
 
     return data;
   }
@@ -67,8 +71,11 @@ export class RcsAccountService {
   async update(id: string, entity: UpdateRcsAccountDto) {
     const data = await this.rcsAccountRepository.update(id, entity.toEntity());
 
-    const cacheKey = `rcs-account-${id}`;
+    const cacheKey = `rcs-account-${id}-${entity.broker}`;
     await this.cacheManager.del(cacheKey);
+    await this.cacheManager.del(
+      `rcs-account-reference-${entity.referenceId}-${entity.broker}`,
+    );
 
     return data;
   }
@@ -76,7 +83,6 @@ export class RcsAccountService {
   async delete(id: string) {
     await this.rcsAccountRepository.delete(id);
 
-    const cacheKey = `rcs-account-${id}`;
-    await this.cacheManager.del(cacheKey);
+    await this.cacheManager.del(`rcs-account-${id}-*`);
   }
 }

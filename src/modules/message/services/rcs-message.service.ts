@@ -16,7 +16,7 @@ import { MessageRepository } from '@/modules/database/rcs/repositories/message.r
 import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/services/channel-config.service';
 import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service';
 
-import { InboundProducer } from '../producers/inbound.producer';
+import { SyncProducer } from '../producers/sync.producer';
 
 @Injectable()
 export class RcsMessageService {
@@ -24,7 +24,7 @@ export class RcsMessageService {
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly channelConfigService: ChannelConfigService,
     private readonly chatService: ChatService,
-    private readonly inboundProducer: InboundProducer,
+    private readonly syncProducer: SyncProducer,
     private readonly messageRepository: MessageRepository,
   ) {}
 
@@ -47,7 +47,11 @@ export class RcsMessageService {
       const message = await this.messageRepository.create({
         brokerMessageId,
         direction,
-        rawMessage: rcsMessage,
+        rawMessage: {
+          type: rcsMessage.messageType,
+          [rcsMessage.messageType]:
+            rcsMessage.content?.[rcsMessage.messageType],
+        },
         status,
         chat,
         errorMessage,
@@ -104,6 +108,8 @@ export class RcsMessageService {
       const messageRepository =
         queryRunner.manager.getRepository(MessageEntity);
 
+      this.logger.debug(message, 'replyMessage :: Raw Message');
+
       const dbMessage = await this.messageRepository.create(
         {
           brokerMessageId,
@@ -158,9 +164,13 @@ export class RcsMessageService {
         'syncStatus',
       );
 
+      const errorMessage =
+        newStatus === MessageStatus.ERROR ? incomingMessage.message : null;
+
       if (newStatus !== message.status) {
         const updatedMessage = await this.messageRepository.update(message.id, {
           status: newStatus,
+          errorMessage,
         });
 
         const notifyMessage: SyncModel = SyncMessageMapper.fromRcsInboundModel(
@@ -188,7 +198,7 @@ export class RcsMessageService {
 
     this.logger.debug({ companyToken, model }, 'notify');
 
-    await this.inboundProducer.publish(companyToken, model);
+    await this.syncProducer.publish(companyToken, model);
   }
 
   private getNewStatus(currentStatus: MessageStatus, newStatus: MessageStatus) {

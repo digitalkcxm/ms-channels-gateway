@@ -8,6 +8,7 @@ import { EntityManagerModule } from '@/modules/entity-manager/entity-manager.mod
 import { MessageController } from './message.controller';
 import { InboundProducer } from './producers/inbound.producer';
 import { OutboundProducer } from './producers/outbound.producer';
+import { SyncProducer } from './producers/sync.producer';
 import { RcsMessageService } from './services/rcs-message.service';
 
 @Module({
@@ -19,7 +20,12 @@ import { RcsMessageService } from './services/rcs-message.service';
     EntityManagerModule,
   ],
   controllers: [MessageController],
-  providers: [InboundProducer, RcsMessageService, OutboundProducer],
-  exports: [RcsMessageService],
+  providers: [
+    SyncProducer,
+    RcsMessageService,
+    InboundProducer,
+    OutboundProducer,
+  ],
+  exports: [RcsMessageService, InboundProducer],
 })
 export class MessageModule {}

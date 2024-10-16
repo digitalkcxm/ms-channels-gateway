@@ -1,24 +1,34 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 
-import { SyncModel } from '@/models/sync-message.model';
+import { EXCHANGE_NAMES, QUEUE_MESSAGE_HEADERS } from '@/config/constants';
+import { InboundMessage } from '@/models/inbound-message.model';
 
 @Injectable()
 export class InboundProducer {
   constructor(private readonly amqpConnection: AmqpConnection) {}
 
-  async publish(companyToken: string, message: SyncModel) {
-    const queueName = `ms-channels-gateway.${companyToken}`;
+  async publish(message: InboundMessage, retryCount = 0) {
+    const { broker, channel } = message;
 
-    const channel = this.amqpConnection.channel;
+    const rabbitChannel = this.amqpConnection.channel;
 
-    await channel.assertQueue(queueName);
+    await rabbitChannel.assertExchange(EXCHANGE_NAMES.INBOUND, 'topic', {
+      autoDelete: true,
+      durable: true,
+      alternateExchange: EXCHANGE_NAMES.INBOUND_DLX,
+    });
 
-    const sentToQueue = channel.sendToQueue(
-      queueName,
+    const sentToQueue = rabbitChannel.publish(
+      EXCHANGE_NAMES.INBOUND,
+      `${channel}.${broker}`,
       Buffer.from(JSON.stringify(message)),
       {
         persistent: true,
+        mandatory: true,
+        headers: {
+          [QUEUE_MESSAGE_HEADERS.X_RETRY_COUNT]: retryCount,
+        },
       },
     );
 
