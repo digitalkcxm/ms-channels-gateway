@@ -34,6 +34,7 @@ export class RcsMessageService {
     channelConfigId: string,
     direction: MessageDirection,
     status: MessageStatus,
+    recipient: string,
     rcsMessage: RcsMessageModel,
     chat: {
       id?: string;
@@ -46,6 +47,7 @@ export class RcsMessageService {
     try {
       const message = await this.messageRepository.create({
         brokerMessageId,
+        recipient,
         direction,
         rawMessage: {
           type: rcsMessage.messageType,
@@ -90,6 +92,7 @@ export class RcsMessageService {
       direction,
       status,
       message,
+      recipient,
     } = inboundMessage;
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -117,6 +120,7 @@ export class RcsMessageService {
           direction,
           rawMessage: message,
           status,
+          recipient,
         },
         messageRepository,
       );

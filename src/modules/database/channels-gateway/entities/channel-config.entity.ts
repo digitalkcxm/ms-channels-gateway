@@ -33,6 +33,12 @@ export class ChannelConfigEntity {
   @Column()
   companyToken: string;
 
+  @Column({ default: 'No name' })
+  name: string;
+
+  @Column({ nullable: true })
+  description?: string;
+
   @Column({
     type: 'enum',
     enumName: 'channel_type',

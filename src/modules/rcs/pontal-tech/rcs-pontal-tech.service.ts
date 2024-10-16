@@ -62,74 +62,55 @@ export class RcsPontalTechService {
       //TODO
       //validaçao se o usuario pode ou nao enviar o tipo de mensagem com a conta atual
 
-      try {
-        if (type === 'basic') {
-          const data = await lastValueFrom(
-            this.pontalTechRcsIntegrationService.sendRcsBasicMessage(model),
-          );
-
-          this.logger.debug(data, 'sendMessage :: Pontal Tech API response');
-
-          await Promise.all(
-            data.messages.map((dataMessage) =>
-              this.rcsMessageService
-                .outboundMessage(
-                  channelConfigId,
-                  MessageDirection.OUTBOUND,
-                  MessageStatus.QUEUED,
-                  message,
-                  {
-                    id: message.chatId,
-                    brokerChatId: dataMessage.session_id,
-                    rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
-                  },
-                  dataMessage.id,
-                )
-                .then((savedMessage) => {
-                  this.logger.debug(
-                    savedMessage,
-                    'sendMessage :: saved message',
-                  );
-                }),
-            ),
-          );
-
-          return;
-        }
-
-        if (type === 'standard') {
-          const data = await lastValueFrom(
-            this.pontalTechRcsIntegrationService.sendRcsSingleMessage(model),
-          );
-
-          this.logger.log(data, 'rcsPontalTechHandler :: data');
-
-          return;
-        }
-
-        this.logger.warn(
-          message,
-          'rcsPontalTechHandler :: Message type not supported',
+      if (type === 'basic') {
+        const data = await lastValueFrom(
+          this.pontalTechRcsIntegrationService.sendRcsBasicMessage(model),
         );
-      } catch (error) {
-        this.logger.error(error, 'sendMessage');
 
-        await this.rcsMessageService.outboundMessage(
-          channelConfigId,
-          MessageDirection.OUTBOUND,
-          MessageStatus.ERROR,
-          message,
-          {
-            id: message.chatId,
-            rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
-          },
-          undefined,
-          error.message,
+        this.logger.debug(data, 'sendMessage :: Pontal Tech API response');
+
+        await Promise.all(
+          data.messages.map((dataMessage) =>
+            this.rcsMessageService
+              .outboundMessage(
+                channelConfigId,
+                MessageDirection.OUTBOUND,
+                MessageStatus.QUEUED,
+                dataMessage.number,
+                message,
+                {
+                  id: message.chatId,
+                  brokerChatId: dataMessage.session_id,
+                  rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
+                },
+                dataMessage.id,
+              )
+              .then((savedMessage) => {
+                this.logger.debug(savedMessage, 'sendMessage :: saved message');
+              }),
+          ),
         );
+
+        return;
       }
+
+      if (type === 'standard') {
+        const data = await lastValueFrom(
+          this.pontalTechRcsIntegrationService.sendRcsSingleMessage(model),
+        );
+
+        this.logger.log(data, 'rcsPontalTechHandler :: data');
+
+        return;
+      }
+
+      this.logger.warn(
+        message,
+        'rcsPontalTechHandler :: Message type not supported',
+      );
     } catch (error) {
-      this.logger.error(error, 'rcsPontalTechHandler');
-      this.logger.debug(message, 'rcsPontalTechHandler :: error :: message');
+      this.logger.error(error, 'sendMessage');
+      this.logger.debug(message, 'sendMessage :: error :: message');
 
       throw error;
     }
@@ -175,6 +156,7 @@ export class RcsPontalTechService {
           },
       rcsAccountId: chat.rcsAccountId,
       status,
+      recipient: webhook.user_id,
     };
 
     this.logger.debug(message, 'message');

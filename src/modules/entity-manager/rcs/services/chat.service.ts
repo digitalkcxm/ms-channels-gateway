@@ -19,7 +19,10 @@ export class ChatService {
       throw new BadRequestException('BrokerChatId is required');
     }
 
-    const cacheKey = `channels-gateway-chat-${brokerChatId}-${includeRcsAccount}`;
+    const cacheKey = CacheKeyBuilder.getByBrokerChat({
+      brokerChatId,
+      includeRcsAccount,
+    });
 
     const cached = await this.cacheManager.get<ChatDto>(cacheKey);
 
@@ -60,5 +63,23 @@ export class ChatService {
       .then(ChatDto.fromEntity);
 
     return data;
+  }
+}
+
+class CacheKeyBuilder {
+  static getByBrokerChat({
+    brokerChatId,
+    includeRcsAccount,
+    remove,
+  }: {
+    brokerChatId: string;
+    includeRcsAccount?: boolean;
+    remove?: boolean;
+  }) {
+    if (remove) {
+      return `ms-channels-gateway:chat:brokerChat-${brokerChatId}-*`;
+    }
+
+    return `ms-channels-gateway:chat:brokerChat-${brokerChatId}-includeRcsAccount-${includeRcsAccount}`;
   }
 }

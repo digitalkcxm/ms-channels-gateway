@@ -7,4 +7,5 @@ export type RcsInboundMessage = {
   direction: MessageDirection;
   status: MessageStatus;
   message?: any;
+  recipient: string;
 };

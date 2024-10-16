@@ -35,6 +35,9 @@ export class MessageEntity {
   @Column({ nullable: true })
   brokerMessageId?: string;
 
+  @Column()
+  recipient: string;
+
   @Column({
     type: 'enum',
     enum: MessageDirection,

@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsEmpty, IsEnum, IsString, IsUUID } from 'class-validator';
+import {
+  IsArray,
+  IsEmpty,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { DeepPartial } from 'typeorm';
 
 import { BrokerType, ChannelType } from '@/models/enums';
@@ -12,6 +19,13 @@ export class ChannelConfigDto {
   @IsUUID()
   @IsEmpty()
   id: string;
+
+  @IsString()
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
 
   @IsEnum(ChannelType)
   channel: ChannelType;

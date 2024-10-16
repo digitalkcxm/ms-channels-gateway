@@ -14,7 +14,7 @@ export class ChannelConfigService {
   ) {}
 
   async getById(id: string, includeLinks = true) {
-    const cacheKey = `channel-config-${id}-${includeLinks}`;
+    const cacheKey = CacheKeyBuilder.getById({ id, includeLinks });
 
     const cached = await this.cacheManager.get<ChannelConfigDto>(cacheKey);
 
@@ -34,7 +34,7 @@ export class ChannelConfigService {
   }
 
   async getAllByCompany(companyToken: string) {
-    const cacheKey = `channel-configs-by-company-${companyToken}`;
+    const cacheKey = CacheKeyBuilder.getAllByCompany({ companyToken });
 
     const cached = await this.cacheManager.get<ChannelConfigDto[]>(cacheKey);
 
@@ -58,8 +58,15 @@ export class ChannelConfigService {
       .create(entity.toEntity({ companyToken }))
       .then(ChannelConfigDto.fromEntity);
 
-    await this.cacheManager.del(`channel-configs-by-company-${companyToken}`);
-    await this.cacheManager.del(`channel-config-${data.id}-*`);
+    await this.cacheManager.del(
+      CacheKeyBuilder.getAllByCompany({ companyToken }),
+    );
+    await this.cacheManager.del(
+      CacheKeyBuilder.getById({
+        id: data.id,
+        remove: true,
+      }),
+    );
 
     return data;
   }
@@ -74,8 +81,15 @@ export class ChannelConfigService {
       entity.toEntity({ companyToken }),
     );
 
-    await this.cacheManager.del(`channel-configs-by-company-${companyToken}`);
-    await this.cacheManager.del(`channel-config-${id}-*`);
+    await this.cacheManager.del(
+      CacheKeyBuilder.getAllByCompany({ companyToken }),
+    );
+    await this.cacheManager.del(
+      CacheKeyBuilder.getById({
+        id,
+        remove: true,
+      }),
+    );
 
     return data;
   }
@@ -83,7 +97,36 @@ export class ChannelConfigService {
   async delete(companyToken: string, id: string) {
     await this.channelConfigRepository.delete(companyToken, id);
 
-    await this.cacheManager.del(`channel-configs-by-company-${companyToken}`);
-    await this.cacheManager.del(`channel-config-${id}-*`);
+    await this.cacheManager.del(
+      CacheKeyBuilder.getAllByCompany({ companyToken }),
+    );
+    await this.cacheManager.del(
+      CacheKeyBuilder.getById({
+        id,
+        remove: true,
+      }),
+    );
+  }
+}
+
+class CacheKeyBuilder {
+  static getById({
+    id,
+    includeLinks,
+    remove,
+  }: {
+    id: string;
+    includeLinks?: boolean;
+    remove?: boolean;
+  }) {
+    if (remove) {
+      return `ms-channels-gateway:channel-config:id-${id}-*`;
+    }
+
+    return `ms-channels-gateway:channel-config:id-${id}-includeLinks-${includeLinks}`;
+  }
+
+  static getAllByCompany({ companyToken }: { companyToken: string }) {
+    return `ms-channels-gateway:channel-config:company-${companyToken}`;
   }
 }

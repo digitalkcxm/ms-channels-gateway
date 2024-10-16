@@ -19,7 +19,7 @@ export class RcsAccountService {
       throw new BadRequestException('Broker is required');
     }
 
-    const cacheKey = `rcs-account-${id}-${broker}`;
+    const cacheKey = CacheKeyBuilder.getById({ id, broker });
 
     const cached = await this.cacheManager.get<RcsAccountDto>(cacheKey);
 
@@ -43,7 +43,7 @@ export class RcsAccountService {
       throw new BadRequestException('Broker is required');
     }
 
-    const cacheKey = `rcs-account-reference-${referenceId}-${broker}`;
+    const cacheKey = CacheKeyBuilder.getByReference({ referenceId, broker });
 
     const cached = await this.cacheManager.get<RcsAccountDto>(cacheKey);
 
@@ -71,10 +71,12 @@ export class RcsAccountService {
   async update(id: string, entity: UpdateRcsAccountDto) {
     const data = await this.rcsAccountRepository.update(id, entity.toEntity());
 
-    const cacheKey = `rcs-account-${id}-${entity.broker}`;
-    await this.cacheManager.del(cacheKey);
+    await this.cacheManager.del(CacheKeyBuilder.getById({ id, remove: true }));
     await this.cacheManager.del(
-      `rcs-account-reference-${entity.referenceId}-${entity.broker}`,
+      CacheKeyBuilder.getByReference({
+        referenceId: entity.referenceId,
+        remove: true,
+      }),
     );
 
     return data;
@@ -83,6 +85,40 @@ export class RcsAccountService {
   async delete(id: string) {
     await this.rcsAccountRepository.delete(id);
 
-    await this.cacheManager.del(`rcs-account-${id}-*`);
+    await this.cacheManager.del(CacheKeyBuilder.getById({ id, remove: true }));
+  }
+}
+
+class CacheKeyBuilder {
+  static getById({
+    id,
+    broker,
+    remove,
+  }: {
+    id: string;
+    broker?: string;
+    remove?: boolean;
+  }) {
+    if (remove) {
+      return `ms-channels-gateway:rcs-account:id-${id}:*`;
+    }
+
+    return `ms-channels-gateway:rcs-account:id-${id}:broker:${broker}`;
+  }
+
+  static getByReference({
+    referenceId,
+    broker,
+    remove,
+  }: {
+    referenceId: string;
+    broker?: string;
+    remove?: boolean;
+  }) {
+    if (remove) {
+      return `ms-channels-gateway:rcs-account:reference-${referenceId}-*`;
+    }
+
+    return `ms-channels-gateway:rcs-account:reference-${referenceId}-broker-${broker}`;
   }
 }

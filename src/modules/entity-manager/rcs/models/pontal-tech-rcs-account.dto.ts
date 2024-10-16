@@ -1,4 +1,4 @@
-import { IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 import { DeepPartial } from 'typeorm';
 
 import { PontalTechRcsAccountEntity } from '@/modules/database/rcs/entities/pontal-tech-rcs-account.entity';
@@ -8,7 +8,8 @@ export class PontalTechRcsAccountDto {
   rcsAccountId: string;
 
   @IsUUID()
-  apiKey: string;
+  @IsOptional()
+  apiKey?: string;
 
   @IsString()
   pontalTechAccountId: string;
