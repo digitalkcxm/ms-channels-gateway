@@ -17,7 +17,13 @@ import { RcsAccountService } from '@/modules/entity-manager/rcs/services/rcs-acc
 import { RcsMessageService } from '@/modules/message/services/rcs-message.service';
 
 const TYPE_TO_STATUS = {
-  text: MessageStatus.SENT,
+  audio: MessageStatus.DELIVERED,
+  contact: MessageStatus.DELIVERED,
+  document: MessageStatus.DELIVERED,
+  image: MessageStatus.DELIVERED,
+  location: MessageStatus.DELIVERED,
+  text: MessageStatus.DELIVERED,
+  video: MessageStatus.DELIVERED,
   DELIVERED: MessageStatus.DELIVERED,
   READ: MessageStatus.READ,
   EXCEPTION: MessageStatus.ERROR,
@@ -150,9 +156,8 @@ export class RcsPontalTechService {
       message: isError
         ? webhook.message
         : {
-            type: webhook?.message?.contentType,
-            [webhook.message?.contentType]:
-              webhook?.message?.[webhook?.message?.contentType],
+            type: webhook.type,
+            [webhook.type]: webhook.message?.[webhook.type],
           },
       rcsAccountId: chat.rcsAccountId,
       status,
