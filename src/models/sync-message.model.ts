@@ -2,10 +2,16 @@ import { MessageDirection, MessageStatus } from '@/models/enums';
 
 import { RcsInboundMessage } from './rcs-inbound-message.model';
 import {
-  RcsMessageAllModels,
-  RcsMessageModel,
-  RcsMessageType,
-} from './rsc-message.model';
+  RcsOutboundMessageCarouselContentDto,
+  RcsOutboundMessageDto,
+  RcsOutboundMessageImageContentDto,
+  RcsOutboundMessagePdfContentDto,
+  RcsOutboundMessageRichCardContentDto,
+  RcsOutboundMessageTextContentDto,
+  RcsOutboundMessageType,
+  RcsOutboundMessageVideoContentDto,
+} from './rsc-outbound-message.dto';
+import { OutboundMessagePayload } from './outbound-message.model';
 
 export enum SyncEventType {
   MESSAGE = 'message',
@@ -46,12 +52,26 @@ export type SyncFileMessageModel = {
   url: string;
 };
 
+export type SyncRichCardMessageModel = {
+  type: 'richCard';
+  fileUrl: string;
+  description?: string;
+  title: string;
+};
+
+export type SyncCarouselMessageModel = {
+  type: 'carousel';
+  content: { fileUrl: string; description?: string; title: string }[];
+};
+
 export type SyncMessageModel =
   | SyncTextMessageModel
   | SyncImageMessageModel
   | SyncVideoMessageModel
   | SyncAudioMessageModel
-  | SyncFileMessageModel;
+  | SyncFileMessageModel
+  | SyncRichCardMessageModel
+  | SyncCarouselMessageModel;
 
 export type SyncModel = {
   eventType: SyncEventType;
@@ -65,35 +85,6 @@ export type SyncModel = {
 };
 
 export class SyncMessageMapper {
-  public static fromRcsMessageModel(
-    eventType: SyncEventType,
-    direction: MessageDirection,
-    status: MessageStatus,
-    chatId: string,
-    messageId: string,
-    date: Date,
-    messageModel: RcsMessageModel,
-    errorMessage?: string,
-  ): SyncModel {
-    const message: SyncMessageModel =
-      SyncMessageMapper.parser[messageModel.messageType]?.(messageModel);
-
-    if (!message) {
-      throw new Error('Message type not supported');
-    }
-
-    return {
-      eventType,
-      direction,
-      status,
-      message,
-      chatId,
-      date,
-      messageId,
-      errorMessage,
-    };
-  }
-
   public static fromRcsInboundModel(
     eventType: SyncEventType,
     direction: MessageDirection,
@@ -119,51 +110,93 @@ export class SyncMessageMapper {
     };
   }
 
-  private static parser: {
-    [type in RcsMessageType]: (
-      inboundMessage: RcsMessageAllModels,
-    ) => SyncMessageModel | null;
-  } = {
-    text: (inboundMessage: RcsMessageAllModels) => {
-      if (inboundMessage.messageType === 'text' && !inboundMessage.content.text)
+  public static fromRcsOutboundMessageDto(
+    eventType: SyncEventType,
+    direction: MessageDirection,
+    status: MessageStatus,
+    chatId: string,
+    messageId: string,
+    date: Date,
+    payload: OutboundMessagePayload,
+    errorMessage?: string,
+  ): SyncModel {
+    if (payload as RcsOutboundMessageDto) {
+      const message =
+        SyncMessageMapper.DTO_TO_SYNC_MODEL_MAPPER[
+          payload.content.messageType
+        ]?.(payload);
+
+      if (!message) {
         return null;
+      }
 
       return {
-        type: 'text',
-        text:
-          inboundMessage.messageType === 'text' && inboundMessage.content.text,
+        eventType,
+        direction,
+        status,
+        chatId,
+        messageId,
+        date,
+        message,
+        errorMessage,
+      };
+    }
+
+    return null;
+  }
+
+  private static DTO_TO_SYNC_MODEL_MAPPER: {
+    [key in RcsOutboundMessageType]: (
+      dto: RcsOutboundMessageDto,
+    ) => SyncMessageModel;
+  } = {
+    carousel: (dto: RcsOutboundMessageDto) => {
+      const content = dto.content as RcsOutboundMessageCarouselContentDto;
+      return {
+        type: 'carousel',
+        content: content.items.map(({ title, description, fileUrl }) => ({
+          title,
+          description,
+          fileUrl,
+        })),
       };
     },
-    image: (inboundMessage: RcsMessageAllModels) => {
-      if (inboundMessage.messageType === 'image' && !inboundMessage.content.url)
-        return null;
-
+    image: (dto: RcsOutboundMessageDto) => {
+      const content = dto.content as RcsOutboundMessageImageContentDto;
       return {
         type: 'image',
-        url:
-          inboundMessage.messageType === 'image' && inboundMessage.content.url,
+        url: content.url,
       };
     },
-    video: (inboundMessage: RcsMessageAllModels) => {
-      if (inboundMessage.messageType === 'video' && !inboundMessage.content.url)
-        return null;
-
-      return {
-        type: 'video',
-        url:
-          inboundMessage.messageType === 'video' && inboundMessage.content.url,
-      };
-    },
-    pdf: (inboundMessage: RcsMessageAllModels) => {
-      if (inboundMessage.messageType === 'pdf' && !inboundMessage.content.url)
-        return null;
-
+    pdf: (dto: RcsOutboundMessageDto) => {
+      const content = dto.content as RcsOutboundMessagePdfContentDto;
       return {
         type: 'file',
-        url: inboundMessage.messageType === 'pdf' && inboundMessage.content.url,
+        url: content.url,
       };
     },
-    richCard: () => null,
-    carousel: () => null,
+    text: (dto: RcsOutboundMessageDto) => {
+      const content = dto.content as RcsOutboundMessageTextContentDto;
+      return {
+        type: 'text',
+        text: content.text,
+      };
+    },
+    video: (dto: RcsOutboundMessageDto) => {
+      const content = dto.content as RcsOutboundMessageVideoContentDto;
+      return {
+        type: 'video',
+        url: content.url,
+      };
+    },
+    'rich-card': (dto: RcsOutboundMessageDto) => {
+      const content = dto.content as RcsOutboundMessageRichCardContentDto;
+      return {
+        type: 'richCard',
+        title: content.title,
+        description: content.description,
+        fileUrl: content.fileUrl,
+      };
+    },
   };
 }

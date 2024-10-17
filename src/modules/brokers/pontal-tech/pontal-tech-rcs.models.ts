@@ -1,4 +1,14 @@
-import { RcsMessageModel } from '@/models/rsc-message.model';
+import { OutboundMessageDto } from '@/models/outbound-message.model';
+import {
+  RcsOutboundMessageCarouselContentDto,
+  RcsOutboundMessageDto,
+  RcsOutboundMessageImageContentDto,
+  RcsOutboundMessagePdfContentDto,
+  RcsOutboundMessageRichCardContentDto,
+  RcsOutboundMessageTextContentDto,
+  RcsOutboundMessageType,
+  RcsOutboundMessageVideoContentDto,
+} from '@/models/rsc-outbound-message.dto';
 
 export type PontalTechRcsMessageTextContent = {
   text: {
@@ -65,8 +75,8 @@ export type PontalTechRcsMessageApiRequest = {
   account: string;
   messages: {
     number: string;
-    vars: {
-      chatId: string;
+    vars?: {
+      [key: string]: string;
     };
   }[];
   content: PontalTechRcsBasicContent | PontalTechRcsSingleContent;
@@ -83,7 +93,20 @@ export type PontalTechSendRcsApiResponse = {
 
 export type PontalTechWebhookDirection = 'inbound' | 'outbound';
 
-export type PontalTechWebhookType = 'text' | 'DELIVERED' | 'READ';
+export type PontalTechWebhookType =
+  | 'audio'
+  | 'carousel'
+  | 'contact'
+  | 'document'
+  | 'image'
+  | 'location'
+  | 'richCard'
+  | 'text'
+  | 'video'
+  | 'bloqueado por duplicidade'
+  | 'DELIVERED'
+  | 'READ'
+  | 'EXCEPTION';
 
 export type PontalTechWebhookContentType =
   | 'text'
@@ -112,106 +135,109 @@ export type PontalTechWebhookApiRequest = {
 };
 
 export class PontalTechRcsApiRequestMapper {
-  public static fromMessageModel(
+  public static fromOutboundMessageDto(
     account: string,
-    message: RcsMessageModel,
-  ): [string, PontalTechRcsMessageApiRequest] {
-    if (message.messageType === 'text' && message.content.text.length > 5000) {
-      throw new Error('Text message too long. Max 5000 characters');
-    }
+    dto: OutboundMessageDto,
+  ): [
+    isValid: boolean,
+    type?: string,
+    model?: PontalTechRcsMessageApiRequest,
+    errorMessage?: string,
+  ] {
+    const { recipients, payload } = dto;
 
-    if (
-      message.messageType === 'richCard' &&
-      message.content.description?.length > 2000
-    ) {
-      throw new Error('Content description too long. Max 2000 characters');
-    }
+    if (payload as RcsOutboundMessageDto) {
+      const content =
+        PontalTechRcsApiRequestMapper.parseOutboundContent(payload);
 
-    const type =
-      message.messageType !== 'text' ||
-      (message.messageType === 'text' && message.content.text.length > 160)
-        ? 'standard'
-        : 'basic';
+      if (!content) {
+        return [false, null, null, 'Content can not be parsed'];
+      }
 
-    if (message.messageType === 'text' && type === 'basic') {
+      const type =
+        !(payload.content as RcsOutboundMessageTextContentDto) ||
+        (payload.content as RcsOutboundMessageTextContentDto).text.length > 160
+          ? 'standard'
+          : 'basic';
+
       return [
+        true,
         type,
         {
           account,
-          messages: message.recipients.map((number) => ({
+          messages: recipients.map((number) => ({
             number,
-            vars: {
-              chatId: message.chatId,
-            },
           })),
-          content: {
-            text: {
-              message: message.content.text,
-            },
-          },
+          content,
         },
       ];
     }
 
-    return [
-      type,
-      {
-        account,
-        messages: message.recipients.map((number) => ({
-          number,
-          vars: {
-            chatId: message.chatId,
-          },
-        })),
-        content: PontalTechRcsApiRequestMapper.parseContent(message),
-      },
-    ];
+    return [false, null, null, 'Content can not be parsed'];
   }
 
-  private static parseContent(
-    model: RcsMessageModel,
-  ): PontalTechRcsMessageContentsAll {
-    switch (model.messageType) {
-      case 'text':
-        return {
-          text: {
-            message: model.content.text,
-          },
-        };
-      case 'image':
-        return {
-          image: {
-            url: model.content.url,
-          },
-        };
-      case 'video':
-        return {
-          video: {
-            url: model.content.url,
-          },
-        };
-      case 'pdf':
-        return {
-          pdf: {
-            url: model.content.url,
-          },
-        };
-      case 'richCard':
-        return {
-          richCard: {
-            title: model.content.title,
-            description: model.content.description,
-            fileUrl: model.content.fileUrl,
-          },
-        };
-      case 'carousel':
-        return {
-          carousel: model.content.map((item) => ({
-            title: item.title,
-            fileUrl: item.fileUrl,
-            description: item.description,
-          })),
-        };
-    }
+  static DTO_TO_CONTENT_MAP: {
+    [messageType in RcsOutboundMessageType]: (
+      payload: RcsOutboundMessageDto,
+    ) => PontalTechRcsMessageContentsAll;
+  } = {
+    carousel: (payload: RcsOutboundMessageDto) => {
+      const content = payload.content as RcsOutboundMessageCarouselContentDto;
+      return {
+        carousel: content?.items?.map((item) => ({
+          title: item.title,
+          fileUrl: item.fileUrl,
+          description: item.description,
+        })),
+      };
+    },
+    image: (payload: RcsOutboundMessageDto) => {
+      const content = payload.content as RcsOutboundMessageImageContentDto;
+      return {
+        image: {
+          url: content.url,
+        },
+      };
+    },
+    pdf: (payload: RcsOutboundMessageDto) => {
+      const content = payload.content as RcsOutboundMessagePdfContentDto;
+      return {
+        pdf: {
+          url: content.url,
+        },
+      };
+    },
+    text: (payload: RcsOutboundMessageDto) => {
+      const content = payload.content as RcsOutboundMessageTextContentDto;
+      return {
+        text: {
+          message: content.text,
+        },
+      };
+    },
+    video: (payload: RcsOutboundMessageDto) => {
+      const content = payload.content as RcsOutboundMessageVideoContentDto;
+      return {
+        video: {
+          url: content.url,
+        },
+      };
+    },
+    'rich-card': (payload: RcsOutboundMessageDto) => {
+      const content = payload.content as RcsOutboundMessageRichCardContentDto;
+      return {
+        richCard: {
+          title: content.title,
+          description: content.description,
+          fileUrl: content.fileUrl,
+        },
+      };
+    },
+  } as const;
+
+  private static parseOutboundContent(payload: RcsOutboundMessageDto) {
+    return PontalTechRcsApiRequestMapper.DTO_TO_CONTENT_MAP[
+      payload.content.messageType
+    ](payload);
   }
 }

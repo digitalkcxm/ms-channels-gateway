@@ -44,7 +44,8 @@ export class ChatService {
   async getOrCreateChat(
     brokerChatId: string,
     rcsAccountId: string,
-    chatRepository: Repository<ChatEntity>,
+    includeRcsAccount = false,
+    chatRepository?: Repository<ChatEntity>,
   ) {
     const existing = await this.getByBrokerChat(brokerChatId);
 
@@ -61,6 +62,10 @@ export class ChatService {
         chatRepository,
       )
       .then(ChatDto.fromEntity);
+
+    if (includeRcsAccount) {
+      return await this.getByBrokerChat(brokerChatId, includeRcsAccount);
+    }
 
     return data;
   }

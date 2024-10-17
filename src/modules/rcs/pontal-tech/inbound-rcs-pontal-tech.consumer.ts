@@ -9,14 +9,13 @@ import {
 } from '@/config/constants';
 import { BrokerType, ChannelType } from '@/models/enums';
 import { InboundMessage } from '@/models/inbound-message.model';
-import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service';
 import { InboundProducer } from '@/modules/message/producers/inbound.producer';
 import { RcsPontalTechService } from '@/modules/rcs/pontal-tech/rcs-pontal-tech.service';
+import { ChatNotFoundException } from '@/models/exceptions/chat-not-found.exception';
 
 @Injectable()
 export class InboundRcsPontalTechConsumer {
   constructor(
-    private readonly chatService: ChatService,
     private readonly inboundProducer: InboundProducer,
     private readonly rcsPontalTechService: RcsPontalTechService,
   ) {}
@@ -50,12 +49,18 @@ export class InboundRcsPontalTechConsumer {
       if (retryCount < 3) {
         try {
           await this.rcsPontalTechService.receiveMessage(message);
-        } catch (error) {
-          this.logger.warn(error, 'consume. retrying...');
-          this.inboundProducer.publish(message, retryCount + 1);
-        }
 
-        return;
+          return;
+        } catch (error) {
+          if (error instanceof ChatNotFoundException) {
+            this.logger.warn(error, 'consume :: retrying...');
+            await this.inboundProducer.publish(message, retryCount + 1);
+
+            return;
+          }
+
+          throw error;
+        }
       }
 
       throw new Error('Max retries reached');

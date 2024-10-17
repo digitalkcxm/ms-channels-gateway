@@ -39,7 +39,7 @@ export class PontalTechRcsIntegrationService {
 
   public sendRcsSingleMessage(model: PontalTechRcsMessageApiRequest) {
     return this.httpService
-      .post<PontalTechSendRcsApiResponse>('/api/v3/single', {
+      .post<PontalTechSendRcsApiResponse>('/api/v2/rcs', {
         ...model,
         callback: this.configService.getOrThrow<string>(
           'PONTALTECH_WEBHOOK_URL',

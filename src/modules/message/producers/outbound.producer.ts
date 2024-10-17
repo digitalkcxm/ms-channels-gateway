@@ -2,7 +2,7 @@ import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 
 import { EXCHANGE_NAMES } from '@/config/constants';
-import { OutboundMessage } from '@/models/outbound-message.model';
+import { OutboundMessageDto } from '@/models/outbound-message.model';
 import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/services/channel-config.service';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class OutboundProducer {
     private readonly channelConfigService: ChannelConfigService,
   ) {}
 
-  async publish(message: OutboundMessage) {
+  async publish(message: OutboundMessageDto) {
     const { channelConfigId } = message;
 
     const channelConfig =

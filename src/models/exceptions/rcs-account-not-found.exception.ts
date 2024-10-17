@@ -7,6 +7,8 @@ export class RcsAccountNotFoundException extends Error {
     public readonly channelConfigId: string,
     public readonly broker: BrokerType,
   ) {
-    super('RCS Account not found');
+    super(
+      `RCS Account not found for broker ${broker} with id ${channelConfigId}`,
+    );
   }
 }

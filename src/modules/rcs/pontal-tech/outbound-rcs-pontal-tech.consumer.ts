@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { CHANNELS_PREFETCH, EXCHANGE_NAMES } from '@/config/constants';
 import { BrokerType, ChannelType } from '@/models/enums';
-import { OutboundMessage } from '@/models/outbound-message.model';
+import { OutboundMessageDto } from '@/models/outbound-message.model';
 import { RcsPontalTechService } from '@/modules/rcs/pontal-tech/rcs-pontal-tech.service';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class OutboundRcsPontalTechConsumer {
       deadLetterExchange: EXCHANGE_NAMES.OUTBOUND_DLX,
     },
   })
-  public async consume(message: OutboundMessage) {
+  public async consume(message: OutboundMessageDto) {
     try {
       this.logger.debug(message, 'consume :: Message received');
       await this.rcsPontalTechService.sendMessage(message);

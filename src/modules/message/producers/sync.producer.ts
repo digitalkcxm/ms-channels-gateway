@@ -1,7 +1,7 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 
-import { SyncModel } from '@/models/sync-message.model';
+import { SyncEventType, SyncModel } from '@/models/sync-message.model';
 
 @Injectable()
 export class SyncProducer {
@@ -12,13 +12,18 @@ export class SyncProducer {
 
     const channel = this.amqpConnection.channel;
 
-    await channel.assertQueue(queueName);
+    await channel.assertQueue(queueName, {
+      durable: true,
+      autoDelete: false,
+      maxPriority: 5,
+    });
 
     const sentToQueue = channel.sendToQueue(
       queueName,
       Buffer.from(JSON.stringify(message)),
       {
         persistent: true,
+        priority: message.eventType === SyncEventType.MESSAGE ? 5 : 0,
       },
     );
 

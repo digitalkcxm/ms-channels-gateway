@@ -1,3 +1,28 @@
-import { RcsMessageModel } from './rsc-message.model';
+import { IsString, IsUUID, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export type OutboundMessage = RcsMessageModel;
+import { RcsOutboundMessageDto } from './rsc-outbound-message.dto';
+import { BaseOutboundMessageDto } from './outbound-base.model';
+
+export type OutboundMessagePayload = RcsOutboundMessageDto;
+
+export class OutboundMessageDto {
+  @IsUUID()
+  channelConfigId: string;
+
+  @IsUUID()
+  chatId: string;
+
+  @IsString({ each: true })
+  recipients: string[];
+
+  @ValidateNested()
+  @Type(() => BaseOutboundMessageDto, {
+    discriminator: {
+      property: 'type',
+      subTypes: [{ value: RcsOutboundMessageDto, name: 'rcs' }],
+    },
+    keepDiscriminatorProperty: true,
+  })
+  payload: OutboundMessagePayload;
+}

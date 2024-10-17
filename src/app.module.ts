@@ -15,7 +15,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ cache: true, isGlobal: true }),
     CacheModule.registerAsync({
       inject: [ConfigService],
       useFactory: async (configService: ConfigService<EnvVars>) => {

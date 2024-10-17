@@ -1,8 +1,9 @@
 import { Body, Controller, Post } from '@nestjs/common';
 
-import { OutboundMessage } from '@/models/outbound-message.model';
+import { OutboundMessageDto } from '@/models/outbound-message.model';
 
 import { OutboundProducer } from './producers/outbound.producer';
+import { RcsOutboundMessageDto } from '@/models/rsc-outbound-message.dto';
 
 @Controller('message')
 export class MessageController {
@@ -11,7 +12,7 @@ export class MessageController {
   @Post('publish')
   async publish(
     @Body()
-    body: OutboundMessage,
+    body: OutboundMessageDto,
   ) {
     return this.outboundProducer.publish(body);
   }
