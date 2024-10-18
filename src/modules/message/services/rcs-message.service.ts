@@ -13,6 +13,7 @@ import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service'
 
 import { SyncProducer } from '../producers/sync.producer';
 import { OutboundMessagePayload } from '@/models/outbound-message.model';
+import { MessageDto } from '@/modules/entity-manager/rcs/models/message.dto';
 
 @Injectable()
 export class RcsMessageService {
@@ -33,7 +34,7 @@ export class RcsMessageService {
     recipient: string,
     outboundMessagePayload: OutboundMessagePayload,
     chat: {
-      id?: string;
+      referenceChatId?: string;
       brokerChatId?: string;
       rcsAccountId: string;
     },
@@ -45,13 +46,21 @@ export class RcsMessageService {
         'outboundMessage :: outboundMessagePayload',
         outboundMessagePayload,
       );
-      const message = await this.messageRepository.create({
+
+      const dbChat = await this.chatService.getOrCreateChat(
+        chat.brokerChatId,
+        chat.rcsAccountId,
+        chat.referenceChatId,
+        true,
+      );
+
+      const dbMessage = await this.messageRepository.create({
         brokerMessageId,
         recipient,
         direction,
         rawMessage: outboundMessagePayload.content,
         status,
-        chat,
+        chatId: dbChat.id,
         errorMessage,
       });
 
@@ -60,16 +69,16 @@ export class RcsMessageService {
           eventType: SyncEventType.STATUS,
           direction,
           status,
-          chatId: chat.id,
-          messageId: message.id,
-          date: message.createdAt,
+          referenceChatId: dbChat.referenceChatId,
+          messageId: dbMessage.id,
+          date: dbMessage.createdAt,
           message: outboundMessagePayload.content,
           errorMessage,
         },
         channelConfigId,
       );
 
-      return message;
+      return dbMessage;
     } catch (error) {
       this.logger.error(error, 'outboundMessage');
       throw error;
@@ -82,16 +91,6 @@ export class RcsMessageService {
   ) {
     this.logger.debug(inboundMessage, 'replyMessage :: Message received');
 
-    const {
-      rcsAccountId,
-      brokerChatId,
-      brokerMessageId,
-      direction,
-      status,
-      message,
-      recipient,
-    } = inboundMessage;
-
     const queryRunner = this.dataSource.createQueryRunner();
 
     try {
@@ -99,9 +98,10 @@ export class RcsMessageService {
       await queryRunner.startTransaction();
 
       const chatRepository = queryRunner.manager.getRepository(ChatEntity);
-      const { id: chatId } = await this.chatService.getOrCreateChat(
-        brokerChatId,
-        rcsAccountId,
+      const dbChat = await this.chatService.getOrCreateChat(
+        inboundMessage.brokerChatId,
+        inboundMessage.rcsAccountId,
+        null,
         false,
         chatRepository,
       );
@@ -109,16 +109,16 @@ export class RcsMessageService {
       const messageRepository =
         queryRunner.manager.getRepository(MessageEntity);
 
-      this.logger.debug(message, 'replyMessage :: Raw Message');
+      this.logger.debug(inboundMessage.message, 'replyMessage :: Raw message');
 
       const dbMessage = await this.messageRepository.create(
         {
-          brokerMessageId,
-          chatId,
-          direction,
-          rawMessage: message,
-          status,
-          recipient,
+          brokerMessageId: inboundMessage.brokerMessageId,
+          chatId: dbChat.id,
+          direction: inboundMessage.direction,
+          rawMessage: inboundMessage.message,
+          status: inboundMessage.status,
+          recipient: inboundMessage.recipient,
         },
         messageRepository,
       );
@@ -128,10 +128,10 @@ export class RcsMessageService {
       await this.notify(
         {
           eventType: SyncEventType.STATUS,
-          direction,
-          status,
+          direction: inboundMessage.direction,
+          status: inboundMessage.status,
           message: inboundMessage.message,
-          chatId,
+          referenceChatId: dbChat.referenceChatId,
           date: dbMessage.createdAt,
           messageId: dbMessage.id,
         },
@@ -148,7 +148,8 @@ export class RcsMessageService {
 
   public async syncStatus(
     channelConfigId: string,
-    existingMessage: MessageEntity,
+    referenceChatId: string,
+    existingMessage: MessageDto,
     incomingMessage: RcsInboundMessage,
   ) {
     try {
@@ -184,10 +185,10 @@ export class RcsMessageService {
         await this.notify(
           {
             eventType: SyncEventType.STATUS,
-            direction: updatedMessage.direction,
+            direction: existingMessage.direction,
             status: newStatus,
-            chatId: updatedMessage.chatId,
-            messageId: updatedMessage.id,
+            referenceChatId,
+            messageId: existingMessage.id,
             date: updatedMessage.updatedAt,
             message: null,
             errorMessage,

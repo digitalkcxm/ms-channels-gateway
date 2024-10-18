@@ -21,6 +21,9 @@ export class ChatEntity {
   })
   id: string;
 
+  @Column('uuid')
+  referenceChatId: string;
+
   @Column({ nullable: true })
   rcsAccountId?: string;
 

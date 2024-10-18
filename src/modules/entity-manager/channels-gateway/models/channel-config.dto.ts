@@ -53,7 +53,7 @@ export class ChannelConfigDto {
       broker: this.broker,
       status: this.status,
       companyToken: this.companyToken,
-      links: this.links?.map((link) => link.toEntity()),
+      links: this.links?.map((link) => link?.toEntity()),
       ...override,
     };
   }

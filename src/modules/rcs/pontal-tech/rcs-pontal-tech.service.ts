@@ -7,18 +7,19 @@ import { InboundMessage } from '@/models/inbound-message.model';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
 import { PontalTechRcsV2IntegrationService } from '@/modules/brokers/pontal-tech/services/pontal-tech-rcs-v2-integration.service';
 import { PontalTechRcsApiRequestMapper } from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs.models';
-import { MessageRepository } from '@/modules/database/rcs/repositories/message.repository';
 import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service';
 import { RcsAccountService } from '@/modules/entity-manager/rcs/services/rcs-account.service';
 import { RcsMessageService } from '@/modules/message/services/rcs-message.service';
 import { SyncEventType } from '@/models/sync-message.model';
-import { ChatNotFoundException } from '@/models/exceptions/chat-not-found.exception';
+import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.exception';
 import { OutboundMessageDto } from '@/models/outbound-message.model';
 import {
   PontalTechWebhookApiRequest,
   PontalTechRcsWebhookType,
 } from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs-webhook.model';
 import { BaseRcsMessageContentDto } from '@/models/rsc-message.dto';
+import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.exception';
+import { MessageService } from '@/modules/entity-manager/rcs/services/message.service';
 
 const TYPE_TO_STATUS: {
   [key in PontalTechRcsWebhookType]: MessageStatus;
@@ -47,7 +48,7 @@ export class RcsPontalTechService {
     private readonly rcsAccountService: RcsAccountService,
 
     private readonly chatService: ChatService,
-    private readonly messageRepository: MessageRepository,
+    private readonly messageService: MessageService,
   ) {}
 
   private readonly logger = new Logger(RcsPontalTechService.name);
@@ -93,7 +94,7 @@ export class RcsPontalTechService {
           outboundMessageDto.recipients.join(','),
           outboundMessageDto.payload,
           {
-            id: outboundMessageDto.chatId,
+            referenceChatId: outboundMessageDto.referenceChatId,
             rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
           },
           undefined,
@@ -102,7 +103,7 @@ export class RcsPontalTechService {
 
         this.rcsMessageService.notify(
           {
-            chatId: outboundMessageDto.chatId,
+            referenceChatId: outboundMessageDto.referenceChatId,
             date: dbMessage.createdAt,
             direction: MessageDirection.OUTBOUND,
             eventType: SyncEventType.STATUS,
@@ -138,7 +139,7 @@ export class RcsPontalTechService {
                 dataMessage.number,
                 outboundMessageDto.payload,
                 {
-                  id: outboundMessageDto.chatId,
+                  referenceChatId: outboundMessageDto.referenceChatId,
                   brokerChatId: dataMessage.session_id,
                   rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
                 },
@@ -175,7 +176,7 @@ export class RcsPontalTechService {
                 dataMessage.number,
                 outboundMessageDto.payload,
                 {
-                  id: outboundMessageDto.chatId,
+                  referenceChatId: outboundMessageDto.referenceChatId,
                   brokerChatId: dataMessage.session_id,
                   rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
                 },
@@ -213,8 +214,8 @@ export class RcsPontalTechService {
     );
 
     if (!chat) {
-      this.logger.error(webhook, 'process :: chat not found');
-      throw new ChatNotFoundException(
+      this.logger.error(webhook, 'process :: chat not ready');
+      throw new ChatNotReadyException(
         webhook.reference,
         BrokerType.PONTAL_TECH,
       );
@@ -228,20 +229,32 @@ export class RcsPontalTechService {
     const message =
       BaseRcsMessageContentDto.fromPontalTechRcsWebhookApiRequest(webhook);
 
-    this.logger.debug(message, 'message');
+    const existingMessage = await this.messageService.getByBrokerMessage(
+      webhook.event_id,
+      chat.id,
+    );
 
-    const existingMessage = await this.messageRepository.getBy({
-      brokerMessageId: webhook.event_id,
-      chatId: chat.id,
-    });
+    if (
+      !existingMessage &&
+      ['single', 'DELIVERED', 'READ', 'EXCEPTION', 'ERROR'].includes(
+        webhook.type,
+      )
+    ) {
+      this.logger.error(webhook, 'process :: message not ready');
+      throw new MessageNotReadyException(
+        webhook.reference,
+        BrokerType.PONTAL_TECH,
+      );
+    }
 
     const rcsInboundMessage: RcsInboundMessage = {
       brokerChatId: webhook.reference,
       brokerMessageId: webhook.event_id,
       direction:
-        webhook.direction === 'inbound'
+        existingMessage?.direction ||
+        (webhook.direction === 'inbound'
           ? MessageDirection.INBOUND
-          : MessageDirection.OUTBOUND,
+          : MessageDirection.OUTBOUND),
       message,
       rcsAccountId: chat.rcsAccountId,
       status,
@@ -249,10 +262,12 @@ export class RcsPontalTechService {
     };
 
     this.logger.debug(rcsInboundMessage, 'rcsInboundMessage');
+    this.logger.debug(existingMessage, 'existingMessage');
 
     if (existingMessage) {
       await this.rcsMessageService.syncStatus(
         chat.rcsAccount.referenceId,
+        chat.referenceChatId,
         existingMessage,
         rcsInboundMessage,
       );

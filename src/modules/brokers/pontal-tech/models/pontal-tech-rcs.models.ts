@@ -103,8 +103,9 @@ export class PontalTechRcsApiRequestMapper {
       }
 
       const type =
-        !(payload.content as RcsMessageTextContentDto) ||
-        (payload.content as RcsMessageTextContentDto)?.text?.length > 160
+        payload.content?.messageType !== 'text' ||
+        (payload.content?.messageType === 'text' &&
+          (payload.content as RcsMessageTextContentDto)?.text?.length > 160)
           ? 'standard'
           : 'basic';
 

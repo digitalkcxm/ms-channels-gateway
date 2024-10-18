@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
@@ -6,6 +7,7 @@ import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
 import { ChatRepository } from '@/modules/database/rcs/repositories/chat.repository';
 
 import { ChatDto } from '../models/chat.dto';
+import { CreateChatDto } from '../models/create-chat.dto';
 
 @Injectable()
 export class ChatService {
@@ -44,30 +46,34 @@ export class ChatService {
   async getOrCreateChat(
     brokerChatId: string,
     rcsAccountId: string,
+    referenceChatId?: string,
     includeRcsAccount = false,
     chatRepository?: Repository<ChatEntity>,
   ) {
-    const existing = await this.getByBrokerChat(brokerChatId);
+    const existing = await this.getByBrokerChat(
+      brokerChatId,
+      includeRcsAccount,
+    );
 
     if (existing) {
       return existing;
     }
 
-    const data = await this.chatRepository
-      .create(
-        {
-          brokerChatId,
-          rcsAccountId,
-        },
-        chatRepository,
-      )
+    const chat = new CreateChatDto();
+    chat.brokerChatId = brokerChatId;
+    chat.rcsAccountId = rcsAccountId;
+    chat.referenceChatId =
+      referenceChatId || randomUUID({ disableEntropyCache: true });
+
+    await this.create(chat, chatRepository);
+
+    return await this.getByBrokerChat(brokerChatId, includeRcsAccount);
+  }
+
+  async create(entity: CreateChatDto, chatRepository?: Repository<ChatEntity>) {
+    return await this.chatRepository
+      .create(entity.toEntity(), chatRepository)
       .then(ChatDto.fromEntity);
-
-    if (includeRcsAccount) {
-      return await this.getByBrokerChat(brokerChatId, includeRcsAccount);
-    }
-
-    return data;
   }
 }
 

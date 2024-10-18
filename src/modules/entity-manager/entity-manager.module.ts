@@ -9,6 +9,7 @@ import { ChannelLinkService } from './channels-gateway/services/channel-link.ser
 import { RcsAccountController } from './rcs/controllers/rcs-account.controller';
 import { ChatService } from './rcs/services/chat.service';
 import { RcsAccountService } from './rcs/services/rcs-account.service';
+import { MessageService } from './rcs/services/message.service';
 
 @Module({
   imports: [DatabaseModule],
@@ -21,12 +22,14 @@ import { RcsAccountService } from './rcs/services/rcs-account.service';
     ChannelConfigService,
     ChannelLinkService,
     ChatService,
+    MessageService,
     RcsAccountService,
   ],
   exports: [
     ChannelConfigService,
     ChannelLinkService,
     ChatService,
+    MessageService,
     RcsAccountService,
   ],
 })

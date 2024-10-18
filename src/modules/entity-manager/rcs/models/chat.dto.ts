@@ -20,6 +20,9 @@ export class ChatDto {
   @IsUUID()
   brokerChatId: string;
 
+  @IsUUID()
+  referenceChatId: string;
+
   @IsDate()
   createdAt: Date;
 
@@ -32,10 +35,11 @@ export class ChatDto {
     return {
       id: this.id,
       brokerChatId: this.brokerChatId,
+      referenceChatId: this.referenceChatId,
       rcsAccountId: this.rcsAccountId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
-      rcsAccount: this.rcsAccount.toEntity(),
+      rcsAccount: this.rcsAccount?.toEntity(),
       ...override,
     };
   }
@@ -49,6 +53,7 @@ export class ChatDto {
 
     dto.id = entity.id;
     dto.brokerChatId = entity.brokerChatId;
+    dto.referenceChatId = entity.referenceChatId,
     dto.rcsAccountId = entity.rcsAccountId;
     dto.createdAt = entity.createdAt as Date;
     dto.updatedAt = entity.updatedAt as Date;

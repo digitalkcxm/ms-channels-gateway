@@ -11,7 +11,8 @@ import { BrokerType, ChannelType } from '@/models/enums';
 import { InboundMessage } from '@/models/inbound-message.model';
 import { InboundProducer } from '@/modules/message/producers/inbound.producer';
 import { RcsPontalTechService } from '@/modules/rcs/pontal-tech/rcs-pontal-tech.service';
-import { ChatNotFoundException } from '@/models/exceptions/chat-not-found.exception';
+import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.exception';
+import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.exception';
 
 @Injectable()
 export class InboundRcsPontalTechConsumer {
@@ -46,11 +47,13 @@ export class InboundRcsPontalTechConsumer {
           QUEUE_MESSAGE_HEADERS.X_RETRY_COUNT
         ] as number) ?? 0;
 
-      if (retryCount < 3) {
+      if (retryCount < 5) {
         try {
           return await this.rcsPontalTechService.inbound(message);
         } catch (error) {
-          if (error instanceof ChatNotFoundException) {
+          const isChatNotFound = error instanceof ChatNotReadyException;
+          const isMessageNotReady = error instanceof MessageNotReadyException;
+          if (isChatNotFound || isMessageNotReady) {
             this.logger.warn(error, 'consume :: retrying...');
 
             return await this.inboundProducer.publish(message, retryCount + 1);

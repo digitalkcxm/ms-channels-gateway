@@ -11,7 +11,7 @@ export class OutboundMessageDto {
   channelConfigId: string;
 
   @IsUUID()
-  chatId: string;
+  referenceChatId: string;
 
   @IsString({ each: true })
   recipients: string[];
