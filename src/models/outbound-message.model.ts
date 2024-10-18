@@ -1,10 +1,10 @@
 import { IsString, IsUUID, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
-import { RcsOutboundMessageDto } from './rsc-outbound-message.dto';
-import { BaseOutboundMessageDto } from './outbound-base.model';
+import { RcsMessageDto } from './rsc-message.dto';
+import { BaseMessageDto } from './outbound-base.model';
 
-export type OutboundMessagePayload = RcsOutboundMessageDto;
+export type OutboundMessagePayload = RcsMessageDto;
 
 export class OutboundMessageDto {
   @IsUUID()
@@ -17,10 +17,10 @@ export class OutboundMessageDto {
   recipients: string[];
 
   @ValidateNested()
-  @Type(() => BaseOutboundMessageDto, {
+  @Type(() => BaseMessageDto, {
     discriminator: {
       property: 'type',
-      subTypes: [{ value: RcsOutboundMessageDto, name: 'rcs' }],
+      subTypes: [{ value: RcsMessageDto, name: 'rcs' }],
     },
     keepDiscriminatorProperty: true,
   })

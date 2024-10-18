@@ -4,11 +4,7 @@ import { DataSource } from 'typeorm';
 
 import { MessageDirection, MessageStatus } from '@/models/enums';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
-import {
-  SyncEventType,
-  SyncMessageMapper,
-  SyncModel,
-} from '@/models/sync-message.model';
+import { SyncEventType, SyncModel } from '@/models/sync-message.model';
 import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
 import { MessageEntity } from '@/modules/database/rcs/entities/message.entity';
 import { MessageRepository } from '@/modules/database/rcs/repositories/message.repository';
@@ -16,10 +12,7 @@ import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/
 import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service';
 
 import { SyncProducer } from '../producers/sync.producer';
-import {
-  OutboundMessageDto,
-  OutboundMessagePayload,
-} from '@/models/outbound-message.model';
+import { OutboundMessagePayload } from '@/models/outbound-message.model';
 
 @Injectable()
 export class RcsMessageService {
@@ -62,18 +55,19 @@ export class RcsMessageService {
         errorMessage,
       });
 
-      const notifyMessage = SyncMessageMapper.fromRcsOutboundMessageDto(
-        SyncEventType.STATUS,
-        direction,
-        status,
-        chat.id,
-        message.id,
-        message.createdAt,
-        outboundMessagePayload,
-        errorMessage,
+      await this.notify(
+        {
+          eventType: SyncEventType.STATUS,
+          direction,
+          status,
+          chatId: chat.id,
+          messageId: message.id,
+          date: message.createdAt,
+          message: outboundMessagePayload.content,
+          errorMessage,
+        },
+        channelConfigId,
       );
-
-      await this.notify(notifyMessage, channelConfigId);
 
       return message;
     } catch (error) {
@@ -131,17 +125,18 @@ export class RcsMessageService {
 
       await queryRunner.commitTransaction();
 
-      const notifyMessage = SyncMessageMapper.fromRcsInboundModel(
-        SyncEventType.STATUS,
-        direction,
-        status,
-        chatId,
-        dbMessage.id,
-        dbMessage.createdAt,
-        inboundMessage,
+      await this.notify(
+        {
+          eventType: SyncEventType.STATUS,
+          direction,
+          status,
+          message: inboundMessage.message,
+          chatId,
+          date: dbMessage.createdAt,
+          messageId: dbMessage.id,
+        },
+        channelConfigId,
       );
-
-      await this.notify(notifyMessage, channelConfigId);
     } catch (error) {
       this.logger.error(error, 'replyMessage');
 
@@ -153,19 +148,19 @@ export class RcsMessageService {
 
   public async syncStatus(
     channelConfigId: string,
-    message: MessageEntity,
+    existingMessage: MessageEntity,
     incomingMessage: RcsInboundMessage,
   ) {
     try {
       const newStatus = this.getNewStatus(
-        message.status,
+        existingMessage.status,
         incomingMessage.status,
       );
 
       this.logger.debug(
         {
-          message,
-          currentStatus: message.status,
+          message: existingMessage,
+          currentStatus: existingMessage.status,
           newStatus: incomingMessage.status,
           parsedNewStatus: newStatus,
         },
@@ -173,25 +168,32 @@ export class RcsMessageService {
       );
 
       const errorMessage =
-        newStatus === MessageStatus.ERROR ? incomingMessage.message : null;
+        newStatus === MessageStatus.ERROR
+          ? (incomingMessage.message as string)
+          : null;
 
-      if (newStatus !== message.status) {
-        const updatedMessage = await this.messageRepository.update(message.id, {
-          status: newStatus,
-          errorMessage,
-        });
-
-        const notifyMessage: SyncModel = SyncMessageMapper.fromRcsInboundModel(
-          SyncEventType.STATUS,
-          updatedMessage.direction,
-          newStatus,
-          updatedMessage.chatId,
-          updatedMessage.id,
-          updatedMessage.updatedAt,
-          incomingMessage,
+      if (newStatus !== existingMessage.status) {
+        const updatedMessage = await this.messageRepository.update(
+          existingMessage.id,
+          {
+            status: newStatus,
+            errorMessage,
+          },
         );
 
-        await this.notify(notifyMessage, channelConfigId);
+        await this.notify(
+          {
+            eventType: SyncEventType.STATUS,
+            direction: updatedMessage.direction,
+            status: newStatus,
+            chatId: updatedMessage.chatId,
+            messageId: updatedMessage.id,
+            date: updatedMessage.updatedAt,
+            message: null,
+            errorMessage,
+          },
+          channelConfigId,
+        );
       }
     } catch (error) {
       this.logger.error(error, 'syncStatus');

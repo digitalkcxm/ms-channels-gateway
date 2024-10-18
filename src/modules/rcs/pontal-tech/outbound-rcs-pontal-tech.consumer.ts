@@ -27,7 +27,7 @@ export class OutboundRcsPontalTechConsumer {
   public async consume(message: OutboundMessageDto) {
     try {
       this.logger.debug(message, 'consume :: Message received');
-      await this.rcsPontalTechService.sendMessage(message);
+      await this.rcsPontalTechService.outbound(message);
     } catch (error) {
       this.logger.error(error, 'consume');
       return new Nack(false);

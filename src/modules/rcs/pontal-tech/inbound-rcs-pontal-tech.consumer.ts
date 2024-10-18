@@ -48,15 +48,12 @@ export class InboundRcsPontalTechConsumer {
 
       if (retryCount < 3) {
         try {
-          await this.rcsPontalTechService.receiveMessage(message);
-
-          return;
+          return await this.rcsPontalTechService.inbound(message);
         } catch (error) {
           if (error instanceof ChatNotFoundException) {
             this.logger.warn(error, 'consume :: retrying...');
-            await this.inboundProducer.publish(message, retryCount + 1);
 
-            return;
+            return await this.inboundProducer.publish(message, retryCount + 1);
           }
 
           throw error;

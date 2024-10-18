@@ -1,14 +1,14 @@
 import { OutboundMessageDto } from '@/models/outbound-message.model';
 import {
-  RcsOutboundMessageCarouselContentDto,
-  RcsOutboundMessageDto,
-  RcsOutboundMessageImageContentDto,
-  RcsOutboundMessagePdfContentDto,
-  RcsOutboundMessageRichCardContentDto,
-  RcsOutboundMessageTextContentDto,
-  RcsOutboundMessageType,
-  RcsOutboundMessageVideoContentDto,
-} from '@/models/rsc-outbound-message.dto';
+  RcsMessageCarouselContentDto,
+  RcsMessageDto,
+  RcsMessageImageContentDto,
+  RcsMessagePdfContentDto,
+  RcsMessageRichCardContentDto,
+  RcsMessageTextContentDto,
+  RcsMessageType,
+  RcsMessageVideoContentDto,
+} from '@/models/rsc-message.dto';
 
 export type PontalTechRcsMessageTextContent = {
   text: {
@@ -82,58 +82,6 @@ export type PontalTechRcsMessageApiRequest = {
   content: PontalTechRcsBasicContent | PontalTechRcsSingleContent;
 };
 
-export type PontalTechSendRcsApiResponse = {
-  campaign_id: string;
-  messages: {
-    id: string;
-    number: string;
-    session_id: string;
-  }[];
-};
-
-export type PontalTechWebhookDirection = 'inbound' | 'outbound';
-
-export type PontalTechWebhookType =
-  | 'audio'
-  | 'carousel'
-  | 'contact'
-  | 'document'
-  | 'image'
-  | 'location'
-  | 'richCard'
-  | 'text'
-  | 'video'
-  | 'bloqueado por duplicidade'
-  | 'DELIVERED'
-  | 'READ'
-  | 'EXCEPTION';
-
-export type PontalTechWebhookContentType =
-  | 'text'
-  | 'image'
-  | 'video'
-  | 'pdf'
-  | 'richCard'
-  | 'carousel';
-
-export type PontalTechWebhookMessageType = {
-  contentType?: PontalTechWebhookContentType;
-} & {
-  [key in PontalTechWebhookContentType]: any;
-};
-
-export type PontalTechWebhookApiRequest = {
-  reference: string;
-  event_id: string;
-  direction: PontalTechWebhookDirection;
-  user_id: string;
-  timestamp: Date;
-  channel: string;
-  type: PontalTechWebhookType;
-  message?: PontalTechWebhookMessageType;
-  vars?: { [propName: string]: string };
-};
-
 export class PontalTechRcsApiRequestMapper {
   public static fromOutboundMessageDto(
     account: string,
@@ -146,7 +94,7 @@ export class PontalTechRcsApiRequestMapper {
   ] {
     const { recipients, payload } = dto;
 
-    if (payload as RcsOutboundMessageDto) {
+    if (payload as RcsMessageDto) {
       const content =
         PontalTechRcsApiRequestMapper.parseOutboundContent(payload);
 
@@ -155,8 +103,8 @@ export class PontalTechRcsApiRequestMapper {
       }
 
       const type =
-        !(payload.content as RcsOutboundMessageTextContentDto) ||
-        (payload.content as RcsOutboundMessageTextContentDto).text.length > 160
+        !(payload.content as RcsMessageTextContentDto) ||
+        (payload.content as RcsMessageTextContentDto)?.text?.length > 160
           ? 'standard'
           : 'basic';
 
@@ -177,12 +125,12 @@ export class PontalTechRcsApiRequestMapper {
   }
 
   static DTO_TO_CONTENT_MAP: {
-    [messageType in RcsOutboundMessageType]: (
-      payload: RcsOutboundMessageDto,
+    [messageType in RcsMessageType]: (
+      payload: RcsMessageDto,
     ) => PontalTechRcsMessageContentsAll;
   } = {
-    carousel: (payload: RcsOutboundMessageDto) => {
-      const content = payload.content as RcsOutboundMessageCarouselContentDto;
+    carousel: (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessageCarouselContentDto;
       return {
         carousel: content?.items?.map((item) => ({
           title: item.title,
@@ -191,40 +139,40 @@ export class PontalTechRcsApiRequestMapper {
         })),
       };
     },
-    image: (payload: RcsOutboundMessageDto) => {
-      const content = payload.content as RcsOutboundMessageImageContentDto;
+    image: (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessageImageContentDto;
       return {
         image: {
           url: content.url,
         },
       };
     },
-    pdf: (payload: RcsOutboundMessageDto) => {
-      const content = payload.content as RcsOutboundMessagePdfContentDto;
+    pdf: (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessagePdfContentDto;
       return {
         pdf: {
           url: content.url,
         },
       };
     },
-    text: (payload: RcsOutboundMessageDto) => {
-      const content = payload.content as RcsOutboundMessageTextContentDto;
+    text: (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessageTextContentDto;
       return {
         text: {
           message: content.text,
         },
       };
     },
-    video: (payload: RcsOutboundMessageDto) => {
-      const content = payload.content as RcsOutboundMessageVideoContentDto;
+    video: (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessageVideoContentDto;
       return {
         video: {
           url: content.url,
         },
       };
     },
-    'rich-card': (payload: RcsOutboundMessageDto) => {
-      const content = payload.content as RcsOutboundMessageRichCardContentDto;
+    'rich-card': (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessageRichCardContentDto;
       return {
         richCard: {
           title: content.title,
@@ -235,7 +183,7 @@ export class PontalTechRcsApiRequestMapper {
     },
   } as const;
 
-  private static parseOutboundContent(payload: RcsOutboundMessageDto) {
+  private static parseOutboundContent(payload: RcsMessageDto) {
     return PontalTechRcsApiRequestMapper.DTO_TO_CONTENT_MAP[
       payload.content.messageType
     ](payload);

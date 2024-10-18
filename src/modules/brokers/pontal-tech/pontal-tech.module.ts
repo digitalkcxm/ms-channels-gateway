@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { EnvVars } from '@/config/env-vars';
 
-import { PontalTechRcsIntegrationService } from './pontal-tech-rcs-integration.service';
+import { PontalTechRcsV2IntegrationService } from './services/pontal-tech-rcs-v2-integration.service';
 
 @Module({
   imports: [
@@ -19,7 +19,7 @@ import { PontalTechRcsIntegrationService } from './pontal-tech-rcs-integration.s
       inject: [ConfigService],
     }),
   ],
-  providers: [PontalTechRcsIntegrationService],
-  exports: [PontalTechRcsIntegrationService],
+  providers: [PontalTechRcsV2IntegrationService],
+  exports: [PontalTechRcsV2IntegrationService],
 })
 export class PontalTechModule {}

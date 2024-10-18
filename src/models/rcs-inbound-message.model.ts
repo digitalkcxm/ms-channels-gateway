@@ -1,4 +1,12 @@
 import { MessageDirection, MessageStatus } from '@/models/enums';
+import {
+  RcsMessageCarouselContentDto,
+  RcsMessageImageContentDto,
+  RcsMessagePdfContentDto,
+  RcsMessageRichCardContentDto,
+  RcsMessageTextContentDto,
+  RcsMessageVideoContentDto,
+} from './rsc-message.dto';
 
 export type RcsInboundMessage = {
   rcsAccountId: string;
@@ -6,6 +14,13 @@ export type RcsInboundMessage = {
   brokerMessageId: string;
   direction: MessageDirection;
   status: MessageStatus;
-  message?: any;
+  message?:
+    | RcsMessageCarouselContentDto
+    | RcsMessageImageContentDto
+    | RcsMessagePdfContentDto
+    | RcsMessageRichCardContentDto
+    | RcsMessageTextContentDto
+    | RcsMessageVideoContentDto
+    | string;
   recipient: string;
 };

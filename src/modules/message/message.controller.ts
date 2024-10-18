@@ -3,7 +3,7 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { OutboundMessageDto } from '@/models/outbound-message.model';
 
 import { OutboundProducer } from './producers/outbound.producer';
-import { RcsOutboundMessageDto } from '@/models/rsc-outbound-message.dto';
+import { RcsMessageDto } from '@/models/rsc-message.dto';
 
 @Controller('message')
 export class MessageController {
