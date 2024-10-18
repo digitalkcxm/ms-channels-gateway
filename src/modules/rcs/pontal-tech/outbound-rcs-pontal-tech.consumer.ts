@@ -20,7 +20,7 @@ export class OutboundRcsPontalTechConsumer {
     queueOptions: {
       channel: CHANNELS_PREFETCH.OUTBOUND,
       durable: true,
-      autoDelete: true,
+      autoDelete: false,
       deadLetterExchange: EXCHANGE_NAMES.OUTBOUND_DLX,
     },
   })

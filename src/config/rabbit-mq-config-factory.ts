@@ -45,7 +45,7 @@ export class RabbitMQConfigFactory
           type: 'topic',
           createExchangeIfNotExists: true,
           options: {
-            autoDelete: true,
+            autoDelete: false,
             durable: true,
             alternateExchange: EXCHANGE_NAMES.INBOUND_DLX,
           },
@@ -64,7 +64,7 @@ export class RabbitMQConfigFactory
           type: 'topic',
           createExchangeIfNotExists: true,
           options: {
-            autoDelete: true,
+            autoDelete: false,
             durable: true,
             alternateExchange: EXCHANGE_NAMES.OUTBOUND_DLX,
           },

@@ -31,7 +31,7 @@ export class InboundRcsPontalTechConsumer {
     queueOptions: {
       channel: CHANNELS_PREFETCH.INBOUND,
       durable: true,
-      autoDelete: true,
+      autoDelete: false,
       deadLetterExchange: EXCHANGE_NAMES.INBOUND_DLX,
     },
   })

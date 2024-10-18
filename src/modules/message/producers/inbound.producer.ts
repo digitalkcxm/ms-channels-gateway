@@ -14,7 +14,7 @@ export class InboundProducer {
     const rabbitChannel = this.amqpConnection.channel;
 
     await rabbitChannel.assertExchange(EXCHANGE_NAMES.INBOUND, 'topic', {
-      autoDelete: true,
+      autoDelete: false,
       durable: true,
       alternateExchange: EXCHANGE_NAMES.INBOUND_DLX,
     });

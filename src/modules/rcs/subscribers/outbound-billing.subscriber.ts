@@ -16,7 +16,7 @@ export class OutboundBillingSubscriber {
     queue: QUEUE_NAMES.RCS_BILLING,
     createQueueIfNotExists: true,
     queueOptions: {
-      autoDelete: true,
+      autoDelete: false,
       durable: true,
     },
   })
