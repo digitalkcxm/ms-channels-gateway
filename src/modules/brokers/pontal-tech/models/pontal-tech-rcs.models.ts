@@ -3,7 +3,7 @@ import {
   RcsMessageCarouselContentDto,
   RcsMessageDto,
   RcsMessageImageContentDto,
-  RcsMessagePdfContentDto,
+  RcsMessageDocumentContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageType,
@@ -148,8 +148,8 @@ export class PontalTechRcsApiRequestMapper {
         },
       };
     },
-    pdf: (payload: RcsMessageDto) => {
-      const content = payload.content as RcsMessagePdfContentDto;
+    document: (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessageDocumentContentDto;
       return {
         pdf: {
           url: content.url,

@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsIn,
+  IsMimeType,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -11,6 +12,8 @@ import {
 import { BaseMessageDto, OutboundMessageType } from './outbound-base.model';
 import {
   PontalTechRcsContentType,
+  PontalTechRcsWebhookDocumentContent,
+  PontalTechRcsWebhookFileTextContent,
   PontalTechRcsWebhookImageContent,
   PontalTechRcsWebhookTextContent,
   PontalTechRcsWebhookVideoContent,
@@ -21,7 +24,7 @@ const RcsOutboundMessageTypes = [
   'text',
   'image',
   'video',
-  'pdf',
+  'document',
   'rich-card',
   'carousel',
 ] as const;
@@ -38,7 +41,7 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
   ):
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
-    | RcsMessagePdfContentDto
+    | RcsMessageDocumentContentDto
     | RcsMessageRichCardContentDto
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto
@@ -60,7 +63,7 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
         model.type
       ]?.(model);
 
-    return message;
+    return message || model.message;
   }
 
   private static PONTAL_TECH_RCS_WEBHOOK_TYPE_MAPPER: {
@@ -68,8 +71,8 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
       model: PontalTechWebhookApiRequest,
     ) =>
       | RcsMessageCarouselContentDto
+      | RcsMessageDocumentContentDto
       | RcsMessageImageContentDto
-      | RcsMessagePdfContentDto
       | RcsMessageRichCardContentDto
       | RcsMessageTextContentDto
       | RcsMessageVideoContentDto;
@@ -79,10 +82,24 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
       return {
         type: 'rcs',
         messageType: 'image',
-        url: content.url,
+        url: content.image.fileUri,
       };
     },
-    text: (model: PontalTechWebhookApiRequest): RcsMessageTextContentDto => {
+    text: (
+      model: PontalTechWebhookApiRequest,
+    ): RcsMessageTextContentDto | RcsMessageDocumentContentDto => {
+      const fileTextContent =
+        model.message as PontalTechRcsWebhookFileTextContent;
+
+      if (fileTextContent?.contentType) {
+        return {
+          type: 'rcs',
+          messageType: 'document',
+          url: fileTextContent.text.fileUri,
+          mimeType: fileTextContent.text.mimeType,
+        };
+      }
+
       const content = model.message as PontalTechRcsWebhookTextContent;
       return {
         type: 'rcs',
@@ -91,14 +108,25 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
       };
     },
     carousel: () => null,
-    pdf: () => null,
+    document: (
+      model: PontalTechWebhookApiRequest,
+    ): RcsMessageDocumentContentDto => {
+      const content = model.message as PontalTechRcsWebhookDocumentContent;
+      return {
+        type: 'rcs',
+        messageType: 'document',
+        url: content.document.fileUri,
+        mimeType: content.document.mimeType,
+      };
+    },
     richCard: () => null,
     video: (model: PontalTechWebhookApiRequest): RcsMessageVideoContentDto => {
       const content = model.message as PontalTechRcsWebhookVideoContent;
       return {
         type: 'rcs',
         messageType: 'video',
-        url: content.image.fileUri,
+        url: content.video.fileUri,
+        mimeType: content.video.mimeType,
       };
     },
   };
@@ -126,15 +154,18 @@ export class RcsMessageCarouselContentDto extends BaseRcsMessageContentDto {
   items: RcsOutboundMessageCarouselItemDto[];
 }
 
-export class RcsMessageImageContentDto extends BaseRcsMessageContentDto {
-  readonly messageType: RcsMessageType = 'image';
+export class RcsMessageDocumentContentDto extends BaseRcsMessageContentDto {
+  readonly messageType: RcsMessageType = 'document';
 
   @IsUrl()
   url: string;
+
+  @IsMimeType()
+  mimeType: string;
 }
 
-export class RcsMessagePdfContentDto extends BaseRcsMessageContentDto {
-  readonly messageType: RcsMessageType = 'pdf';
+export class RcsMessageImageContentDto extends BaseRcsMessageContentDto {
+  readonly messageType: RcsMessageType = 'image';
 
   @IsUrl()
   url: string;
@@ -171,6 +202,9 @@ export class RcsMessageVideoContentDto extends BaseRcsMessageContentDto {
 
   @IsUrl()
   url: string;
+
+  @IsMimeType()
+  mimeType: string;
 }
 
 export class RcsMessageDto {
@@ -181,7 +215,7 @@ export class RcsMessageDto {
       subTypes: [
         { value: RcsMessageCarouselContentDto, name: 'carousel' },
         { value: RcsMessageImageContentDto, name: 'image' },
-        { value: RcsMessagePdfContentDto, name: 'pdf' },
+        { value: RcsMessageDocumentContentDto, name: 'document' },
         { value: RcsMessageRichCardContentDto, name: 'rich-card' },
         { value: RcsMessageTextContentDto, name: 'text' },
         { value: RcsMessageVideoContentDto, name: 'video' },
@@ -192,7 +226,7 @@ export class RcsMessageDto {
   content:
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
-    | RcsMessagePdfContentDto
+    | RcsMessageDocumentContentDto
     | RcsMessageRichCardContentDto
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto;

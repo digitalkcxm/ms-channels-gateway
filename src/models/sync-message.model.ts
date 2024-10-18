@@ -4,7 +4,7 @@ import { RcsInboundMessage } from './rcs-inbound-message.model';
 import {
   RcsMessageCarouselContentDto,
   RcsMessageImageContentDto,
-  RcsMessagePdfContentDto,
+  RcsMessageDocumentContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageVideoContentDto,
@@ -22,7 +22,7 @@ export type SyncModel = {
   message?:
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
-    | RcsMessagePdfContentDto
+    | RcsMessageDocumentContentDto
     | RcsMessageRichCardContentDto
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto

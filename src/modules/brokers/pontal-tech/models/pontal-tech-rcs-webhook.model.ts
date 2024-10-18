@@ -22,7 +22,7 @@ export type PontalTechRcsContentType =
   | 'text'
   | 'image'
   | 'video'
-  | 'pdf'
+  | 'document'
   | 'richCard'
   | 'carousel';
 
@@ -33,9 +33,14 @@ export type PontalTechRcsWebhookFileContent = {
   fileUri: string;
 };
 
+export type PontalTechRcsWebhookDocumentContent = {
+  contentType?: 'document';
+  document: PontalTechRcsWebhookFileContent;
+};
+
 export type PontalTechRcsWebhookImageContent = {
   contentType?: 'image';
-  url: string;
+  image: PontalTechRcsWebhookFileContent;
 };
 
 export type PontalTechRcsWebhookTextContent = {
@@ -43,14 +48,21 @@ export type PontalTechRcsWebhookTextContent = {
   text: string;
 };
 
+export type PontalTechRcsWebhookFileTextContent = {
+  contentType?: 'document';
+  text: PontalTechRcsWebhookFileContent;
+};
+
 export type PontalTechRcsWebhookVideoContent = {
   contentType?: 'video';
-  image: PontalTechRcsWebhookFileContent;
+  video: PontalTechRcsWebhookFileContent;
 };
 
 export type PontalTechRcsWebhookContentTypes =
+  | PontalTechRcsWebhookDocumentContent
   | PontalTechRcsWebhookImageContent
   | PontalTechRcsWebhookTextContent
+  | PontalTechRcsWebhookFileTextContent
   | PontalTechRcsWebhookVideoContent
   | string;
 

@@ -2,7 +2,7 @@ import { MessageDirection, MessageStatus } from '@/models/enums';
 import {
   RcsMessageCarouselContentDto,
   RcsMessageImageContentDto,
-  RcsMessagePdfContentDto,
+  RcsMessageDocumentContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageVideoContentDto,
@@ -17,7 +17,7 @@ export type RcsInboundMessage = {
   message?:
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
-    | RcsMessagePdfContentDto
+    | RcsMessageDocumentContentDto
     | RcsMessageRichCardContentDto
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto
