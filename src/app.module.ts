@@ -43,11 +43,11 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService<EnvVars>) => ({
         pinoHttp: {
-          level: configService.get<string>('LOG_LEVEL', 'trace'),
+          level: configService.get<string>('LOG_LEVEL', 'info'),
           transport: {
             targets: [
               true ||
-              configService.get<string>('NODE_ENV', 'development') ===
+              configService.get<string>('NODE_ENV', 'production') ===
                 'development'
                 ? {
                     target: 'pino-pretty',
