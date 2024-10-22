@@ -2,7 +2,6 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { S3 } from 'aws-sdk';
 import { lastValueFrom } from 'rxjs';
 import { DataSource } from 'typeorm';
 
@@ -19,7 +18,7 @@ import {
   RcsMessageRichCardContentDto,
 } from '@/models/rsc-message.dto';
 import { SyncEventType, SyncModel } from '@/models/sync-message.model';
-import { InjectAwsService } from '@/modules/aws-sdk/aws-service.decorator';
+import { AwsS3Service } from '@/modules/aws-s3/aws-s3.service';
 import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
 import { MessageEntity } from '@/modules/database/rcs/entities/message.entity';
 import { MessageRepository } from '@/modules/database/rcs/repositories/message.repository';
@@ -34,7 +33,7 @@ import { SyncProducer } from '../producers/sync.producer';
 @Injectable()
 export class RcsMessageService {
   constructor(
-    @InjectAwsService(S3) private readonly s3: S3,
+    private readonly s3Service: AwsS3Service,
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly configService: ConfigService<EnvVars>,
     private readonly httpService: HttpService,
@@ -389,23 +388,12 @@ export class RcsMessageService {
 
     const fileKey = `${this.configService.getOrThrow('APP_NAME')}/${randomPath}/${fileName}`;
 
-    return new Promise<string>((resolve, reject) => {
-      this.s3
-        .upload({
-          ACL: 'public-read',
-          Bucket: this.configService.getOrThrow('AWS_BUCKET'),
-          Key: fileKey,
-          Body: buffer,
-          ContentType: mimeType,
-        })
-        .send(async (error, awsResult) => {
-          if (error) {
-            this.logger.error(error, 'mediaProcess');
-            reject(error);
-            return;
-          }
-          resolve(awsResult.Location);
-        });
+    return await this.s3Service.upload({
+      ACL: 'public-read',
+      Bucket: this.configService.getOrThrow('AWS_BUCKET'),
+      Key: fileKey,
+      Body: buffer,
+      ContentType: mimeType,
     });
   }
 
