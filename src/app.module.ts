@@ -58,16 +58,12 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
           level: configService.get<string>('LOG_LEVEL', 'info'),
           transport: {
             targets: [
-              true ||
-              configService.get<string>('NODE_ENV', 'production') ===
-                'development'
-                ? {
-                    target: 'pino-pretty',
-                    options: {
-                      // singleLine: true,
-                    },
-                  }
-                : undefined,
+              {
+                target: 'pino-pretty',
+                options: {
+                  // singleLine: true,
+                },
+              },
             ],
           },
         },
