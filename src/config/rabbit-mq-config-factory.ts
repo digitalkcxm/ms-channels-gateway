@@ -3,7 +3,7 @@ import { RabbitMQConfig } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { CHANNELS_PREFETCH, EXCHANGE_NAMES, QUEUE_NAMES } from './constants';
+import { CHANNELS, EXCHANGE_NAMES, QUEUE_NAMES } from './constants';
 import { EnvVars } from './env-vars';
 
 @Injectable()
@@ -30,12 +30,12 @@ export class RabbitMQConfigFactory
       channels: {
         DEFAULT: {
           default: true,
-          prefetchCount: 1,
+          prefetchCount: 3,
         },
-        [CHANNELS_PREFETCH.INBOUND]: {
+        [CHANNELS.INBOUND]: {
           prefetchCount: 10,
         },
-        [CHANNELS_PREFETCH.OUTBOUND]: {
+        [CHANNELS.OUTBOUND]: {
           prefetchCount: 5,
         },
       },

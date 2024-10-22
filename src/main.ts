@@ -1,7 +1,7 @@
-import * as compression from 'compression';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import * as compression from 'compression';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 import { AppModule } from './app.module';

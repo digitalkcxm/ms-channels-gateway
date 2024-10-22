@@ -1,28 +1,49 @@
+import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { S3 } from 'aws-sdk';
+import { lastValueFrom } from 'rxjs';
 import { DataSource } from 'typeorm';
 
+import * as crypto from 'node:crypto';
+
+import { EnvVars } from '@/config/env-vars';
 import { MessageDirection, MessageStatus } from '@/models/enums';
+import { InboundMediaMessage } from '@/models/inbound-message.model';
+import { OutboundMessagePayload } from '@/models/outbound-message.model';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
+import {
+  RcsMessageCarouselContentDto,
+  RcsMessageDocumentContentDto,
+  RcsMessageRichCardContentDto,
+} from '@/models/rsc-message.dto';
 import { SyncEventType, SyncModel } from '@/models/sync-message.model';
+import { InjectAwsService } from '@/modules/aws-sdk/aws-service.decorator';
 import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
 import { MessageEntity } from '@/modules/database/rcs/entities/message.entity';
 import { MessageRepository } from '@/modules/database/rcs/repositories/message.repository';
 import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/services/channel-config.service';
-import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service';
-
-import { SyncProducer } from '../producers/sync.producer';
-import { OutboundMessagePayload } from '@/models/outbound-message.model';
 import { MessageDto } from '@/modules/entity-manager/rcs/models/message.dto';
+import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service';
+import { MessageService } from '@/modules/entity-manager/rcs/services/message.service';
+
+import { InboundProducer } from '../producers/inbound.producer';
+import { SyncProducer } from '../producers/sync.producer';
 
 @Injectable()
 export class RcsMessageService {
   constructor(
+    @InjectAwsService(S3) private readonly s3: S3,
     @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly configService: ConfigService<EnvVars>,
+    private readonly httpService: HttpService,
     private readonly channelConfigService: ChannelConfigService,
     private readonly chatService: ChatService,
     private readonly syncProducer: SyncProducer,
     private readonly messageRepository: MessageRepository,
+    private readonly messageService: MessageService,
+    private readonly inboundProducer: InboundProducer,
   ) {}
 
   private readonly logger = new Logger(RcsMessageService.name);
@@ -85,7 +106,7 @@ export class RcsMessageService {
     }
   }
 
-  public async replyMessage(
+  public async inboundMessage(
     channelConfigId: string,
     inboundMessage: RcsInboundMessage,
   ) {
@@ -98,6 +119,7 @@ export class RcsMessageService {
       await queryRunner.startTransaction();
 
       const chatRepository = queryRunner.manager.getRepository(ChatEntity);
+
       const dbChat = await this.chatService.getOrCreateChat(
         inboundMessage.brokerChatId,
         inboundMessage.rcsAccountId,
@@ -106,10 +128,10 @@ export class RcsMessageService {
         chatRepository,
       );
 
+      this.logger.debug(inboundMessage.message, 'replyMessage :: Raw message');
+
       const messageRepository =
         queryRunner.manager.getRepository(MessageEntity);
-
-      this.logger.debug(inboundMessage.message, 'replyMessage :: Raw message');
 
       const dbMessage = await this.messageRepository.create(
         {
@@ -117,6 +139,7 @@ export class RcsMessageService {
           chatId: dbChat.id,
           direction: inboundMessage.direction,
           rawMessage: inboundMessage.message,
+          errorMessage: inboundMessage.errorMessage,
           status: inboundMessage.status,
           recipient: inboundMessage.recipient,
         },
@@ -127,7 +150,7 @@ export class RcsMessageService {
 
       await this.notify(
         {
-          eventType: SyncEventType.STATUS,
+          eventType: SyncEventType.MESSAGE,
           direction: inboundMessage.direction,
           status: inboundMessage.status,
           message: inboundMessage.message,
@@ -137,6 +160,14 @@ export class RcsMessageService {
         },
         channelConfigId,
       );
+
+      await this.inboundProducer.media({
+        brokerMessageId: inboundMessage.brokerMessageId,
+        chatId: dbChat.id,
+        referenceChatId: dbChat.referenceChatId,
+        channelConfigId,
+        payload: inboundMessage.message,
+      });
     } catch (error) {
       this.logger.error(error, 'replyMessage');
 
@@ -168,17 +199,12 @@ export class RcsMessageService {
         'syncStatus',
       );
 
-      const errorMessage =
-        newStatus === MessageStatus.ERROR
-          ? (incomingMessage.message as string)
-          : null;
-
       if (newStatus !== existingMessage.status) {
         const updatedMessage = await this.messageRepository.update(
           existingMessage.id,
           {
             status: newStatus,
-            errorMessage,
+            errorMessage: incomingMessage.errorMessage,
           },
         );
 
@@ -190,8 +216,8 @@ export class RcsMessageService {
             referenceChatId,
             messageId: existingMessage.id,
             date: updatedMessage.updatedAt,
-            message: null,
-            errorMessage,
+            message: incomingMessage.message,
+            errorMessage: incomingMessage.errorMessage,
           },
           channelConfigId,
         );
@@ -215,6 +241,172 @@ export class RcsMessageService {
     this.logger.debug({ companyToken, model }, 'notify');
 
     await this.syncProducer.publish(companyToken, model);
+  }
+
+  public async mediaProcess({
+    brokerMessageId,
+    chatId,
+    referenceChatId,
+    channelConfigId,
+    payload,
+  }: InboundMediaMessage) {
+    const dbMessage = await this.messageService.getByBrokerMessage(
+      brokerMessageId,
+      chatId,
+    );
+
+    if (['document', 'image', 'video'].includes(payload?.messageType)) {
+      const message = {
+        ...(payload as RcsMessageDocumentContentDto),
+      };
+
+      if (message) {
+        const awsUrl = await this.importMedia(
+          message.url,
+          message.fileName,
+          message.mimeType,
+        );
+
+        const updatedMessage: RcsMessageDocumentContentDto = {
+          ...message,
+          url: awsUrl,
+        };
+
+        await this.messageRepository.update(dbMessage.id, {
+          rawMessage: updatedMessage,
+          status: MessageStatus.DELIVERED,
+        });
+
+        await this.notify(
+          {
+            date: dbMessage.createdAt,
+            direction: dbMessage.direction,
+            eventType: SyncEventType.STATUS,
+            messageId: dbMessage.id,
+            referenceChatId,
+            status: MessageStatus.DELIVERED,
+            message: updatedMessage,
+          },
+          channelConfigId,
+        );
+      }
+
+      return;
+    }
+
+    if (['rich-card'].includes(payload?.messageType)) {
+      const message = {
+        ...(payload as RcsMessageRichCardContentDto),
+      };
+
+      if (message) {
+        const fileName = message.fileUrl.split('/').pop();
+        const awsUrl = await this.importMedia(
+          message.fileUrl,
+          fileName,
+          undefined,
+        );
+
+        const updatedMessage: RcsMessageRichCardContentDto = {
+          ...message,
+          fileUrl: awsUrl,
+        };
+
+        await this.messageRepository.update(dbMessage.id, {
+          rawMessage: updatedMessage,
+          status: MessageStatus.DELIVERED,
+        });
+
+        await this.notify(
+          {
+            date: dbMessage.createdAt,
+            direction: dbMessage.direction,
+            eventType: SyncEventType.MESSAGE,
+            messageId: dbMessage.id,
+            referenceChatId,
+            status: MessageStatus.DELIVERED,
+            message: updatedMessage,
+          },
+          channelConfigId,
+        );
+      }
+
+      return;
+    }
+
+    if (['carousel'].includes(payload?.messageType)) {
+      const message = {
+        ...(payload as RcsMessageCarouselContentDto),
+      };
+
+      if (message) {
+        await Promise.all(
+          message.items.map(async (item) => {
+            const fileName = item.fileUrl.split('/').pop();
+            return this.importMedia(item.fileUrl, fileName, undefined).then(
+              (awsUrl) => {
+                return {
+                  ...item,
+                  fileUrl: awsUrl,
+                };
+              },
+            );
+          }),
+        );
+
+        await this.messageRepository.update(dbMessage.id, {
+          rawMessage: message,
+          status: MessageStatus.DELIVERED,
+        });
+
+        await this.notify(
+          {
+            date: dbMessage.createdAt,
+            direction: dbMessage.direction,
+            eventType: SyncEventType.MESSAGE,
+            messageId: dbMessage.id,
+            referenceChatId,
+            status: MessageStatus.DELIVERED,
+            message: message,
+          },
+          channelConfigId,
+        );
+      }
+
+      return;
+    }
+  }
+
+  private async importMedia(url: string, fileName: string, mimeType?: string) {
+    const { data } = await lastValueFrom(
+      this.httpService.get(url, {
+        responseType: 'arraybuffer',
+      }),
+    );
+
+    const buffer = Buffer.from(data, 'binary');
+    const randomPath = crypto.randomBytes(20).toString('hex');
+
+    const fileKey = `${this.configService.getOrThrow('APP_NAME')}/${randomPath}/${fileName}`;
+
+    return new Promise<string>((resolve, reject) => {
+      this.s3
+        .upload({
+          ACL: 'public-read',
+          Bucket: this.configService.getOrThrow('AWS_BUCKET'),
+          Key: fileKey,
+          Body: buffer,
+          ContentType: mimeType,
+        })
+        .send(async (error, awsResult) => {
+          if (error) {
+            this.logger.error(error, 'mediaProcess');
+            reject(error);
+            return;
+          }
+          resolve(awsResult.Location);
+        });
+    });
   }
 
   private getNewStatus(currentStatus: MessageStatus, newStatus: MessageStatus) {

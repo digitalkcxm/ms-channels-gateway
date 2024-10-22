@@ -1,7 +1,7 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 
-import { SyncEventType, SyncModel } from '@/models/sync-message.model';
+import { SyncModel } from '@/models/sync-message.model';
 
 @Injectable()
 export class SyncProducer {
@@ -23,7 +23,6 @@ export class SyncProducer {
       Buffer.from(JSON.stringify(message)),
       {
         persistent: true,
-        priority: message.eventType === SyncEventType.MESSAGE ? 5 : 0,
       },
     );
 

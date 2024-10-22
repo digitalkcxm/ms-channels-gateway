@@ -1,8 +1,8 @@
-import { IsString, IsUUID, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsString, IsUUID, ValidateNested } from 'class-validator';
 
-import { RcsMessageDto } from './rsc-message.dto';
 import { BaseMessageDto } from './outbound-base.model';
+import { RcsMessageDto } from './rsc-message.dto';
 
 export type OutboundMessagePayload = RcsMessageDto;
 

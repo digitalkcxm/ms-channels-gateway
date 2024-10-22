@@ -9,7 +9,7 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { BaseMessageDto, OutboundMessageType } from './outbound-base.model';
+
 import {
   PontalTechRcsContentType,
   PontalTechRcsWebhookDocumentContent,
@@ -19,6 +19,8 @@ import {
   PontalTechRcsWebhookVideoContent,
   PontalTechWebhookApiRequest,
 } from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs-webhook.model';
+
+import { BaseMessageDto, OutboundMessageType } from './outbound-base.model';
 
 const RcsOutboundMessageTypes = [
   'text',
@@ -45,17 +47,13 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
     | RcsMessageRichCardContentDto
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto
-    | string {
-    if (['DELIVERED', 'READ'].includes(model.type)) {
+    | null {
+    if (
+      ['DELIVERED', 'READ'].includes(model.type) ||
+      ['bloqueado por duplicidade'].includes(model.status) ||
+      ['EXCEPTION', 'ERROR'].includes(model.type)
+    ) {
       return null;
-    }
-
-    if (['bloqueado por duplicidade'].includes(model.status)) {
-      return model.status;
-    }
-
-    if (['EXCEPTION', 'ERROR'].includes(model.type)) {
-      return model.message as string;
     }
 
     const message =
@@ -64,6 +62,20 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
       ]?.(model);
 
     return message || model.message;
+  }
+
+  public static extractErrorFromPontalTechRcsWebhookApiRequest(
+    model: PontalTechWebhookApiRequest,
+  ): string | null {
+    if (['bloqueado por duplicidade'].includes(model.status)) {
+      return model.status;
+    }
+
+    if (['EXCEPTION', 'ERROR'].includes(model.type)) {
+      return model.message as string;
+    }
+
+    return null;
   }
 
   private static PONTAL_TECH_RCS_WEBHOOK_TYPE_MAPPER: {
@@ -83,6 +95,8 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
         type: 'rcs',
         messageType: 'image',
         url: content.image.fileUri,
+        mimeType: content.image.mimeType,
+        fileName: content.image.fileName,
       };
     },
     text: (
@@ -97,6 +111,7 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
           messageType: 'document',
           url: fileTextContent.text.fileUri,
           mimeType: fileTextContent.text.mimeType,
+          fileName: fileTextContent.text.fileName,
         };
       }
 
@@ -117,6 +132,7 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
         messageType: 'document',
         url: content.document.fileUri,
         mimeType: content.document.mimeType,
+        fileName: content.document.fileName,
       };
     },
     richCard: () => null,
@@ -127,6 +143,7 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
         messageType: 'video',
         url: content.video.fileUri,
         mimeType: content.video.mimeType,
+        fileName: content.video.fileName,
       };
     },
   };
@@ -162,13 +179,13 @@ export class RcsMessageDocumentContentDto extends BaseRcsMessageContentDto {
 
   @IsMimeType()
   mimeType: string;
+
+  @IsString()
+  fileName: string;
 }
 
-export class RcsMessageImageContentDto extends BaseRcsMessageContentDto {
+export class RcsMessageImageContentDto extends RcsMessageDocumentContentDto {
   readonly messageType: RcsMessageType = 'image';
-
-  @IsUrl()
-  url: string;
 }
 
 export class RcsMessageRichCardContentDto extends BaseRcsMessageContentDto {
@@ -197,14 +214,8 @@ export class RcsMessageTextContentDto extends BaseRcsMessageContentDto {
   text: string;
 }
 
-export class RcsMessageVideoContentDto extends BaseRcsMessageContentDto {
+export class RcsMessageVideoContentDto extends RcsMessageDocumentContentDto {
   readonly messageType: RcsMessageType = 'video';
-
-  @IsUrl()
-  url: string;
-
-  @IsMimeType()
-  mimeType: string;
 }
 
 export class RcsMessageDto {

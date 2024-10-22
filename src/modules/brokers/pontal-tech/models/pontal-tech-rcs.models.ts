@@ -1,9 +1,12 @@
+import { BrokerType, ChannelType } from '@/models/enums';
+import { MessageContentNotSupportedException } from '@/models/exceptions/message-content-not-supported.exception';
+import { RcsMessageContentParserException } from '@/models/exceptions/rcs-message-content-parser.exception';
 import { OutboundMessageDto } from '@/models/outbound-message.model';
 import {
   RcsMessageCarouselContentDto,
+  RcsMessageDocumentContentDto,
   RcsMessageDto,
   RcsMessageImageContentDto,
-  RcsMessageDocumentContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageType,
@@ -86,12 +89,7 @@ export class PontalTechRcsApiRequestMapper {
   public static fromOutboundMessageDto(
     account: string,
     dto: OutboundMessageDto,
-  ): [
-    isValid: boolean,
-    type?: string,
-    model?: PontalTechRcsMessageApiRequest,
-    errorMessage?: string,
-  ] {
+  ): [type?: string, model?: PontalTechRcsMessageApiRequest] {
     const { recipients, payload } = dto;
 
     if (payload as RcsMessageDto) {
@@ -99,7 +97,11 @@ export class PontalTechRcsApiRequestMapper {
         PontalTechRcsApiRequestMapper.parseOutboundContent(payload);
 
       if (!content) {
-        return [false, null, null, 'Content can not be parsed'];
+        throw new RcsMessageContentParserException(
+          ChannelType.RCS,
+          BrokerType.PONTAL_TECH,
+          payload,
+        );
       }
 
       const type =
@@ -110,7 +112,6 @@ export class PontalTechRcsApiRequestMapper {
           : 'basic';
 
       return [
-        true,
         type,
         {
           account,
@@ -122,7 +123,11 @@ export class PontalTechRcsApiRequestMapper {
       ];
     }
 
-    return [false, null, null, 'Content can not be parsed'];
+    throw new MessageContentNotSupportedException(
+      ChannelType.RCS,
+      BrokerType.PONTAL_TECH,
+      payload,
+    );
   }
 
   static DTO_TO_CONTENT_MAP: {

@@ -1,10 +1,9 @@
 import { MessageDirection, MessageStatus } from '@/models/enums';
 
-import { RcsInboundMessage } from './rcs-inbound-message.model';
 import {
   RcsMessageCarouselContentDto,
-  RcsMessageImageContentDto,
   RcsMessageDocumentContentDto,
+  RcsMessageImageContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageVideoContentDto,
@@ -25,8 +24,7 @@ export type SyncModel = {
     | RcsMessageDocumentContentDto
     | RcsMessageRichCardContentDto
     | RcsMessageTextContentDto
-    | RcsMessageVideoContentDto
-    | string;
+    | RcsMessageVideoContentDto;
   referenceChatId: string;
   messageId: string;
   errorMessage?: string;

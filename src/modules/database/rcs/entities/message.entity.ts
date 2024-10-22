@@ -10,6 +10,14 @@ import {
 } from 'typeorm';
 
 import { MessageDirection, MessageStatus } from '@/models/enums';
+import {
+  RcsMessageCarouselContentDto,
+  RcsMessageDocumentContentDto,
+  RcsMessageImageContentDto,
+  RcsMessageRichCardContentDto,
+  RcsMessageTextContentDto,
+  RcsMessageVideoContentDto,
+} from '@/models/rsc-message.dto';
 
 import { ChatEntity } from './chat.entity';
 
@@ -59,7 +67,13 @@ export class MessageEntity {
   errorMessage?: string;
 
   @Column({ type: 'jsonb' })
-  rawMessage: any;
+  rawMessage:
+    | RcsMessageCarouselContentDto
+    | RcsMessageImageContentDto
+    | RcsMessageDocumentContentDto
+    | RcsMessageRichCardContentDto
+    | RcsMessageTextContentDto
+    | RcsMessageVideoContentDto;
 
   @CreateDateColumn()
   createdAt: Date;

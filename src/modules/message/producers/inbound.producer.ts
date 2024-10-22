@@ -2,7 +2,10 @@ import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 
 import { EXCHANGE_NAMES, QUEUE_MESSAGE_HEADERS } from '@/config/constants';
-import { InboundMessage } from '@/models/inbound-message.model';
+import {
+  InboundMediaMessage,
+  InboundMessage,
+} from '@/models/inbound-message.model';
 
 @Injectable()
 export class InboundProducer {
@@ -35,6 +38,34 @@ export class InboundProducer {
     if (!sentToQueue) {
       //TODO: add some logging and store it in a table in the database for later reprocess
       throw new Error('Failed to send message to queue');
+    }
+  }
+
+  async media(message: InboundMediaMessage, retryCount = 0) {
+    const rabbitChannel = this.amqpConnection.channel;
+
+    await rabbitChannel.assertExchange(EXCHANGE_NAMES.INBOUND, 'topic', {
+      autoDelete: false,
+      durable: true,
+      alternateExchange: EXCHANGE_NAMES.INBOUND_DLX,
+    });
+
+    const sentToQueue = rabbitChannel.publish(
+      EXCHANGE_NAMES.INBOUND,
+      'media-process',
+      Buffer.from(JSON.stringify(message)),
+      {
+        persistent: true,
+        mandatory: true,
+        headers: {
+          [QUEUE_MESSAGE_HEADERS.X_RETRY_COUNT]: retryCount,
+        },
+      },
+    );
+
+    if (!sentToQueue) {
+      //TODO: add some logging and store it in a table in the database for later reprocess
+      throw new Error(`Failed to send message to queue "${'media-process'}"`);
     }
   }
 }

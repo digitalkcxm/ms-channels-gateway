@@ -8,8 +8,8 @@ import { ChannelConfigService } from './channels-gateway/services/channel-config
 import { ChannelLinkService } from './channels-gateway/services/channel-link.service';
 import { RcsAccountController } from './rcs/controllers/rcs-account.controller';
 import { ChatService } from './rcs/services/chat.service';
-import { RcsAccountService } from './rcs/services/rcs-account.service';
 import { MessageService } from './rcs/services/message.service';
+import { RcsAccountService } from './rcs/services/rcs-account.service';
 
 @Module({
   imports: [DatabaseModule],

@@ -1,15 +1,9 @@
-import { randomUUID } from 'node:crypto';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
 
-import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
-import { ChatRepository } from '@/modules/database/rcs/repositories/chat.repository';
-
-import { ChatDto } from '../models/chat.dto';
-import { CreateChatDto } from '../models/create-chat.dto';
-import { MessageDto } from '../models/message.dto';
 import { MessageRepository } from '@/modules/database/rcs/repositories/message.repository';
+
+import { MessageDto } from '../models/message.dto';
 
 @Injectable()
 export class MessageService {

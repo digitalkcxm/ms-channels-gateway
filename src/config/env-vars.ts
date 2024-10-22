@@ -1,7 +1,13 @@
 export type EnvVars = {
-  PORT?: number;
-  NODE_ENV?: 'development' | 'production' | 'test';
+  APP_NAME: string;
   LOG_LEVEL?: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
+  NODE_ENV?: 'development' | 'production' | 'test';
+  PORT?: number;
+
+  AWS_ACCESS_KEY_ID: string;
+  AWS_SECRET_ACCESS_KEY: string;
+  AWS_REGION: string;
+  AWS_BUCKET: string;
 
   DB_HOST: string;
   DB_READ_HOST: string;

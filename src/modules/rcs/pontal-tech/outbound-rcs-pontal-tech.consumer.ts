@@ -1,7 +1,7 @@
 import { Nack, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 
-import { CHANNELS_PREFETCH, EXCHANGE_NAMES } from '@/config/constants';
+import { CHANNELS, EXCHANGE_NAMES } from '@/config/constants';
 import { BrokerType, ChannelType } from '@/models/enums';
 import { OutboundMessageDto } from '@/models/outbound-message.model';
 import { RcsPontalTechService } from '@/modules/rcs/pontal-tech/rcs-pontal-tech.service';
@@ -18,7 +18,7 @@ export class OutboundRcsPontalTechConsumer {
     queue: `ms-channels-gateway.${ChannelType.RCS}.${BrokerType.PONTAL_TECH}.outbound`,
     createQueueIfNotExists: true,
     queueOptions: {
-      channel: CHANNELS_PREFETCH.OUTBOUND,
+      channel: CHANNELS.OUTBOUND,
       durable: true,
       autoDelete: false,
       deadLetterExchange: EXCHANGE_NAMES.OUTBOUND_DLX,

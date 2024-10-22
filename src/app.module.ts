@@ -5,6 +5,7 @@ import { redisStore } from 'cache-manager-redis-store';
 import { LoggerModule } from 'nestjs-pino';
 
 import { EnvVars } from './config/env-vars';
+import { AwsSdkModule } from './modules/aws-sdk/aws-sdk.module';
 import { PontalTechModule } from './modules/brokers/pontal-tech/pontal-tech.module';
 import { DatabaseModule } from './modules/database/database.module';
 import { EntityManagerModule } from './modules/entity-manager/entity-manager.module';
@@ -15,6 +16,18 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
   imports: [
+    AwsSdkModule.forRootAsync({
+      defaultServiceOptions: {
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService<EnvVars>) => ({
+          region: configService.getOrThrow<string>('AWS_REGION'),
+          accessKeyId: configService.getOrThrow<string>('AWS_ACCESS_KEY_ID'),
+          secretAccessKey: configService.getOrThrow<string>(
+            'AWS_SECRET_ACCESS_KEY',
+          ),
+        }),
+      },
+    }),
     ConfigModule.forRoot({ cache: true, isGlobal: true }),
     CacheModule.registerAsync({
       inject: [ConfigService],
@@ -70,5 +83,6 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     HealthModule,
   ],
   providers: [],
+  controllers: [],
 })
 export class AppModule {}

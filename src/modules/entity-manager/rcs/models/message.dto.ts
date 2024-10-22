@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsDate,
   IsEmpty,
@@ -10,14 +11,10 @@ import {
 } from 'class-validator';
 import { DeepPartial } from 'typeorm';
 
-import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
-import { RcsAccountEntity } from '@/modules/database/rcs/entities/rcs-account.entity';
-
-import { RcsAccountDto } from './rcs-account.dto';
 import { MessageDirection, MessageStatus } from '@/models/enums';
-import { Type } from 'class-transformer';
-import { ChatDto } from './chat.dto';
 import { MessageEntity } from '@/modules/database/rcs/entities/message.entity';
+
+import { ChatDto } from './chat.dto';
 
 export class MessageDto {
   @IsUUID()

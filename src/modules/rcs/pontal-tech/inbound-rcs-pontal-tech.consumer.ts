@@ -3,16 +3,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConsumeMessage } from 'amqplib';
 
 import {
-  CHANNELS_PREFETCH,
+  CHANNELS,
   EXCHANGE_NAMES,
   QUEUE_MESSAGE_HEADERS,
 } from '@/config/constants';
 import { BrokerType, ChannelType } from '@/models/enums';
+import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.exception';
+import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.exception';
 import { InboundMessage } from '@/models/inbound-message.model';
 import { InboundProducer } from '@/modules/message/producers/inbound.producer';
 import { RcsPontalTechService } from '@/modules/rcs/pontal-tech/rcs-pontal-tech.service';
-import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.exception';
-import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.exception';
 
 @Injectable()
 export class InboundRcsPontalTechConsumer {
@@ -29,7 +29,7 @@ export class InboundRcsPontalTechConsumer {
     queue: `ms-channels-gateway.${ChannelType.RCS}.${BrokerType.PONTAL_TECH}.inbound`,
     createQueueIfNotExists: true,
     queueOptions: {
-      channel: CHANNELS_PREFETCH.INBOUND,
+      channel: CHANNELS.INBOUND,
       durable: true,
       autoDelete: false,
       deadLetterExchange: EXCHANGE_NAMES.INBOUND_DLX,

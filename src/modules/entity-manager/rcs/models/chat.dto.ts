@@ -53,7 +53,7 @@ export class ChatDto {
 
     dto.id = entity.id;
     dto.brokerChatId = entity.brokerChatId;
-    dto.referenceChatId = entity.referenceChatId,
+    dto.referenceChatId = entity.referenceChatId;
     dto.rcsAccountId = entity.rcsAccountId;
     dto.createdAt = entity.createdAt as Date;
     dto.updatedAt = entity.updatedAt as Date;

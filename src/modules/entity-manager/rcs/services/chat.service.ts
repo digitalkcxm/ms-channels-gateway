@@ -1,7 +1,8 @@
-import { randomUUID } from 'node:crypto';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+
+import { randomUUID } from 'node:crypto';
 
 import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
 import { ChatRepository } from '@/modules/database/rcs/repositories/chat.repository';

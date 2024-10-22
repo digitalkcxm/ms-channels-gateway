@@ -1,8 +1,7 @@
 {
-    "cSpell.words": [
-        "golevelup",
-        "gupshup",
-        "GUPSHUP",
-        "PONTALTECH"
-    ]
+  "cSpell.words": ["golevelup", "gupshup", "GUPSHUP", "PONTALTECH"],
+
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

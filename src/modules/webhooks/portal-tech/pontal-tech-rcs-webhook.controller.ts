@@ -1,8 +1,8 @@
 import { Body, Controller, Post } from '@nestjs/common';
 
 import { BrokerType, ChannelType } from '@/models/enums';
-import { InboundProducer } from '@/modules/message/producers/inbound.producer';
 import { PontalTechWebhookApiRequest } from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs-webhook.model';
+import { InboundProducer } from '@/modules/message/producers/inbound.producer';
 
 @Controller('webhooks')
 export class PontalTechRcsWebhookController {

@@ -1,8 +1,9 @@
 import { MessageDirection, MessageStatus } from '@/models/enums';
+
 import {
   RcsMessageCarouselContentDto,
-  RcsMessageImageContentDto,
   RcsMessageDocumentContentDto,
+  RcsMessageImageContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageVideoContentDto,
@@ -21,6 +22,7 @@ export type RcsInboundMessage = {
     | RcsMessageRichCardContentDto
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto
-    | string;
+    | null;
+  errorMessage?: string;
   recipient: string;
 };
