@@ -86,7 +86,7 @@ export class RcsMessageService {
 
       await this.notify(
         {
-          eventType: SyncEventType.STATUS,
+          eventType: SyncEventType.MESSAGE,
           direction,
           status,
           referenceChatId: dbChat.referenceChatId,
@@ -152,21 +152,23 @@ export class RcsMessageService {
           eventType: SyncEventType.MESSAGE,
           direction: inboundMessage.direction,
           status: inboundMessage.status,
-          message: inboundMessage.message,
           referenceChatId: dbChat.referenceChatId,
-          date: dbMessage.createdAt,
           messageId: dbMessage.id,
+          date: dbMessage.createdAt,
+          message: inboundMessage.message,
         },
         channelConfigId,
       );
 
-      await this.inboundProducer.media({
-        brokerMessageId: inboundMessage.brokerMessageId,
-        chatId: dbChat.id,
-        referenceChatId: dbChat.referenceChatId,
-        channelConfigId,
-        payload: inboundMessage.message,
-      });
+      if (inboundMessage.message?.messageType !== 'text') {
+        await this.inboundProducer.media({
+          brokerMessageId: inboundMessage.brokerMessageId,
+          chatId: dbChat.id,
+          referenceChatId: dbChat.referenceChatId,
+          channelConfigId,
+          payload: inboundMessage.message,
+        });
+      }
     } catch (error) {
       this.logger.error(error, 'replyMessage');
 
@@ -278,12 +280,12 @@ export class RcsMessageService {
 
         await this.notify(
           {
-            date: dbMessage.createdAt,
-            direction: dbMessage.direction,
             eventType: SyncEventType.STATUS,
-            messageId: dbMessage.id,
-            referenceChatId,
+            direction: dbMessage.direction,
             status: MessageStatus.DELIVERED,
+            referenceChatId,
+            messageId: dbMessage.id,
+            date: dbMessage.createdAt,
             message: updatedMessage,
           },
           channelConfigId,
@@ -318,12 +320,12 @@ export class RcsMessageService {
 
         await this.notify(
           {
-            date: dbMessage.createdAt,
-            direction: dbMessage.direction,
             eventType: SyncEventType.MESSAGE,
-            messageId: dbMessage.id,
-            referenceChatId,
+            direction: dbMessage.direction,
             status: MessageStatus.DELIVERED,
+            referenceChatId,
+            messageId: dbMessage.id,
+            date: dbMessage.createdAt,
             message: updatedMessage,
           },
           channelConfigId,
@@ -360,12 +362,12 @@ export class RcsMessageService {
 
         await this.notify(
           {
-            date: dbMessage.createdAt,
-            direction: dbMessage.direction,
             eventType: SyncEventType.MESSAGE,
-            messageId: dbMessage.id,
-            referenceChatId,
+            direction: dbMessage.direction,
             status: MessageStatus.DELIVERED,
+            referenceChatId,
+            messageId: dbMessage.id,
+            date: dbMessage.createdAt,
             message: message,
           },
           channelConfigId,

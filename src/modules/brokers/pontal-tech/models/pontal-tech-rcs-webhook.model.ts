@@ -58,12 +58,24 @@ export type PontalTechRcsWebhookVideoContent = {
   video: PontalTechRcsWebhookFileContent;
 };
 
+export type PontalTechRcsWebhookRichCardContentMessage = {
+  title: string;
+  description?: string;
+  fileUrl: string;
+};
+
+export type PontalTechRcsWebhookRichCardContent = {
+  contentType?: 'richCard';
+  message: PontalTechRcsWebhookRichCardContentMessage;
+};
+
 export type PontalTechRcsWebhookContentTypes =
   | PontalTechRcsWebhookDocumentContent
   | PontalTechRcsWebhookImageContent
   | PontalTechRcsWebhookTextContent
   | PontalTechRcsWebhookFileTextContent
   | PontalTechRcsWebhookVideoContent
+  | PontalTechRcsWebhookRichCardContent
   | string;
 
 export type PontalTechWebhookApiRequest = {

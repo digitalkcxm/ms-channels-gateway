@@ -5,15 +5,20 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+import { MessageEntity } from './message.entity';
 import { RcsAccountEntity } from './rcs-account.entity';
 
 @Entity({ name: 'chats', schema: 'rcs' })
 @Index('idx_chats_rcs_broker_chat_id', (entity: ChatEntity) => [
   entity.brokerChatId,
+])
+@Index('idx_chats_reference_chat_id', (entity: ChatEntity) => [
+  entity.referenceChatId,
 ])
 export class ChatEntity {
   @PrimaryGeneratedColumn('uuid', {
@@ -37,6 +42,9 @@ export class ChatEntity {
 
   @Column({ nullable: true })
   brokerChatId?: string;
+
+  @OneToMany(() => MessageEntity, (entity) => entity.chat)
+  messages?: MessageEntity[];
 
   @CreateDateColumn()
   createdAt: Date;

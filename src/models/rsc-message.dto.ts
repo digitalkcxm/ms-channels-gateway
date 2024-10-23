@@ -15,6 +15,7 @@ import {
   PontalTechRcsWebhookDocumentContent,
   PontalTechRcsWebhookFileTextContent,
   PontalTechRcsWebhookImageContent,
+  PontalTechRcsWebhookRichCardContent,
   PontalTechRcsWebhookTextContent,
   PontalTechRcsWebhookVideoContent,
   PontalTechWebhookApiRequest,
@@ -49,6 +50,7 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
     | RcsMessageVideoContentDto
     | null {
     if (
+      ['outbound'].includes(model.direction) ||
       ['DELIVERED', 'READ'].includes(model.type) ||
       ['bloqueado por duplicidade'].includes(model.status) ||
       ['EXCEPTION', 'ERROR'].includes(model.type)
@@ -96,7 +98,8 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
         messageType: 'image',
         url: content.image.fileUri,
         mimeType: content.image.mimeType,
-        fileName: content.image.fileName,
+        fileName:
+          content.image.fileName || content.image.fileUri.split('/').pop(),
       };
     },
     text: (
@@ -105,13 +108,15 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
       const fileTextContent =
         model.message as PontalTechRcsWebhookFileTextContent;
 
-      if (fileTextContent?.contentType) {
+      if (fileTextContent?.contentType !== model.type) {
         return {
           type: 'rcs',
           messageType: 'document',
           url: fileTextContent.text.fileUri,
           mimeType: fileTextContent.text.mimeType,
-          fileName: fileTextContent.text.fileName,
+          fileName:
+            fileTextContent.text.fileName ||
+            fileTextContent.text.fileUri.split('/').pop(),
         };
       }
 
@@ -132,10 +137,21 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
         messageType: 'document',
         url: content.document.fileUri,
         mimeType: content.document.mimeType,
-        fileName: content.document.fileName,
+        fileName:
+          content.document.fileName ||
+          content.document.fileUri.split('/').pop(),
       };
     },
-    richCard: () => null,
+    richCard: (model: PontalTechWebhookApiRequest) => {
+      const content = model.message as PontalTechRcsWebhookRichCardContent;
+      return {
+        type: 'rcs',
+        messageType: 'rich-card',
+        title: content.message.title,
+        description: content.message.description,
+        fileUrl: content.message.fileUrl,
+      };
+    },
     video: (model: PontalTechWebhookApiRequest): RcsMessageVideoContentDto => {
       const content = model.message as PontalTechRcsWebhookVideoContent;
       return {
@@ -143,7 +159,8 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
         messageType: 'video',
         url: content.video.fileUri,
         mimeType: content.video.mimeType,
-        fileName: content.video.fileName,
+        fileName:
+          content.video.fileName || content.video.fileUri.split('/').pop(),
       };
     },
   };
@@ -178,10 +195,12 @@ export class RcsMessageDocumentContentDto extends BaseRcsMessageContentDto {
   url: string;
 
   @IsMimeType()
-  mimeType: string;
+  @IsOptional()
+  mimeType?: string;
 
   @IsString()
-  fileName: string;
+  @IsOptional()
+  fileName?: string;
 }
 
 export class RcsMessageImageContentDto extends RcsMessageDocumentContentDto {

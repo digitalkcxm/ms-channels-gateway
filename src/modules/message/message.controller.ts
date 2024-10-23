@@ -13,6 +13,6 @@ export class MessageController {
     @Body()
     body: OutboundMessageDto,
   ) {
-    return this.outboundProducer.publish(body);
+    this.outboundProducer.publish(body);
   }
 }
