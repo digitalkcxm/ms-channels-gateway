@@ -4,7 +4,6 @@ import {
   Index,
   OneToMany,
   PrimaryGeneratedColumn,
-  Unique,
 } from 'typeorm';
 
 import { BrokerType, ChannelType } from '@/models/enums';
@@ -16,14 +15,6 @@ import { ChannelConfigStatus } from './enums';
 @Index('idx_channel_configs_company_token', (entity: ChannelConfigEntity) => [
   entity.companyToken,
 ])
-@Unique(
-  'uq_channel_configs_company_token_channel_broker',
-  (entity: ChannelConfigEntity) => [
-    entity.companyToken,
-    entity.channel,
-    entity.broker,
-  ],
-)
 export class ChannelConfigEntity {
   @PrimaryGeneratedColumn('uuid', {
     primaryKeyConstraintName: 'pk_channel_configs_id',

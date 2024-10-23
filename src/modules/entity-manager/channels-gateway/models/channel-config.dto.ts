@@ -7,12 +7,10 @@ import {
   IsUUID,
   ValidateNested,
 } from 'class-validator';
-import {
-  JSONSchema,
-  targetConstructorToSchema,
-} from 'class-validator-jsonschema';
+import { JSONSchema } from 'class-validator-jsonschema';
 import { DeepPartial } from 'typeorm';
 
+import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import { BrokerType, ChannelType } from '@/models/enums';
 import { ChannelConfigEntity } from '@/modules/database/channels-gateway/entities/channel-config.entity';
 import { ChannelConfigStatus } from '@/modules/database/channels-gateway/entities/enums';
@@ -51,7 +49,7 @@ export class ChannelConfigDto {
   @Type(() => ChannelLinkDto)
   @JSONSchema({
     type: 'array',
-    items: targetConstructorToSchema(ChannelLinkDto),
+    items: dtoToJsonSchema(ChannelLinkDto),
   })
   @IsOptional()
   links?: ChannelLinkDto[];
