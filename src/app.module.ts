@@ -55,7 +55,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService<EnvVars>) => ({
         pinoHttp: {
-          level: configService.get<string>('LOG_LEVEL', 'info'),
+          level: configService.get<string>('LOG_LEVEL', 'debug'),
           transport: {
             targets: [
               {
