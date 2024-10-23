@@ -1,12 +1,24 @@
 import { Type } from 'class-transformer';
-import { IsEmpty, IsEnum, IsString, IsUUID } from 'class-validator';
+import {
+  IsEmpty,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
+import { JSONSchema } from 'class-validator-jsonschema';
 import { DeepPartial } from 'typeorm';
 
+import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import { BrokerType } from '@/models/enums';
 import { RcsAccountEntity } from '@/modules/database/rcs/entities/rcs-account.entity';
 
 import { PontalTechRcsAccountDto } from './pontal-tech-rcs-account.dto';
 
+@JSONSchema({
+  $ref: '#/components/schemas/rcs-accounts',
+})
 export class RcsAccountDto {
   @IsUUID()
   @IsEmpty()
@@ -18,7 +30,12 @@ export class RcsAccountDto {
   @IsEnum(BrokerType)
   broker: BrokerType;
 
+  @ValidateNested()
   @Type(() => PontalTechRcsAccountDto)
+  @JSONSchema({
+    ...dtoToJsonSchema(PontalTechRcsAccountDto),
+  })
+  @IsOptional()
   pontalTechRcsAccount?: PontalTechRcsAccountDto;
 
   toEntity(

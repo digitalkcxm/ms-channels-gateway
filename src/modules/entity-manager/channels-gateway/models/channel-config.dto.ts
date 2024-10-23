@@ -1,12 +1,16 @@
 import { Type } from 'class-transformer';
 import {
-  IsArray,
   IsEmpty,
   IsEnum,
   IsOptional,
   IsString,
   IsUUID,
+  ValidateNested,
 } from 'class-validator';
+import {
+  JSONSchema,
+  targetConstructorToSchema,
+} from 'class-validator-jsonschema';
 import { DeepPartial } from 'typeorm';
 
 import { BrokerType, ChannelType } from '@/models/enums';
@@ -15,6 +19,9 @@ import { ChannelConfigStatus } from '@/modules/database/channels-gateway/entitie
 
 import { ChannelLinkDto } from './channel-link.dto';
 
+@JSONSchema({
+  $ref: '#/components/schemas/channel-configs',
+})
 export class ChannelConfigDto {
   @IsUUID()
   @IsEmpty()
@@ -37,15 +44,20 @@ export class ChannelConfigDto {
   status?: ChannelConfigStatus;
 
   @IsString()
-  @IsEmpty()
+  @IsOptional()
   companyToken: string;
 
-  @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => ChannelLinkDto)
+  @JSONSchema({
+    type: 'array',
+    items: targetConstructorToSchema(ChannelLinkDto),
+  })
+  @IsOptional()
   links?: ChannelLinkDto[];
 
   toEntity(
-    override?: DeepPartial<ChannelConfigDto | ChannelConfigEntity>,
+    override?: DeepPartial<ChannelConfigEntity>,
   ): DeepPartial<ChannelConfigEntity> {
     return {
       id: this.id,

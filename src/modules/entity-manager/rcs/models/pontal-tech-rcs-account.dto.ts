@@ -1,15 +1,20 @@
 import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { JSONSchema } from 'class-validator-jsonschema';
 import { DeepPartial } from 'typeorm';
 
 import { PontalTechRcsAccountEntity } from '@/modules/database/rcs/entities/pontal-tech-rcs-account.entity';
 
+@JSONSchema({
+  $ref: '#/components/schemas/pontal-tech-rcs-accounts',
+})
 export class PontalTechRcsAccountDto {
   @IsUUID()
+  @IsOptional()
   rcsAccountId: string;
 
-  @IsUUID()
+  @IsString()
   @IsOptional()
-  apiKey?: string;
+  apiKey: string;
 
   @IsString()
   pontalTechAccountId: string;

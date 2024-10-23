@@ -28,7 +28,9 @@ export class RcsAccountEntity {
   @Column()
   broker: BrokerType;
 
-  @OneToOne(() => PontalTechRcsAccountEntity, (entity) => entity.rcsAccount)
+  @OneToOne(() => PontalTechRcsAccountEntity, (entity) => entity.rcsAccount, {
+    cascade: true,
+  })
   pontalTechRcsAccount?: PontalTechRcsAccountEntity;
 
   @CreateDateColumn()

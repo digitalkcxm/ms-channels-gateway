@@ -9,6 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 
+import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import { CreateChannelLinkDto } from '@/modules/entity-manager/channels-gateway/models/create-channel-link.dto';
 import { UpdateChannelLinkDto } from '@/modules/entity-manager/channels-gateway/models/update-channel-link.dto';
 import { ChannelLinkService } from '@/modules/entity-manager/channels-gateway/services/channel-link.service';
@@ -16,6 +17,11 @@ import { ChannelLinkService } from '@/modules/entity-manager/channels-gateway/se
 @Controller('manager/channel-links')
 export class ChannelLinkController {
   constructor(private readonly channelLinkService: ChannelLinkService) {}
+
+  @Get('schema')
+  getSchema() {
+    return dtoToJsonSchema(CreateChannelLinkDto);
+  }
 
   @Get(':id')
   getById(@Param('id') id: string) {

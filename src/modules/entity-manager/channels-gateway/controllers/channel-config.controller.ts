@@ -9,9 +9,11 @@ import {
   Put,
 } from '@nestjs/common';
 
+import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import { CreateChannelConfigDto } from '@/modules/entity-manager/channels-gateway/models/create-channel-config.dto';
 import { UpdateChannelConfigDto } from '@/modules/entity-manager/channels-gateway/models/update-channel-config.dto';
 
+import { ChannelConfigDto } from '../models/channel-config.dto';
 import { ChannelConfigService } from '../services/channel-config.service';
 
 @Controller('manager/channel-configs')
@@ -21,6 +23,11 @@ export class ChannelConfigController {
   @Get()
   getAllChannelByCompany(@Headers('Authorization') companyToken: string) {
     return this.channelConfigService.getAllByCompany(companyToken);
+  }
+
+  @Get('schema')
+  getSchema() {
+    return dtoToJsonSchema(ChannelConfigDto);
   }
 
   @Get(':id')

@@ -11,7 +11,7 @@ export class CreateChannelConfigDto extends OmitType(ChannelConfigDto, [
   'toEntity',
 ] as const) {
   toEntity(
-    override?: DeepPartial<ChannelConfigDto | ChannelConfigEntity>,
+    override?: DeepPartial<ChannelConfigEntity>,
   ): DeepPartial<ChannelConfigEntity> {
     return {
       channel: this.channel,
