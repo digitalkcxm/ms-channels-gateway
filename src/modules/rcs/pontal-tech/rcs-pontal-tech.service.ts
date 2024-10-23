@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
 
-import { BrokerType, MessageDirection, MessageStatus } from '@/models/enums';
+import {
+  BrokerType,
+  ChannelType,
+  MessageDirection,
+  MessageStatus,
+} from '@/models/enums';
 import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.exception';
 import { MessageContentNotSupportedException } from '@/models/exceptions/message-content-not-supported.exception';
 import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.exception';
@@ -32,15 +37,15 @@ import { RcsMessageService } from '@/modules/message/services/rcs-message.servic
 const TYPE_TO_STATUS: {
   [key in PontalTechRcsWebhookType]: MessageStatus;
 } = {
-  audio: MessageStatus.DELIVERED,
-  carousel: MessageStatus.DELIVERED,
+  audio: MessageStatus.QUEUED,
+  carousel: MessageStatus.QUEUED,
   contact: MessageStatus.DELIVERED,
-  document: MessageStatus.DELIVERED,
-  image: MessageStatus.DELIVERED,
+  document: MessageStatus.QUEUED,
+  image: MessageStatus.QUEUED,
   location: MessageStatus.DELIVERED,
-  richCard: MessageStatus.DELIVERED,
+  richCard: MessageStatus.QUEUED,
   text: MessageStatus.DELIVERED,
-  video: MessageStatus.DELIVERED,
+  video: MessageStatus.QUEUED,
   single: MessageStatus.DELIVERED,
   DELIVERED: MessageStatus.DELIVERED,
   READ: MessageStatus.READ,
@@ -115,7 +120,11 @@ export class RcsPontalTechService {
           'rcsPontalTechHandler :: Message type not supported',
         );
 
-        return;
+        throw new MessageContentNotSupportedException(
+          ChannelType.RCS,
+          BrokerType.PONTAL_TECH,
+          outboundMessageDto.payload,
+        );
       }
 
       await strategy(
@@ -153,10 +162,13 @@ export class RcsPontalTechService {
 
     const existingMessage = await this.getExistingMessageOrThrow(webhook, chat);
 
+    // TODO extrair para um método
     const status =
-      (webhook.status !== 'bloqueado por duplicidade' &&
-        TYPE_TO_STATUS[webhook.type]) ||
-      MessageStatus.ERROR;
+      webhook.status !== 'bloqueado por duplicidade'
+        ? webhook.direction === 'outbound'
+          ? MessageStatus.SENT
+          : TYPE_TO_STATUS[webhook.type] || MessageStatus.ERROR
+        : MessageStatus.ERROR;
 
     const message =
       BaseRcsMessageContentDto.fromPontalTechRcsWebhookApiRequest(webhook);
