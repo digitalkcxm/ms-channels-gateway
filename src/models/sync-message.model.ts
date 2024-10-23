@@ -4,6 +4,7 @@ import {
   RcsMessageCarouselContentDto,
   RcsMessageDocumentContentDto,
   RcsMessageImageContentDto,
+  RcsMessageLocationContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageVideoContentDto,
@@ -22,6 +23,7 @@ export type SyncModel = {
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
     | RcsMessageDocumentContentDto
+    | RcsMessageLocationContentDto
     | RcsMessageRichCardContentDto
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto;

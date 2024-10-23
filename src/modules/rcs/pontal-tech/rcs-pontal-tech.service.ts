@@ -39,7 +39,7 @@ const TYPE_TO_STATUS: {
 } = {
   audio: MessageStatus.QUEUED,
   carousel: MessageStatus.QUEUED,
-  contact: MessageStatus.DELIVERED,
+  contact: MessageStatus.QUEUED,
   document: MessageStatus.QUEUED,
   image: MessageStatus.QUEUED,
   location: MessageStatus.DELIVERED,

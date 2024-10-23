@@ -7,6 +7,7 @@ import {
   RcsMessageDocumentContentDto,
   RcsMessageDto,
   RcsMessageImageContentDto,
+  RcsMessageLocationContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageType,
@@ -22,6 +23,13 @@ export type PontalTechRcsMessageTextContent = {
 export type PontalTechRcsMessageImageContent = {
   image: {
     url: string;
+  };
+};
+
+export type PontalTechRcsMessageLocationContent = {
+  location: {
+    latitude: string;
+    longitude: string;
   };
 };
 
@@ -65,12 +73,13 @@ export type PontalTechRcsMessageCarouselContent = {
 type PontalTechRcsBasicContent = PontalTechRcsMessageTextContent;
 
 export type PontalTechRcsMessageContentsAll =
-  | PontalTechRcsMessageTextContent
+  | PontalTechRcsMessageCarouselContent
   | PontalTechRcsMessageImageContent
-  | PontalTechRcsMessageVideoContent
+  | PontalTechRcsMessageLocationContent
   | PontalTechRcsMessagePdfContent
   | PontalTechRcsMessageRichCardContent
-  | PontalTechRcsMessageCarouselContent;
+  | PontalTechRcsMessageTextContent
+  | PontalTechRcsMessageVideoContent;
 
 export type PontalTechRcsSingleContent = PontalTechRcsMessageContentsAll;
 
@@ -145,6 +154,14 @@ export class PontalTechRcsApiRequestMapper {
         })),
       };
     },
+    document: (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessageDocumentContentDto;
+      return {
+        pdf: {
+          url: content.url,
+        },
+      };
+    },
     image: (payload: RcsMessageDto) => {
       const content = payload.content as RcsMessageImageContentDto;
       return {
@@ -153,11 +170,12 @@ export class PontalTechRcsApiRequestMapper {
         },
       };
     },
-    document: (payload: RcsMessageDto) => {
-      const content = payload.content as RcsMessageDocumentContentDto;
+    location: (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessageLocationContentDto;
       return {
-        pdf: {
-          url: content.url,
+        location: {
+          latitude: content.latitude,
+          longitude: content.longitude,
         },
       };
     },

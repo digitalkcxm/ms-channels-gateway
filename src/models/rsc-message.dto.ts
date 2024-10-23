@@ -1,6 +1,8 @@
 import { Type } from 'class-transformer';
 import {
   IsIn,
+  IsLatitude,
+  IsLongitude,
   IsMimeType,
   IsNotEmpty,
   IsOptional,
@@ -16,6 +18,7 @@ import {
   PontalTechRcsWebhookDocumentContent,
   PontalTechRcsWebhookFileTextContent,
   PontalTechRcsWebhookImageContent,
+  PontalTechRcsWebhookLocationContent,
   PontalTechRcsWebhookRichCardContent,
   PontalTechRcsWebhookTextContent,
   PontalTechRcsWebhookVideoContent,
@@ -29,6 +32,7 @@ const RcsOutboundMessageTypes = [
   'image',
   'video',
   'document',
+  'location',
   'rich-card',
   'carousel',
 ] as const;
@@ -88,46 +92,11 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
       | RcsMessageCarouselContentDto
       | RcsMessageDocumentContentDto
       | RcsMessageImageContentDto
+      | RcsMessageLocationContentDto
       | RcsMessageRichCardContentDto
       | RcsMessageTextContentDto
       | RcsMessageVideoContentDto;
   } = {
-    image: (model: PontalTechWebhookApiRequest): RcsMessageImageContentDto => {
-      const content = model.message as PontalTechRcsWebhookImageContent;
-      return {
-        type: 'rcs',
-        messageType: 'image',
-        url: content.image.fileUri,
-        mimeType: content.image.mimeType,
-        fileName:
-          content.image.fileName || content.image.fileUri.split('/').pop(),
-      };
-    },
-    text: (
-      model: PontalTechWebhookApiRequest,
-    ): RcsMessageTextContentDto | RcsMessageDocumentContentDto => {
-      const fileTextContent =
-        model.message as PontalTechRcsWebhookFileTextContent;
-
-      if (fileTextContent?.contentType !== model.type) {
-        return {
-          type: 'rcs',
-          messageType: 'document',
-          url: fileTextContent.text.fileUri,
-          mimeType: fileTextContent.text.mimeType,
-          fileName:
-            fileTextContent.text.fileName ||
-            fileTextContent.text.fileUri.split('/').pop(),
-        };
-      }
-
-      const content = model.message as PontalTechRcsWebhookTextContent;
-      return {
-        type: 'rcs',
-        messageType: 'text',
-        text: content.text,
-      };
-    },
     carousel: () => null,
     contact: (
       model: PontalTechWebhookApiRequest,
@@ -156,6 +125,28 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
           content.document.fileUri.split('/').pop(),
       };
     },
+    image: (model: PontalTechWebhookApiRequest): RcsMessageImageContentDto => {
+      const content = model.message as PontalTechRcsWebhookImageContent;
+      return {
+        type: 'rcs',
+        messageType: 'image',
+        url: content.image.fileUri,
+        mimeType: content.image.mimeType,
+        fileName:
+          content.image.fileName || content.image.fileUri.split('/').pop(),
+      };
+    },
+    location: (
+      model: PontalTechWebhookApiRequest,
+    ): RcsMessageLocationContentDto => {
+      const content = model.message as PontalTechRcsWebhookLocationContent;
+      return {
+        type: 'rcs',
+        messageType: 'location',
+        latitude: content.location.latitude,
+        longitude: content.location.longitude,
+      };
+    },
     richCard: (model: PontalTechWebhookApiRequest) => {
       const content = model.message as PontalTechRcsWebhookRichCardContent;
       return {
@@ -164,6 +155,31 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
         title: content.message.title,
         description: content.message.description,
         fileUrl: content.message.fileUrl,
+      };
+    },
+    text: (
+      model: PontalTechWebhookApiRequest,
+    ): RcsMessageTextContentDto | RcsMessageDocumentContentDto => {
+      const fileTextContent =
+        model.message as PontalTechRcsWebhookFileTextContent;
+
+      if (fileTextContent?.contentType !== model.type) {
+        return {
+          type: 'rcs',
+          messageType: 'document',
+          url: fileTextContent.text.fileUri,
+          mimeType: fileTextContent.text.mimeType,
+          fileName:
+            fileTextContent.text.fileName ||
+            fileTextContent.text.fileUri.split('/').pop(),
+        };
+      }
+
+      const content = model.message as PontalTechRcsWebhookTextContent;
+      return {
+        type: 'rcs',
+        messageType: 'text',
+        text: content.text,
       };
     },
     video: (model: PontalTechWebhookApiRequest): RcsMessageVideoContentDto => {
@@ -239,6 +255,16 @@ export class RcsMessageRichCardContentDto extends BaseRcsMessageContentDto {
   fileUrl: string;
 }
 
+export class RcsMessageLocationContentDto extends BaseRcsMessageContentDto {
+  readonly messageType: RcsMessageType = 'location';
+
+  @IsLatitude()
+  latitude: string;
+
+  @IsLongitude()
+  longitude?: string;
+}
+
 export class RcsMessageTextContentDto extends BaseRcsMessageContentDto {
   readonly messageType: RcsMessageType = 'text';
 
@@ -258,8 +284,9 @@ export class RcsMessageDto {
       property: 'messageType',
       subTypes: [
         { value: RcsMessageCarouselContentDto, name: 'carousel' },
-        { value: RcsMessageImageContentDto, name: 'image' },
         { value: RcsMessageDocumentContentDto, name: 'document' },
+        { value: RcsMessageImageContentDto, name: 'image' },
+        { value: RcsMessageLocationContentDto, name: 'location' },
         { value: RcsMessageRichCardContentDto, name: 'rich-card' },
         { value: RcsMessageTextContentDto, name: 'text' },
         { value: RcsMessageVideoContentDto, name: 'video' },
@@ -271,6 +298,7 @@ export class RcsMessageDto {
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
     | RcsMessageDocumentContentDto
+    | RcsMessageLocationContentDto
     | RcsMessageRichCardContentDto
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto;

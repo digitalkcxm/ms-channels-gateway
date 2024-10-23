@@ -24,6 +24,7 @@ export type PontalTechRcsContentType =
   | 'video'
   | 'contact'
   | 'document'
+  | 'location'
   | 'richCard'
   | 'carousel';
 
@@ -44,24 +45,24 @@ export type PontalTechRcsWebhookDocumentContent = {
   document: PontalTechRcsWebhookFileContent;
 };
 
-export type PontalTechRcsWebhookImageContent = {
-  contentType?: 'image';
-  image: PontalTechRcsWebhookFileContent;
-};
-
-export type PontalTechRcsWebhookTextContent = {
-  contentType?: 'text';
-  text: string;
-};
-
 export type PontalTechRcsWebhookFileTextContent = {
   contentType?: 'document';
   text: PontalTechRcsWebhookFileContent;
 };
 
-export type PontalTechRcsWebhookVideoContent = {
-  contentType?: 'video';
-  video: PontalTechRcsWebhookFileContent;
+export type PontalTechRcsWebhookImageContent = {
+  contentType?: 'image';
+  image: PontalTechRcsWebhookFileContent;
+};
+
+export type PontalTechRcsWebhookLocationContentMessage = {
+  latitude: string;
+  longitude: string;
+};
+
+export type PontalTechRcsWebhookLocationContent = {
+  contentType?: 'location';
+  location: PontalTechRcsWebhookLocationContentMessage;
 };
 
 export type PontalTechRcsWebhookRichCardContentMessage = {
@@ -75,14 +76,25 @@ export type PontalTechRcsWebhookRichCardContent = {
   message: PontalTechRcsWebhookRichCardContentMessage;
 };
 
+export type PontalTechRcsWebhookTextContent = {
+  contentType?: 'text';
+  text: string;
+};
+
+export type PontalTechRcsWebhookVideoContent = {
+  contentType?: 'video';
+  video: PontalTechRcsWebhookFileContent;
+};
+
 export type PontalTechRcsWebhookContentTypes =
   | PontalTechRcsWebhookContactContent
   | PontalTechRcsWebhookDocumentContent
-  | PontalTechRcsWebhookImageContent
-  | PontalTechRcsWebhookTextContent
   | PontalTechRcsWebhookFileTextContent
-  | PontalTechRcsWebhookVideoContent
+  | PontalTechRcsWebhookImageContent
+  | PontalTechRcsWebhookLocationContent
   | PontalTechRcsWebhookRichCardContent
+  | PontalTechRcsWebhookTextContent
+  | PontalTechRcsWebhookVideoContent
   | string;
 
 export type PontalTechWebhookApiRequest = {
