@@ -12,6 +12,7 @@ import {
 
 import {
   PontalTechRcsContentType,
+  PontalTechRcsWebhookContactContent,
   PontalTechRcsWebhookDocumentContent,
   PontalTechRcsWebhookFileTextContent,
   PontalTechRcsWebhookImageContent,
@@ -128,6 +129,19 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
       };
     },
     carousel: () => null,
+    contact: (
+      model: PontalTechWebhookApiRequest,
+    ): RcsMessageDocumentContentDto => {
+      const content = model.message as PontalTechRcsWebhookContactContent;
+      return {
+        type: 'rcs',
+        messageType: 'document',
+        url: content.contact.fileUri,
+        mimeType: content.contact.mimeType,
+        fileName:
+          content.contact.fileName || content.contact.fileUri.split('/').pop(),
+      };
+    },
     document: (
       model: PontalTechWebhookApiRequest,
     ): RcsMessageDocumentContentDto => {

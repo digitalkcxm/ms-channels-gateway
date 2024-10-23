@@ -22,6 +22,7 @@ export type PontalTechRcsContentType =
   | 'text'
   | 'image'
   | 'video'
+  | 'contact'
   | 'document'
   | 'richCard'
   | 'carousel';
@@ -31,6 +32,11 @@ export type PontalTechRcsWebhookFileContent = {
   fileSizeBytes: number;
   fileName: string;
   fileUri: string;
+};
+
+export type PontalTechRcsWebhookContactContent = {
+  contentType?: 'contact';
+  contact: PontalTechRcsWebhookFileContent;
 };
 
 export type PontalTechRcsWebhookDocumentContent = {
@@ -70,6 +76,7 @@ export type PontalTechRcsWebhookRichCardContent = {
 };
 
 export type PontalTechRcsWebhookContentTypes =
+  | PontalTechRcsWebhookContactContent
   | PontalTechRcsWebhookDocumentContent
   | PontalTechRcsWebhookImageContent
   | PontalTechRcsWebhookTextContent
