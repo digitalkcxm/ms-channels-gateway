@@ -5,8 +5,10 @@ import {
   Get,
   Headers,
   Param,
+  ParseBoolPipe,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 
 import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
@@ -31,8 +33,11 @@ export class ChannelConfigController {
   }
 
   @Get(':id')
-  getById(@Param('id') id: string) {
-    return this.channelConfigService.getById(id);
+  getById(
+    @Param('id') id: string,
+    @Query('includeLinks', ParseBoolPipe) includeLinks = true,
+  ) {
+    return this.channelConfigService.getById(id, includeLinks);
   }
 
   @Post()

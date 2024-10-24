@@ -59,6 +59,8 @@ export class ChannelConfigDto {
   ): DeepPartial<ChannelConfigEntity> {
     return {
       id: this.id,
+      name: this.name,
+      description: this.description,
       channel: this.channel,
       broker: this.broker,
       status: this.status,
@@ -78,6 +80,8 @@ export class ChannelConfigDto {
     const dto = new ChannelConfigDto();
 
     dto.id = entity?.id;
+    dto.name = entity?.name;
+    dto.description = entity?.description;
     dto.companyToken = entity?.companyToken;
     dto.channel = entity?.channel;
     dto.broker = entity?.broker;

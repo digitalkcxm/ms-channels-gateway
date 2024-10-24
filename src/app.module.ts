@@ -31,6 +31,10 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     CacheModule.registerAsync({
       inject: [ConfigService],
       useFactory: async (configService: ConfigService<EnvVars>) => {
+        const defaultTTL = configService.get<number>(
+          'DEFAULT_CACHE_TTL',
+          5 * 60,
+        );
         const store = await redisStore({
           socket: {
             host: configService.getOrThrow<string>('REDIS_HOST'),
@@ -40,13 +44,13 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
           username: configService.get<string>('REDIS_USERNAME'),
           password: configService.get<string>('REDIS_PASSWORD'),
           name: 'ms-channels-gateway',
-          ttl: configService.get<number>('DEFAULT_CACHE_TTL', 60 * 1000),
+          ttl: defaultTTL,
           clientInfoTag: 'ms-channels-gateway',
         });
 
         return {
           store: store as unknown as CacheStore,
-          ttl: configService.get<number>('DEFAULT_CACHE_TTL', 60 * 1000),
+          ttl: defaultTTL,
         };
       },
       isGlobal: true,

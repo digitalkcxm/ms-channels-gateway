@@ -27,7 +27,7 @@ export class ChannelConfigService {
       .then(ChannelConfigDto.fromEntity);
 
     if (data) {
-      await this.cacheManager.set(cacheKey, data);
+      this.cacheManager.set(cacheKey, data);
     }
 
     return data;
@@ -47,7 +47,7 @@ export class ChannelConfigService {
       .then((rows) => rows?.map(ChannelConfigDto.fromEntity));
 
     if (data) {
-      await this.cacheManager.set(cacheKey, data);
+      this.cacheManager.set(cacheKey, data);
     }
 
     return data;
@@ -57,16 +57,6 @@ export class ChannelConfigService {
     const data = await this.channelConfigRepository
       .create(entity.toEntity({ companyToken }))
       .then(ChannelConfigDto.fromEntity);
-
-    await this.cacheManager.del(
-      CacheKeyBuilder.getAllByCompany({ companyToken }),
-    );
-    await this.cacheManager.del(
-      CacheKeyBuilder.getById({
-        id: data.id,
-        remove: true,
-      }),
-    );
 
     return data;
   }
@@ -81,15 +71,14 @@ export class ChannelConfigService {
       entity.toEntity({ companyToken }),
     );
 
-    await this.cacheManager.del(
-      CacheKeyBuilder.getAllByCompany({ companyToken }),
-    );
-    await this.cacheManager.del(
+    const delKeys = await this.cacheManager.store.keys(
       CacheKeyBuilder.getById({
         id,
         remove: true,
       }),
     );
+    Promise.all(delKeys?.map((key) => this.cacheManager.del(key)));
+    this.cacheManager.del(CacheKeyBuilder.getAllByCompany({ companyToken }));
 
     return data;
   }
@@ -100,12 +89,14 @@ export class ChannelConfigService {
     await this.cacheManager.del(
       CacheKeyBuilder.getAllByCompany({ companyToken }),
     );
-    await this.cacheManager.del(
+
+    const delKeys = await this.cacheManager.store.keys(
       CacheKeyBuilder.getById({
         id,
         remove: true,
       }),
     );
+    Promise.all(delKeys?.map((key) => this.cacheManager.del(key)));
   }
 }
 

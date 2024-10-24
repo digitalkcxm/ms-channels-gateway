@@ -2,6 +2,7 @@ import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 
 import { EXCHANGE_NAMES } from '@/config/constants';
+import { BrokerType, ChannelType } from '@/models/enums';
 import { OutboundMessageDto } from '@/models/outbound-message.model';
 import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/services/channel-config.service';
 
@@ -12,18 +13,11 @@ export class OutboundProducer {
     private readonly channelConfigService: ChannelConfigService,
   ) {}
 
-  async publish(message: OutboundMessageDto) {
-    const { channelConfigId } = message;
-
-    const channelConfig =
-      await this.channelConfigService.getById(channelConfigId);
-
-    if (!channelConfig) {
-      throw new Error('Channel config not found');
-    }
-
-    const { broker, channel } = channelConfig;
-
+  async publish(
+    message: OutboundMessageDto,
+    broker: BrokerType,
+    channel: ChannelType,
+  ) {
     const rabbitChannel = this.amqpConnection.channel;
 
     await rabbitChannel.assertExchange(EXCHANGE_NAMES.OUTBOUND, 'topic', {

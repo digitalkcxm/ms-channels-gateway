@@ -71,13 +71,14 @@ export class RcsAccountService {
   async update(id: string, entity: UpdateRcsAccountDto) {
     const data = await this.rcsAccountRepository.update(id, entity.toEntity());
 
-    await this.cacheManager.del(CacheKeyBuilder.getById({ id, remove: true }));
-    await this.cacheManager.del(
+    const delKeys = await this.cacheManager.store.keys(
       CacheKeyBuilder.getByReference({
         referenceId: entity.referenceId,
         remove: true,
       }),
     );
+    Promise.all(delKeys?.map((key) => this.cacheManager.del(key)));
+    this.cacheManager.del(CacheKeyBuilder.getById({ id, remove: true }));
 
     return data;
   }
@@ -85,7 +86,10 @@ export class RcsAccountService {
   async delete(id: string) {
     await this.rcsAccountRepository.delete(id);
 
-    await this.cacheManager.del(CacheKeyBuilder.getById({ id, remove: true }));
+    const delKeys = await this.cacheManager.store.keys(
+      CacheKeyBuilder.getById({ id, remove: true }),
+    );
+    Promise.all(delKeys?.map((key) => this.cacheManager.del(key)));
   }
 }
 

@@ -2,17 +2,17 @@ import { Body, Controller, Post } from '@nestjs/common';
 
 import { OutboundMessageDto } from '@/models/outbound-message.model';
 
-import { OutboundProducer } from './producers/outbound.producer';
+import { MessageService } from './services/message.service';
 
 @Controller('message')
 export class MessageController {
-  constructor(private readonly outboundProducer: OutboundProducer) {}
+  constructor(private readonly messageService: MessageService) {}
 
   @Post('publish')
   async publish(
     @Body()
     body: OutboundMessageDto,
   ) {
-    this.outboundProducer.publish(body);
+    await this.messageService.publish(body);
   }
 }
