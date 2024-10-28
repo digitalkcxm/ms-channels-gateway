@@ -178,7 +178,7 @@ deploy_homol:
     - export VERSION="${TAG_RELEASE}"
   script:
     - >
-      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/deploy_ms_k8s_test.sh/raw?ref=master' -O deploy_ms_k8s.sh
+      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/deploy_ms_k8s_nest.sh/raw?ref=master' -O deploy_ms_k8s.sh
     - chmod +x deploy_ms_k8s.sh 
     - ./deploy_ms_k8s.sh
 
