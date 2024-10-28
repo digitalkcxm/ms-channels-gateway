@@ -18,6 +18,7 @@ export type EnvVars = {
   DB_CA_CERTIFICATE?: string;
 
   RABBITMQ_HOST: string;
+  RABBITMQ_VHOST?: string;
   RABBITMQ_PORT?: number;
   RABBITMQ_USERNAME: string;
   RABBITMQ_PASSWORD: string;

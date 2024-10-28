@@ -15,9 +15,15 @@ class AmqpConnectionFactory {
 
   private username?: string;
   private password?: string;
+  private vHost?: string;
 
   static create(host: string, port: number, secure?: boolean) {
     return new AmqpConnectionFactory(host, port, secure);
+  }
+
+  withVHost(vHost: string) {
+    this.vHost = vHost;
+    return this;
   }
 
   withUsername(username: string) {
@@ -34,8 +40,9 @@ class AmqpConnectionFactory {
     const protocol = this.secure ? 'amqps' : 'amqp';
     const password = this.password ? `:${this.password}` : '';
     const authSeparator = this.username ? '@' : '';
+    const vHost = this.vHost ? `/${this.vHost}` : '';
 
-    return `${protocol}://${this.username}${password}${authSeparator}${this.host}:${this.port}`;
+    return `${protocol}://${this.username}${password}${authSeparator}${this.host}:${this.port}${vHost}`;
   }
 }
 
@@ -47,16 +54,21 @@ export class RabbitMQConfigFactory
 
   createModuleConfig(): RabbitMQConfig | Promise<RabbitMQConfig> {
     const host = this.configService.getOrThrow<string>('RABBITMQ_HOST');
+    const vHost = this.configService.get<string>('RABBITMQ_VHOST');
     const port = this.configService.get<number>('RABBITMQ_PORT', 5672);
     const secure = this.configService.get<boolean>('RABBITMQ_SECURE', false);
     const username = this.configService.get<string>('RABBITMQ_USERNAME');
     const password = this.configService.get<string>('RABBITMQ_PASSWORD');
 
+    const uri = AmqpConnectionFactory.create(host, port, secure)
+      .withUsername(username)
+      .withPassword(password)
+      .withVHost(vHost)
+      .build();
+    console.log('RabbitMQConfigFactory', uri);
+
     return {
-      uri: AmqpConnectionFactory.create(host, port, secure)
-        .withUsername(username)
-        .withPassword(password)
-        .build(),
+      uri,
       connectionInitOptions: {
         wait: false,
       },
