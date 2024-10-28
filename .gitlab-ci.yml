@@ -103,7 +103,7 @@ build_homol:
     - export VERSION="${TAG_RELEASE}"
   script:
     - >
-      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/build_img.sh/raw?ref=master' -O build_img.sh
+      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/build_img_nest.sh/raw?ref=master' -O build_img.sh
     - chmod +x build_img.sh 
     - ./build_img.sh
 
