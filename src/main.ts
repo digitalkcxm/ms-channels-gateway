@@ -8,7 +8,6 @@ import { AppModule } from './app.module';
 import { EnvVars } from './config/env-vars';
 
 async function bootstrap() {
-  console.log('process.env', process.env);
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });

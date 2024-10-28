@@ -6,6 +6,39 @@ import { ConfigService } from '@nestjs/config';
 import { CHANNELS, EXCHANGE_NAMES, QUEUE_NAMES } from './constants';
 import { EnvVars } from './env-vars';
 
+class AmqpConnectionFactory {
+  private constructor(
+    private readonly host: string,
+    private readonly port: number,
+    private readonly secure?: boolean,
+  ) {}
+
+  private username?: string;
+  private password?: string;
+
+  static create(host: string, port: number, secure?: boolean) {
+    return new AmqpConnectionFactory(host, port, secure);
+  }
+
+  withUsername(username: string) {
+    this.username = username;
+    return this;
+  }
+
+  withPassword(password: string) {
+    this.password = password;
+    return this;
+  }
+
+  build() {
+    const protocol = this.secure ? 'amqps' : 'amqp';
+    const password = this.password ? `:${this.password}` : '';
+    const authSeparator = this.username ? '@' : '';
+
+    return `${protocol}://${this.username}${password}${authSeparator}${this.host}:${this.port}`;
+  }
+}
+
 @Injectable()
 export class RabbitMQConfigFactory
   implements ModuleConfigFactory<RabbitMQConfig>
@@ -13,16 +46,17 @@ export class RabbitMQConfigFactory
   constructor(private readonly configService: ConfigService<EnvVars>) {}
 
   createModuleConfig(): RabbitMQConfig | Promise<RabbitMQConfig> {
-    const username = this.configService.getOrThrow<string>('RABBITMQ_USERNAME');
-    const password = this.configService.getOrThrow<string>('RABBITMQ_PASSWORD');
     const host = this.configService.getOrThrow<string>('RABBITMQ_HOST');
     const port = this.configService.get<number>('RABBITMQ_PORT', 5672);
-    const protocol = this.configService.get<boolean>('RABBITMQ_SECURE', false)
-      ? 'amqps'
-      : 'amqp';
+    const secure = this.configService.get<boolean>('RABBITMQ_SECURE', false);
+    const username = this.configService.get<string>('RABBITMQ_USERNAME');
+    const password = this.configService.get<string>('RABBITMQ_PASSWORD');
 
     return {
-      uri: `${protocol}://${username}:${password}@${host}:${port}/${username}`,
+      uri: AmqpConnectionFactory.create(host, port, secure)
+        .withUsername(username)
+        .withPassword(password)
+        .build(),
       connectionInitOptions: {
         wait: false,
       },
