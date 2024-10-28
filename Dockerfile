@@ -45,4 +45,4 @@ COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
 EXPOSE 80
 
-CMD [ "npm", "run", "start:prod" ]
+CMD [ "node", "dist/main" ]
