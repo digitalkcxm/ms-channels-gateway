@@ -1,5 +1,8 @@
 import { Type } from 'class-transformer';
 import { IsString, IsUUID, ValidateNested } from 'class-validator';
+import { JSONSchema } from 'class-validator-jsonschema';
+
+import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 
 import { BaseMessageDto } from './outbound-base.model';
 import { RcsMessageDto } from './rsc-message.dto';
@@ -17,6 +20,9 @@ export class OutboundMessageDto {
   recipients: string[];
 
   @ValidateNested()
+  @JSONSchema({
+    oneOf: [dtoToJsonSchema(RcsMessageDto)],
+  })
   @Type(() => BaseMessageDto, {
     discriminator: {
       property: 'type',

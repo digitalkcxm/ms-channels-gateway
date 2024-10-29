@@ -11,7 +11,6 @@ import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.except
 import { MessageContentNotSupportedException } from '@/models/exceptions/message-content-not-supported.exception';
 import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.exception';
 import { RcsAccountNotFoundException } from '@/models/exceptions/rcs-account-not-found.exception';
-import { RcsMessageContentParserException } from '@/models/exceptions/rcs-message-content-parser.exception';
 import { InboundMessage } from '@/models/inbound-message.model';
 import { OutboundMessageDto } from '@/models/outbound-message.model';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
@@ -134,22 +133,12 @@ export class RcsPontalTechService {
         account,
       );
     } catch (error) {
-      if (
-        error instanceof RcsMessageContentParserException ||
-        error instanceof MessageContentNotSupportedException
-      ) {
-        return await this.saveOutboundError(
-          channelConfigId,
-          outboundMessageDto,
-          account,
-          error,
-        );
-      }
-
-      this.logger.error(error, 'sendMessage');
-      this.logger.debug(outboundMessageDto, 'sendMessage :: error :: message');
-
-      throw error;
+      return await this.saveOutboundError(
+        channelConfigId,
+        outboundMessageDto,
+        account,
+        error,
+      );
     }
   }
 
@@ -258,6 +247,7 @@ export class RcsPontalTechService {
         BrokerType.PONTAL_TECH,
       );
     }
+
     return chat;
   }
 
@@ -290,9 +280,7 @@ export class RcsPontalTechService {
     channelConfigId: string,
     outboundMessageDto: OutboundMessageDto,
     account: RcsAccountDto,
-    error:
-      | RcsMessageContentParserException
-      | MessageContentNotSupportedException,
+    error: Error,
   ) {
     const dbMessage = await this.rcsMessageService.outboundMessage(
       channelConfigId,

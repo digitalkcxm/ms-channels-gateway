@@ -11,7 +11,9 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
+import { JSONSchema } from 'class-validator-jsonschema';
 
+import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import {
   PontalTechRcsContentType,
   PontalTechRcsWebhookContactContent,
@@ -279,6 +281,17 @@ export class RcsMessageVideoContentDto extends RcsMessageDocumentContentDto {
 
 export class RcsMessageDto {
   @ValidateNested()
+  @JSONSchema({
+    oneOf: [
+      dtoToJsonSchema(RcsMessageCarouselContentDto),
+      dtoToJsonSchema(RcsMessageDocumentContentDto),
+      dtoToJsonSchema(RcsMessageImageContentDto),
+      dtoToJsonSchema(RcsMessageLocationContentDto),
+      dtoToJsonSchema(RcsMessageRichCardContentDto),
+      dtoToJsonSchema(RcsMessageTextContentDto),
+      dtoToJsonSchema(RcsMessageVideoContentDto),
+    ],
+  })
   @Type(() => BaseRcsMessageContentDto, {
     discriminator: {
       property: 'messageType',

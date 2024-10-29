@@ -65,7 +65,6 @@ export class RabbitMQConfigFactory
       .withPassword(password)
       .withVHost(vHost)
       .build();
-    console.log('RabbitMQConfigFactory', uri);
 
     return {
       uri,

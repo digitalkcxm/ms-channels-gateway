@@ -1,30 +1,152 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Channels gateway
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Projeto que será responsável por rotear as mensagens ao seus respectivos pares de Channel -> Broker
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Casos de uso
 
-## Description
+> Todas as exchanges e filas tem o prefixo ms-channels-gateway, suprimido dos diagramas que começam apenas com . (ponto), ex: .outbound se refere a exchange ms-channels-gateway.outbound
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Outbound
+> **Ativo** ::  _plataforma -> cliente_
+
+### Publish
+> _POST_ /api/v1/message/publish
+
+Fluxo responsável por receber uma mensagem, validar o payload e enfileirar para processamento de acordo com as configurações do channelConfigId
+
+- Validação de payload de acordo com o type + messageType
+- Valida se o channelConfigId é válido, ou seja, existe e o status é ATIVO
+
+#### Estrutura base
+```json
+{
+    "channelConfigId": "",
+    "referenceChatId": "",
+    "recipients": [
+        "11988881234"
+    ],
+    "payload": {
+        "type": "rcs",
+        "content": {/* text, image, document, carousel, rich card */}
+    }
+}
+```
+#### text
+```json
+{            
+  "messageType": "text",
+  "text": "Olá, somos da Digitalk! Vamos testar?"
+}
+```
+> text deve ter no máximo 2000 caracteres
+
+#### image
+
+```json
+{
+    "messageType": "image",
+    "url": "https://example.com/image.png"          
+}
+```
+
+#### document
+> IMPORTANTE!:  Atualmente a Pontal Tech só envia documentos do tipo PDF. Qualquer outro tipo é retornado erro 400
+
+```json
+{
+    "messageType": "document",
+    "url": "https://example.com/document.pdf"          
+}
+```
+
+#### carousel
+```json
+{
+  "messageType": "carousel",
+  "items": [
+      {
+          "title": "Item 1",
+          "description": "Já chegam sabendo onde fazer as necessidades <3",
+          "fileUrl": "https://example.com/image.png"
+      },
+  ]  
+}
+```
+> item.tile deve ter no máximo 160 caracteres<br>
+> item.description deve ter no máximo 2000 caracteres
+
+#### rich-card
+```json
+{
+  "messageType": "rich-card",
+  "title": "Que tal um rich card com gatinhos?",
+  "description": "E uma descrição massa?!",
+  "fileUrl": "https://example.com/image.png" 
+}
+```
+> tile deve ter no máximo 160 caracteres<br>
+> description deve ter no máximo 2000 caracteres
+
+### Diagrama de fluxo da publicação de mensagem
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor core as api-core
+  box Publish
+  participant mcg as ms-channels-gateway
+  participant ex-out as Outbound Exchange
+  participant mcg
+  participant ex-out-dead as Outbound DLX
+  end
+  activate mcg
+  core->>+mcg: POST /api/v1/message/publish
+  mcg-->>ex-out: Exchange: .outbound
+  note over mcg,ex-out: Routing key<br>{CHANNEL}.{BROKER}
+  mcg->>core: 201: Queued | 400: Invalid payload
+  deactivate mcg
+  ex-out-->>ex-out-dead: Exchange: .outbound.dlx
+  note over ex-out,ex-out-dead: Caso dê erro ou<br>routing Key sem consumidor
+```
+
+### Diagrama de fluxo de envio de mensagem via RCS -> Pontal Tech
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant api-pontaltech as API Pontal Tech
+  box RCS Pontal Tech Outbound
+  participant mcg as ms-channels-gateway
+  participant ex-out as Queue <br>.rcs.pontal-tech.outbound
+  participant db as Database
+  participant sync as Queue<br>.{comapnyToken}
+  end
+  ex-out-->>mcg: Consome a fila
+  activate mcg
+  mcg->>api-pontaltech: Envia a mensagem ao Broker
+  activate api-pontaltech
+  api-pontaltech->>mcg: 200: Queued | 400: Invalid Payload
+  deactivate api-pontaltech
+  note over mcg,api-pontaltech: reference -> brokerChatId
+  note over mcg,api-pontaltech: event_id -> brokeMessageId
+  mcg->>db: Salva mensagem
+  activate db
+  db->>mcg: Retorna mensagem salva
+  deactivate db
+  mcg-->>sync: Notifica o cliente pela fila específica
+  deactivate mcg
+```
+
+
+### Inbound
+> **Receptivo** :: _cliente -> plataforma_
+
+> **Status** :: _outbound status -> plataforma_
+
+
+<hr />
+
+# Development
 
 ## Project setup
 
@@ -60,26 +182,6 @@ $ npm run test:cov
 
 ## Resources
 
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- RabbitMQ para enfileiramento de mensagens enviadas/recebidas
+- Redis para cache de configurações, listagens, etc
+- class validator para validação de DTOs
