@@ -139,7 +139,7 @@ build_homol:
 
 deploy_homol:
   stage: deploy_homol
-  image: public.ecr.aws/lts/node:20
+  image: public.ecr.aws/docker/library/node:20
   before_script:
     - apt update && apt install jq git unzip zip curl bash openssl wget rsync tar python3 -y
     - DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata > /dev/null 2>&1
