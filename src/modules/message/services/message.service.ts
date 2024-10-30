@@ -33,6 +33,6 @@ export class MessageService {
 
     const { broker, channel } = channelConfig;
 
-    this.outboundProducer.publish(message, broker, channel);
+    await this.outboundProducer.publish(message, broker, channel);
   }
 }

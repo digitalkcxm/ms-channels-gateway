@@ -3,15 +3,11 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { CHANNELS, EXCHANGE_NAMES, QUEUE_NAMES } from '@/config/constants';
 import { InboundMediaMessage } from '@/models/inbound-message.model';
-import { InboundProducer } from '@/modules/message/producers/inbound.producer';
 import { RcsMessageService } from '@/modules/message/services/rcs-message.service';
 
 @Injectable()
 export class InboundRcsMediaProcessConsumer {
-  constructor(
-    private readonly inboundProducer: InboundProducer,
-    private readonly rcsMessageService: RcsMessageService,
-  ) {}
+  constructor(private readonly rcsMessageService: RcsMessageService) {}
 
   private readonly logger = new Logger(InboundRcsMediaProcessConsumer.name);
 

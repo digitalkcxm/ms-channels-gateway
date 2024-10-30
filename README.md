@@ -119,7 +119,7 @@ sequenceDiagram
   participant mcg as ms-channels-gateway
   participant ex-out as Queue <br>.rcs.pontal-tech.outbound
   participant db as Database
-  participant sync as Queue<br>.{comapnyToken}
+  participant sync as Queue<br>.{companyToken}
   end
   ex-out-->>mcg: Consome a fila
   activate mcg
