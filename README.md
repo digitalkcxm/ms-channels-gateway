@@ -31,6 +31,9 @@ Fluxo responsável por receber uma mensagem, validar o payload e enfileirar para
     }
 }
 ```
+
+### Tipos possíveis para o _content_
+
 #### text
 ```json
 {            
@@ -137,11 +140,88 @@ sequenceDiagram
   deactivate mcg
 ```
 
-
 ### Inbound
 > **Receptivo** :: _cliente -> plataforma_
 
 > **Status** :: _outbound status -> plataforma_
+
+#### Webhooks
+
+RCS - Pontal Tech
+
+> _POST_ /api/v1/webhooks/pontal-tech/rcs
+
+Fluxo responsável por receber as mensagens e status de mensagens enviadas
+
+#### Estrutura base
+
+```json
+{
+    "status": "", // Vem somente em casos de erro
+    "reference": "",
+    "event_id": "",
+    "direction": "", // inbound | outbound
+    "user_id": "", // Telefone do cliente que enviou a mensagem, pode vir com ou sem DDI
+    "timestamp": "", // ISO
+    "channel": "rcs",
+    "type": "", // basic | single
+    "message": { /* text, image, video, document */ },
+    "vars": {} // Caso envie variáveis no ativo, ele retorna aqui
+}
+```
+### Tipos possíveis para o _message_
+
+// TODO
+
+### Diagrama de fluxo para recebimento de mensagem via RCS -> Pontal Tech
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant api-pontaltech as API Pontal Tech
+  box RCS Pontal Tech Outbound
+  participant mcg as ms-channels-gateway
+  participant ex-in as Queue <br>.rcs.pontal-tech.outbound
+  participant consumer as Consumer
+  participant db as Database
+  participant queue-media as Queue<br>.inbound.media
+  participant sync as Queue<br>.{companyToken}
+  end
+  api-pontaltech-->>mcg: POST /api/v1/webhooks/pontal-tech/rcs
+  activate mcg
+  mcg->>ex-in: Publica mensagem na fila
+  deactivate mcg
+  ex-in-->>consumer: Consume mensagem da fila
+  activate consumer
+  consumer->>db: Salva mensagem
+  db->>consumer: Retorna mensagem salva
+  consumer-->>queue-media: Exchange<br>.inbound
+  note over consumer,queue-media: Routing Key<br>media-process
+  consumer-->>sync: Notifica o cliente pela fila específica
+  deactivate consumer
+```
+
+### Diagrama de fluxo para processamento de media
+
+```mermaid
+sequenceDiagram
+  autonumber
+  box RCS Pontal Tech Outbound
+  participant queue-media as Queue <br>.inbound.media
+  participant mcg as ms-channels-gateway
+  participant s3 as AWS S3
+  participant db as Database
+  participant sync as Queue<br>.{companyToken}
+  end
+  queue-media-->>mcg: Consome mensagem
+  activate mcg
+  mcg->>s3: Importa e faz upload para o S3
+  s3->>mcg: Url do arquivo
+  mcg->>db: Atualiza url do(s) arquivo(s)
+  db->>mcg: Retorna mensagem atualizada
+  mcg-->>sync: Notifica o cliente pela fila específica
+  deactivate mcg
+```
 
 
 <hr />
