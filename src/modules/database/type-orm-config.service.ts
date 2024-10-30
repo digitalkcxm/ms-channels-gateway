@@ -21,6 +21,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
             username: this.configService.get<string>('DB_USERNAME'),
             password: this.configService.get<string>('DB_PASSWORD'),
             database: this.configService.getOrThrow<string>('DB_DATABASE'),
+            port: this.configService.get<number>('DB_PORT', 5432),
           },
         ]
       : [];
@@ -30,21 +31,22 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
 
     return {
       applicationName: 'ms-channels-gateway',
-      type: 'postgres',
-      port: this.configService.get<number>('DB_PORT', 5432),
-      synchronize: true, // TODO: remover isso em prod
-      useUTC: true,
-      namingStrategy: new SnakeNamingStrategy(),
-      logging: false,
-      verboseRetryLog: true,
       autoLoadEntities: true,
+      logging: false,
+      // migrationsRun: true,
+      namingStrategy: new SnakeNamingStrategy(),
       ssl,
+      synchronize: false,
+      type: 'postgres',
+      useUTC: true,
+      verboseRetryLog: true,
       replication: {
         master: {
           host: this.configService.getOrThrow<string>('DB_HOST'),
           username: this.configService.get<string>('DB_USERNAME'),
           password: this.configService.get<string>('DB_PASSWORD'),
           database: this.configService.getOrThrow<string>('DB_DATABASE'),
+          port: this.configService.get<number>('DB_PORT', 5432),
         },
         slaves,
       },
