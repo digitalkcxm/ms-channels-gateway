@@ -211,7 +211,7 @@ deploy_homol:
     - microservicos
 
 create-release:
-  image: public.ecr.aws/docker/library/node:20.15.0
+  image: public.ecr.aws/docker/library/node:20
   stage: release
   before_script:
     - DATE=$(date +%d-%m-%YH%H:%M:%S)
@@ -325,7 +325,7 @@ build_prod:
 
 deploy_prod:
   stage: deploy_prod
-  image: public.ecr.aws/lts/ubuntu:22.04_stable
+  image: public.ecr.aws/docker/library/node:20
   before_script:
     - apt update
     - apt install jq git unzip zip curl bash openssl wget rsync tar python3 -y

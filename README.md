@@ -140,10 +140,167 @@ sequenceDiagram
   deactivate mcg
 ```
 
-### Inbound
-> **Receptivo** :: _cliente -> plataforma_
+
+### Sincronização de status da mensagem
 
 > **Status** :: _outbound status -> plataforma_
+
+#### Mensagem enfileirada
+_Mensagem enviada ao Broker_
+```json
+{
+  "eventType": "message",
+  "direction": "outbound",
+  "status": "queued",
+  "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
+  "messageId": "cfdd0783-327f-412f-ace0-ffda57cb8c7e",
+  "date": "2024-10-23T16:02:46.506Z",
+  "message": {
+    "type": "rcs",
+    "messageType": "text",
+    "text": "Olá, somos da Digitalk! Vamos testar?"
+  }
+}
+```
+
+#### Mensagem enviada
+```json
+{
+  "eventType": "status",
+  "direction": "outbound",
+  "status": "sent",
+  "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
+  "messageId": "cfdd0783-327f-412f-ace0-ffda57cb8c7e",
+  "date": "2024-10-23T13:02:46.771Z",
+  "message": null,
+  "errorMessage": null
+}
+```
+
+#### Mensagem recebida
+```json
+{
+  "eventType": "status",
+  "direction": "outbound",
+  "status": "delivered",
+  "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
+  "messageId": "cfdd0783-327f-412f-ace0-ffda57cb8c7e",
+  "date": "2024-10-23T13:02:55.907Z",
+  "message": null,
+  "errorMessage": null
+}
+```
+
+#### Mensagem lida
+```json
+{
+  "eventType": "status",
+  "direction": "outbound",
+  "status": "read",
+  "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
+  "messageId": "cfdd0783-327f-412f-ace0-ffda57cb8c7e",
+  "date": "2024-10-23T13:06:04.432Z",
+  "message": null,
+  "errorMessage": null
+}
+```
+
+#### Resposta de texto recebida
+```json
+{
+  "eventType": "message",
+  "direction": "inbound",
+  "status": "delivered",
+  "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
+  "messageId": "5490baa5-3c9e-4cc4-939f-60db0f3a3e76",
+  "date": "2024-10-23T16:30:23.457Z",
+  "message": {
+    "type": "rcs",
+    "messageType": "text",
+    "text": "Claro que sim 😌"
+  }
+}
+```
+
+#### Resposta de arquivo recebida
+> Aqui temos 2 status: QUEUED e DELIVERED
+> 
+> QUEUED: Recebemos a mensagem com a URL original, e a enviamos para processamento em outra fila
+>
+> Aqui um exemplo de recebimento de arquivo do tipo pem
+```json
+{
+  "eventType": "message",
+  "direction": "inbound",
+  "status": "queued",
+  "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
+  "messageId": "f31d4449-c85c-4394-8229-8ca2ed5fe5f1",
+  "date": "2024-10-23T17:09:20.594Z",
+  "message": {
+    "type": "rcs",
+    "messageType": "document",
+    "url": "https://rcs-copper-us.googleapis.com/4227caba-a692-49ce-920b-45eedb973eb8/255a503e501daccf66f1cb2b9eb060b15cf023b2e27a4ec034f6a2ce48e2",
+    "mimeType": "application/x-pem-file",
+    "fileName": "ca.pem"
+  }
+}
+```
+
+> DELIVERED: Importamos com sucesso o arquivo para nosso storage, atualmente no S3, e informa a nova url
+```json
+{
+  "eventType": "status",
+  "direction": "inbound",
+  "status": "delivered",
+  "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
+  "messageId": "f31d4449-c85c-4394-8229-8ca2ed5fe5f1",
+  "date": "2024-10-23T17:09:20.594Z",
+  "message": {
+    "type": "rcs",
+    "messageType": "document",
+    "url": "https://apis-storage-homol.s3.sa-east-1.amazonaws.com/ms-channels-gateway/f09fcbc6edb265426f216e49854cab5ed3d281c6/ca.pem",
+    "mimeType": "application/x-pem-file",
+    "fileName": "ca.pem"
+  }
+}
+```
+
+> Temos também outros recebimentos específicos, e o processo de QUEUED ->  DELIVERED se mantém
+
+#### Image
+```json
+{
+  "eventType": "message",
+  "direction": "outbound",
+  "status": "queued",
+  "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
+  "messageId": "6b4f0daa-ffa2-479e-983e-fdfa26d65024",
+  "date": "2024-10-23T17:52:34.014Z",
+  "message": {
+    "type": "rcs",
+    "messageType": "image",
+    "url": "https://cdn.britannica.com/34/235834-050-C5843610/two-different-breeds-of-cats-side-by-side-outdoors-in-the-garden.jpg?source=4"
+  }
+}
+```
+
+#### Coordenadas
+```json
+{
+  "eventType": "message",
+  "direction": "inbound",
+  "status": "delivered",
+  "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
+  "messageId": "22fbca1c-d73b-472d-8284-4c034c60cddc",
+  "date": "2024-10-23T19:57:21.019Z",
+  "message": {
+    "type": "rcs",
+    "messageType": "location",
+    "latitude": -27.6068941,
+    "longitude": -48.4835356
+  }
+}
+```
 
 #### Webhooks
 
@@ -169,9 +326,6 @@ Fluxo responsável por receber as mensagens e status de mensagens enviadas
     "vars": {} // Caso envie variáveis no ativo, ele retorna aqui
 }
 ```
-### Tipos possíveis para o _message_
-
-// TODO
 
 ### Diagrama de fluxo para recebimento de mensagem via RCS -> Pontal Tech
 
