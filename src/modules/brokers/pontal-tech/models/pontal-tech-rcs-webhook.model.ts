@@ -19,6 +19,7 @@ export type PontalTechRcsWebhookType =
 export type PontalTechRcsWebhookStatus = 'bloqueado por duplicidade';
 
 export type PontalTechRcsContentType =
+  | 'audio'
   | 'text'
   | 'image'
   | 'video'
@@ -33,6 +34,11 @@ export type PontalTechRcsWebhookFileContent = {
   fileSizeBytes: number;
   fileName: string;
   fileUri: string;
+};
+
+export type PontalTechRcsWebhookAudioContent = {
+  contentType?: 'audio';
+  audio: PontalTechRcsWebhookFileContent;
 };
 
 export type PontalTechRcsWebhookContactContent = {
@@ -87,6 +93,7 @@ export type PontalTechRcsWebhookVideoContent = {
 };
 
 export type PontalTechRcsWebhookContentTypes =
+  | PontalTechRcsWebhookAudioContent
   | PontalTechRcsWebhookContactContent
   | PontalTechRcsWebhookDocumentContent
   | PontalTechRcsWebhookFileTextContent

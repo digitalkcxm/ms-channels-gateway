@@ -11,6 +11,7 @@ import {
 
 import { MessageDirection, MessageStatus } from '@/models/enums';
 import {
+  RcsMessageAudioContentDto,
   RcsMessageCarouselContentDto,
   RcsMessageDocumentContentDto,
   RcsMessageImageContentDto,
@@ -68,6 +69,7 @@ export class MessageEntity {
 
   @Column({ type: 'jsonb' })
   rawMessage:
+    | RcsMessageAudioContentDto
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
     | RcsMessageDocumentContentDto

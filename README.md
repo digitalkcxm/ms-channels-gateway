@@ -145,6 +145,13 @@ sequenceDiagram
 
 > **Status** :: _outbound status -> plataforma_
 
+  Status possíveis:
+- queued
+- sent
+- delivered
+- read
+- error
+
 #### Mensagem enfileirada
 _Mensagem enviada ao Broker_
 ```json
@@ -163,7 +170,7 @@ _Mensagem enviada ao Broker_
 }
 ```
 
-#### Mensagem enviada
+#### Mensagem enviada ao destinatário
 ```json
 {
   "eventType": "status",
@@ -177,7 +184,7 @@ _Mensagem enviada ao Broker_
 }
 ```
 
-#### Mensagem recebida
+#### Mensagem recebida pelo destinatário
 ```json
 {
   "eventType": "status",
@@ -191,7 +198,7 @@ _Mensagem enviada ao Broker_
 }
 ```
 
-#### Mensagem lida
+#### Mensagem lida pelo destinatário
 ```json
 {
   "eventType": "status",
@@ -204,6 +211,14 @@ _Mensagem enviada ao Broker_
   "errorMessage": null
 }
 ```
+
+### Respostas recebidas
+Tipos possíveis:
+- text
+- document
+- image
+- audio
+- video
 
 #### Resposta de texto recebida
 ```json
@@ -267,24 +282,64 @@ _Mensagem enviada ao Broker_
 
 > Temos também outros recebimentos específicos, e o processo de QUEUED ->  DELIVERED se mantém
 
-#### Image
+#### Resposta com imagem recebida
 ```json
 {
-  "eventType": "message",
-  "direction": "outbound",
-  "status": "queued",
-  "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
-  "messageId": "6b4f0daa-ffa2-479e-983e-fdfa26d65024",
-  "date": "2024-10-23T17:52:34.014Z",
+  "eventType": "status",
+  "direction": "inbound",
+  "status": "delivered",
+  "referenceChatId": "e2e37727-7e52-4edc-8151-b8ee7b681675",
+  "messageId": "dc9ad1a0-cc5e-4c55-b7e5-bf39f3d95014",
+  "date": "2024-11-06T16:50:13.754Z",
   "message": {
     "type": "rcs",
     "messageType": "image",
-    "url": "https://cdn.britannica.com/34/235834-050-C5843610/two-different-breeds-of-cats-side-by-side-outdoors-in-the-garden.jpg?source=4"
+    "url": "https://apis-storage-homol.s3.sa-east-1.amazonaws.com/ms-channels-gateway/3f20be52c4894c552c369a58e199288320a3b4c3/1000018709.jpg",
+    "mimeType": "image/jpeg",
+    "fileName": "1000018709.jpg"
   }
 }
 ```
 
-#### Coordenadas
+#### Resposta de audio recebida
+```json
+{
+  "eventType": "status",
+  "direction": "inbound",
+  "status": "delivered",
+  "referenceChatId": "e2e37727-7e52-4edc-8151-b8ee7b681675",
+  "messageId": "c91cdd9a-dc67-4600-a77b-47cf2c38a48a",
+  "date": "2024-11-06T16:40:37.501Z",
+  "message": {
+    "type": "rcs",
+    "messageType": "audio",
+    "url": "https://apis-storage-homol.s3.sa-east-1.amazonaws.com/ms-channels-gateway/eada746fad1716825ac4b82d8ccc263de7d92746/2169369951126844617.m4a",
+    "mimeType": "audio/mp4",
+    "fileName": "2169369951126844617.m4a"
+  }
+}
+```
+
+#### Resposta de vídeo recebida
+```json
+{
+  "eventType": "status",
+  "direction": "inbound",
+  "status": "delivered",
+  "referenceChatId": "e2e37727-7e52-4edc-8151-b8ee7b681675",
+  "messageId": "c82c91cc-a609-4d33-be73-ec2aab419f41",
+  "date": "2024-11-06T16:51:49.666Z",
+  "message": {
+    "type": "rcs",
+    "messageType": "video",
+    "url": "https://apis-storage-homol.s3.sa-east-1.amazonaws.com/ms-channels-gateway/478b3161beaf0dde5a2fe7b5f7578f18ef750131/1000018377.mp4",
+    "mimeType": "video/mp4",
+    "fileName": "1000018377.mp4"
+  }
+}
+```
+
+#### Resposta com coordenadas recebida
 ```json
 {
   "eventType": "message",
@@ -299,6 +354,38 @@ _Mensagem enviada ao Broker_
     "latitude": -27.6068941,
     "longitude": -48.4835356
   }
+}
+```
+### Erros
+> Direto ao ponto: Ainda não é feito nenhum mapeamento dos erros retornados pelos brokers, o serviço apenas repassa a mensagem de erro recebida
+
+#### Erro ao enviar RCS para número que não possui o recurso habilitado
+
+```json
+{
+  "eventType": "status",
+  "direction": "outbound",
+  "status": "error",
+  "referenceChatId": "461f0480-2439-4da3-91f8-c5fed037fb3e",
+  "messageId": "614fc723-98ff-4c0e-ac4c-15238d69d11e",
+  "date": "2024-11-05T18:12:18.136Z",
+  "message": null,
+  "errorMessage": "Request failed with status code 404"
+}
+```
+
+#### Erro ao enviar o mesmo RCS em uma janela de 1h 
+
+```json 
+{
+  "eventType": "status",
+  "direction": "outbound",
+  "status": "error",
+  "referenceChatId": "d8c790f5-87bc-40ee-a385-9977e8fc6559",
+  "messageId": "968bee3c-9fe7-42db-a0a2-b48b9f4fe83c",
+  "date": "2024-11-05T18:16:46.209Z",
+  "message": null,
+  "errorMessage": "bloqueado por duplicidade"
 }
 ```
 
@@ -355,7 +442,7 @@ sequenceDiagram
   deactivate consumer
 ```
 
-### Diagrama de fluxo para processamento de media
+### Diagrama de fluxo para processamento de mídia
 
 ```mermaid
 sequenceDiagram

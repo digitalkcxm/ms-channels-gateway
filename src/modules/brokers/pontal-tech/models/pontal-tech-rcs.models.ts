@@ -144,6 +144,13 @@ export class PontalTechRcsApiRequestMapper {
       payload: RcsMessageDto,
     ) => PontalTechRcsMessageContentsAll;
   } = {
+    audio: (payload: RcsMessageDto) => {
+      throw new MessageContentNotSupportedException(
+        ChannelType.RCS,
+        BrokerType.PONTAL_TECH,
+        payload,
+      );
+    },
     carousel: (payload: RcsMessageDto) => {
       const content = payload.content as RcsMessageCarouselContentDto;
       return {

@@ -2,6 +2,7 @@ import { PontalTechWebhookApiRequest } from '@/modules/brokers/pontal-tech/model
 
 import { BrokerType, ChannelType } from './enums';
 import {
+  RcsMessageAudioContentDto,
   RcsMessageCarouselContentDto,
   RcsMessageDocumentContentDto,
   RcsMessageImageContentDto,
@@ -22,6 +23,7 @@ export type InboundMediaMessage = {
   referenceChatId: string;
   channelConfigId: string;
   payload:
+    | RcsMessageAudioContentDto
     | RcsMessageCarouselContentDto
     | RcsMessageDocumentContentDto
     | RcsMessageImageContentDto

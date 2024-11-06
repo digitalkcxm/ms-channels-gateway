@@ -1,6 +1,7 @@
 import { MessageDirection, MessageStatus } from '@/models/enums';
 
 import {
+  RcsMessageAudioContentDto,
   RcsMessageCarouselContentDto,
   RcsMessageDocumentContentDto,
   RcsMessageImageContentDto,
@@ -20,6 +21,7 @@ export type SyncModel = {
   direction: MessageDirection;
   status: MessageStatus;
   message?:
+    | RcsMessageAudioContentDto
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
     | RcsMessageDocumentContentDto

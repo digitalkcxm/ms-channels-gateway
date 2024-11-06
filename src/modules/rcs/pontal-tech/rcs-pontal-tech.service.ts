@@ -16,10 +16,7 @@ import { OutboundMessageDto } from '@/models/outbound-message.model';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
 import { BaseRcsMessageContentDto } from '@/models/rsc-message.dto';
 import { SyncEventType } from '@/models/sync-message.model';
-import {
-  PontalTechRcsWebhookType,
-  PontalTechWebhookApiRequest,
-} from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs-webhook.model';
+import { PontalTechWebhookApiRequest } from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs-webhook.model';
 import {
   PontalTechRcsApiRequestMapper,
   PontalTechRcsMessageApiRequest,
@@ -32,25 +29,6 @@ import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service'
 import { MessageService } from '@/modules/entity-manager/rcs/services/message.service';
 import { RcsAccountService } from '@/modules/entity-manager/rcs/services/rcs-account.service';
 import { RcsMessageService } from '@/modules/message/services/rcs-message.service';
-
-const TYPE_TO_STATUS: {
-  [key in PontalTechRcsWebhookType]: MessageStatus;
-} = {
-  audio: MessageStatus.QUEUED,
-  carousel: MessageStatus.QUEUED,
-  contact: MessageStatus.QUEUED,
-  document: MessageStatus.QUEUED,
-  image: MessageStatus.QUEUED,
-  location: MessageStatus.DELIVERED,
-  richCard: MessageStatus.QUEUED,
-  text: MessageStatus.DELIVERED,
-  video: MessageStatus.QUEUED,
-  single: MessageStatus.DELIVERED,
-  DELIVERED: MessageStatus.DELIVERED,
-  READ: MessageStatus.READ,
-  EXCEPTION: MessageStatus.ERROR,
-  ERROR: MessageStatus.ERROR,
-} as const;
 
 @Injectable()
 export class RcsPontalTechService {
@@ -151,13 +129,10 @@ export class RcsPontalTechService {
 
     const existingMessage = await this.getExistingMessageOrThrow(webhook, chat);
 
-    // TODO extrair para um método
     const status =
-      webhook.status !== 'bloqueado por duplicidade'
-        ? webhook.direction === 'outbound'
-          ? MessageStatus.SENT
-          : TYPE_TO_STATUS[webhook.type] || MessageStatus.ERROR
-        : MessageStatus.ERROR;
+      BaseRcsMessageContentDto.extractStatusFromPontalTechRcsWebhookApiRequest(
+        webhook,
+      );
 
     const message =
       BaseRcsMessageContentDto.fromPontalTechRcsWebhookApiRequest(webhook);

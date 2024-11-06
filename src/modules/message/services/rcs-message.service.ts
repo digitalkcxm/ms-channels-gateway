@@ -256,7 +256,9 @@ export class RcsMessageService {
       chatId,
     );
 
-    if (['document', 'image', 'video'].includes(payload?.messageType)) {
+    if (
+      ['document', 'audio', 'image', 'video'].includes(payload?.messageType)
+    ) {
       const message = {
         ...(payload as RcsMessageDocumentContentDto),
       };

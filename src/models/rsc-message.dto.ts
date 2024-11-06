@@ -16,6 +16,7 @@ import { JSONSchema } from 'class-validator-jsonschema';
 import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import {
   PontalTechRcsContentType,
+  PontalTechRcsWebhookAudioContent,
   PontalTechRcsWebhookContactContent,
   PontalTechRcsWebhookDocumentContent,
   PontalTechRcsWebhookFileTextContent,
@@ -23,13 +24,16 @@ import {
   PontalTechRcsWebhookLocationContent,
   PontalTechRcsWebhookRichCardContent,
   PontalTechRcsWebhookTextContent,
+  PontalTechRcsWebhookType,
   PontalTechRcsWebhookVideoContent,
   PontalTechWebhookApiRequest,
 } from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs-webhook.model';
 
+import { MessageStatus } from './enums';
 import { BaseMessageDto, OutboundMessageType } from './outbound-base.model';
 
 const RcsOutboundMessageTypes = [
+  'audio',
   'text',
   'image',
   'video',
@@ -40,6 +44,25 @@ const RcsOutboundMessageTypes = [
 ] as const;
 export type RcsMessageType = (typeof RcsOutboundMessageTypes)[number];
 
+const TYPE_TO_STATUS: {
+  [key in PontalTechRcsWebhookType]: MessageStatus;
+} = {
+  audio: MessageStatus.QUEUED,
+  carousel: MessageStatus.QUEUED,
+  contact: MessageStatus.QUEUED,
+  document: MessageStatus.QUEUED,
+  image: MessageStatus.QUEUED,
+  location: MessageStatus.SENT,
+  richCard: MessageStatus.QUEUED,
+  text: MessageStatus.SENT,
+  video: MessageStatus.QUEUED,
+  single: MessageStatus.DELIVERED,
+  DELIVERED: MessageStatus.DELIVERED,
+  READ: MessageStatus.READ,
+  EXCEPTION: MessageStatus.ERROR,
+  ERROR: MessageStatus.ERROR,
+} as const;
+
 export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
   readonly type: OutboundMessageType = 'rcs';
 
@@ -49,6 +72,7 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
   public static fromPontalTechRcsWebhookApiRequest(
     model: PontalTechWebhookApiRequest,
   ):
+    | RcsMessageAudioContentDto
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
     | RcsMessageDocumentContentDto
@@ -91,6 +115,7 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
     [key in PontalTechRcsContentType]: (
       model: PontalTechWebhookApiRequest,
     ) =>
+      | RcsMessageAudioContentDto
       | RcsMessageCarouselContentDto
       | RcsMessageDocumentContentDto
       | RcsMessageImageContentDto
@@ -99,6 +124,17 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
       | RcsMessageTextContentDto
       | RcsMessageVideoContentDto;
   } = {
+    audio: (model: PontalTechWebhookApiRequest): RcsMessageAudioContentDto => {
+      const content = model.message as PontalTechRcsWebhookAudioContent;
+      return {
+        type: 'rcs',
+        messageType: 'audio',
+        url: content.audio.fileUri,
+        mimeType: content.audio.mimeType,
+        fileName:
+          content.audio.fileName || content.audio.fileUri.split('/').pop(),
+      };
+    },
     carousel: () => null,
     contact: (
       model: PontalTechWebhookApiRequest,
@@ -196,6 +232,37 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
       };
     },
   };
+
+  public static extractStatusFromPontalTechRcsWebhookApiRequest(
+    webhook: PontalTechWebhookApiRequest,
+  ): MessageStatus {
+    const mappedStatus = TYPE_TO_STATUS[webhook.type] || MessageStatus.ERROR;
+
+    if (['bloqueado por duplicidade'].includes(webhook.status)) {
+      return MessageStatus.ERROR;
+    }
+
+    return mappedStatus;
+  }
+}
+
+export class RcsMessageDocumentContentDto extends BaseRcsMessageContentDto {
+  readonly messageType: RcsMessageType = 'document';
+
+  @IsUrl()
+  url: string;
+
+  @IsMimeType()
+  @IsOptional()
+  mimeType?: string;
+
+  @IsString()
+  @IsOptional()
+  fileName?: string;
+}
+
+export class RcsMessageAudioContentDto extends RcsMessageDocumentContentDto {
+  readonly messageType: RcsMessageType = 'audio';
 }
 
 export class RcsOutboundMessageCarouselItemDto {
@@ -213,26 +280,11 @@ export class RcsOutboundMessageCarouselItemDto {
 }
 
 export class RcsMessageCarouselContentDto extends BaseRcsMessageContentDto {
-  readonly messageType: RcsMessageType = 'image';
+  readonly messageType: RcsMessageType = 'carousel';
 
   @ValidateNested({ each: true })
   @Type(() => RcsOutboundMessageCarouselItemDto)
   items: RcsOutboundMessageCarouselItemDto[];
-}
-
-export class RcsMessageDocumentContentDto extends BaseRcsMessageContentDto {
-  readonly messageType: RcsMessageType = 'document';
-
-  @IsUrl()
-  url: string;
-
-  @IsMimeType()
-  @IsOptional()
-  mimeType?: string;
-
-  @IsString()
-  @IsOptional()
-  fileName?: string;
 }
 
 export class RcsMessageImageContentDto extends RcsMessageDocumentContentDto {
@@ -283,6 +335,7 @@ export class RcsMessageDto {
   @ValidateNested()
   @JSONSchema({
     oneOf: [
+      dtoToJsonSchema(RcsMessageAudioContentDto),
       dtoToJsonSchema(RcsMessageCarouselContentDto),
       dtoToJsonSchema(RcsMessageDocumentContentDto),
       dtoToJsonSchema(RcsMessageImageContentDto),
@@ -296,6 +349,7 @@ export class RcsMessageDto {
     discriminator: {
       property: 'messageType',
       subTypes: [
+        { value: RcsMessageAudioContentDto, name: 'audio' },
         { value: RcsMessageCarouselContentDto, name: 'carousel' },
         { value: RcsMessageDocumentContentDto, name: 'document' },
         { value: RcsMessageImageContentDto, name: 'image' },
@@ -308,6 +362,7 @@ export class RcsMessageDto {
     keepDiscriminatorProperty: true,
   })
   content:
+    | RcsMessageAudioContentDto
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
     | RcsMessageDocumentContentDto
