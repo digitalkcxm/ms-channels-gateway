@@ -10,7 +10,7 @@ Projeto que será responsável por rotear as mensagens ao seus respectivos pares
 > **Ativo** ::  _plataforma -> cliente_
 
 ### Publish
-> _POST_ /api/v1/message/publish
+> _POST_ /api/v1/messages/publish
 
 Fluxo responsável por receber uma mensagem, validar o payload e enfileirar para processamento de acordo com as configurações do channelConfigId
 
@@ -502,6 +502,8 @@ sequenceDiagram
   mcg-->>sync: Notifica o cliente pela fila específica
   deactivate mcg
 ```
+## Endpoints para gerenciamento de configurações e contas
+
 
 
 <hr />

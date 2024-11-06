@@ -1,6 +1,7 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
+import { PagedDto } from '@/models/paged.dto';
 import { MessageRepository } from '@/modules/database/rcs/repositories/message.repository';
 
 import { MessageDto } from '../models/message.dto';
@@ -44,6 +45,22 @@ export class MessageService {
     }
 
     return data;
+  }
+
+  async getPagedByReferenceChat(
+    referenceChatId: string,
+    offset: number,
+    limit: number,
+  ) {
+    return this.messageRepository
+      .getPagedBy(offset, limit, {
+        chat: {
+          referenceChatId,
+        },
+      })
+      .then(([rows, total]) =>
+        PagedDto.create(rows?.map(MessageDto.fromEntity), total, offset, limit),
+      );
   }
 }
 

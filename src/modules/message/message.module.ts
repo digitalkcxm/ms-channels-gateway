@@ -10,7 +10,7 @@ import { MessageController } from './message.controller';
 import { InboundProducer } from './producers/inbound.producer';
 import { OutboundProducer } from './producers/outbound.producer';
 import { SyncProducer } from './producers/sync.producer';
-import { MessageService } from './services/message.service';
+import { OutboundMessageService } from './services/outbound-message.service';
 import { RcsMessageService } from './services/rcs-message.service';
 
 @Module({
@@ -25,7 +25,7 @@ import { RcsMessageService } from './services/rcs-message.service';
   controllers: [MessageController],
   providers: [
     InboundProducer,
-    MessageService,
+    OutboundMessageService,
     OutboundProducer,
     SyncProducer,
     RcsMessageService,

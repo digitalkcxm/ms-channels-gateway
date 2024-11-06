@@ -7,7 +7,7 @@ import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/
 import { OutboundProducer } from '../producers/outbound.producer';
 
 @Injectable()
-export class MessageService {
+export class OutboundMessageService {
   constructor(
     private readonly channelConfigService: ChannelConfigService,
     private readonly outboundProducer: OutboundProducer,

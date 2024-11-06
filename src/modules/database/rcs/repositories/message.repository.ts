@@ -26,6 +26,20 @@ export class MessageRepository {
     });
   }
 
+  async getPagedBy(
+    offset: number,
+    limit: number,
+    where: FindOptionsWhere<MessageEntity>,
+    relations?: FindOptionsRelations<MessageEntity>,
+  ) {
+    return await this.messageRepository.findAndCount({
+      where,
+      relations,
+      skip: offset,
+      take: limit,
+    });
+  }
+
   async getById(id: string) {
     return await this.messageRepository.findOne({
       where: { id },
