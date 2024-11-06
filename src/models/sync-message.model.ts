@@ -1,4 +1,9 @@
-import { MessageDirection, MessageStatus } from '@/models/enums';
+import {
+  BrokerType,
+  ChannelType,
+  MessageDirection,
+  MessageStatus,
+} from '@/models/enums';
 
 import {
   RcsMessageAudioContentDto,
@@ -30,6 +35,9 @@ export type SyncModel = {
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto;
   referenceChatId: string;
+  channelConfigId?: string;
+  channel?: ChannelType;
+  broker?: BrokerType;
   messageId: string;
   errorMessage?: string;
   date: Date;

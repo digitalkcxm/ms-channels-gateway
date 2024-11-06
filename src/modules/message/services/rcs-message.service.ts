@@ -234,14 +234,28 @@ export class RcsMessageService {
       return;
     }
 
-    const { companyToken } = await this.channelConfigService.getById(
-      channelConfigId,
-      false,
+    const { companyToken, channel, broker } =
+      await this.channelConfigService.getById(channelConfigId, false);
+
+    this.logger.debug(
+      {
+        companyToken,
+        model: {
+          channel,
+          broker,
+          ...model,
+          channelConfigId,
+        },
+      },
+      'notify',
     );
 
-    this.logger.debug({ companyToken, model }, 'notify');
-
-    await this.syncProducer.publish(companyToken, model);
+    await this.syncProducer.publish(companyToken, {
+      channel,
+      broker,
+      ...model,
+      channelConfigId,
+    } as SyncModel);
   }
 
   public async mediaProcess({

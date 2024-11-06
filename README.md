@@ -166,7 +166,10 @@ _Mensagem enviada ao Broker_
     "type": "rcs",
     "messageType": "text",
     "text": "Olá, somos da Digitalk! Vamos testar?"
-  }
+  },
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -180,7 +183,10 @@ _Mensagem enviada ao Broker_
   "messageId": "cfdd0783-327f-412f-ace0-ffda57cb8c7e",
   "date": "2024-10-23T13:02:46.771Z",
   "message": null,
-  "errorMessage": null
+  "errorMessage": null,
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -194,7 +200,10 @@ _Mensagem enviada ao Broker_
   "messageId": "cfdd0783-327f-412f-ace0-ffda57cb8c7e",
   "date": "2024-10-23T13:02:55.907Z",
   "message": null,
-  "errorMessage": null
+  "errorMessage": null,
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -208,7 +217,10 @@ _Mensagem enviada ao Broker_
   "messageId": "cfdd0783-327f-412f-ace0-ffda57cb8c7e",
   "date": "2024-10-23T13:06:04.432Z",
   "message": null,
-  "errorMessage": null
+  "errorMessage": null,
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -233,7 +245,10 @@ Tipos possíveis:
     "type": "rcs",
     "messageType": "text",
     "text": "Claro que sim 😌"
-  }
+  },
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -257,7 +272,10 @@ Tipos possíveis:
     "url": "https://rcs-copper-us.googleapis.com/4227caba-a692-49ce-920b-45eedb973eb8/255a503e501daccf66f1cb2b9eb060b15cf023b2e27a4ec034f6a2ce48e2",
     "mimeType": "application/x-pem-file",
     "fileName": "ca.pem"
-  }
+  },
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -276,7 +294,10 @@ Tipos possíveis:
     "url": "https://apis-storage-homol.s3.sa-east-1.amazonaws.com/ms-channels-gateway/f09fcbc6edb265426f216e49854cab5ed3d281c6/ca.pem",
     "mimeType": "application/x-pem-file",
     "fileName": "ca.pem"
-  }
+  },
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -297,7 +318,10 @@ Tipos possíveis:
     "url": "https://apis-storage-homol.s3.sa-east-1.amazonaws.com/ms-channels-gateway/3f20be52c4894c552c369a58e199288320a3b4c3/1000018709.jpg",
     "mimeType": "image/jpeg",
     "fileName": "1000018709.jpg"
-  }
+  },
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -316,7 +340,10 @@ Tipos possíveis:
     "url": "https://apis-storage-homol.s3.sa-east-1.amazonaws.com/ms-channels-gateway/eada746fad1716825ac4b82d8ccc263de7d92746/2169369951126844617.m4a",
     "mimeType": "audio/mp4",
     "fileName": "2169369951126844617.m4a"
-  }
+  },
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -335,7 +362,10 @@ Tipos possíveis:
     "url": "https://apis-storage-homol.s3.sa-east-1.amazonaws.com/ms-channels-gateway/478b3161beaf0dde5a2fe7b5f7578f18ef750131/1000018377.mp4",
     "mimeType": "video/mp4",
     "fileName": "1000018377.mp4"
-  }
+  },
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -353,7 +383,10 @@ Tipos possíveis:
     "messageType": "location",
     "latitude": -27.6068941,
     "longitude": -48.4835356
-  }
+  },
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 ### Erros
@@ -370,7 +403,10 @@ Tipos possíveis:
   "messageId": "614fc723-98ff-4c0e-ac4c-15238d69d11e",
   "date": "2024-11-05T18:12:18.136Z",
   "message": null,
-  "errorMessage": "Request failed with status code 404"
+  "errorMessage": "Request failed with status code 404",
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
@@ -385,7 +421,10 @@ Tipos possíveis:
   "messageId": "968bee3c-9fe7-42db-a0a2-b48b9f4fe83c",
   "date": "2024-11-05T18:16:46.209Z",
   "message": null,
-  "errorMessage": "bloqueado por duplicidade"
+  "errorMessage": "bloqueado por duplicidade",
+  "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
+  "channel":"rcs",
+  "broker":"pontal-tech"
 }
 ```
 
