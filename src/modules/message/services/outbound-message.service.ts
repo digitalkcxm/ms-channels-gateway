@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { OutboundMessageDto } from '@/models/outbound-message.model';
+import { OutboundMessageDto } from '@/models/outbound-message.dto';
 import { ChannelConfigStatus } from '@/modules/database/channels-gateway/entities/enums';
 import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/services/channel-config.service';
 

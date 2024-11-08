@@ -12,7 +12,7 @@ import { MessageContentNotSupportedException } from '@/models/exceptions/message
 import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.exception';
 import { RcsAccountNotFoundException } from '@/models/exceptions/rcs-account-not-found.exception';
 import { InboundMessage } from '@/models/inbound-message.model';
-import { OutboundMessageDto } from '@/models/outbound-message.model';
+import { OutboundMessageDto } from '@/models/outbound-message.dto';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
 import { BaseRcsMessageContentDto } from '@/models/rsc-message.dto';
 import { SyncEventType } from '@/models/sync-message.model';

@@ -1,3 +1,4 @@
+import { getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsDate,
@@ -9,6 +10,7 @@ import {
   IsUUID,
   ValidateNested,
 } from 'class-validator';
+import { JSONSchema } from 'class-validator-jsonschema';
 import { DeepPartial } from 'typeorm';
 
 import { MessageDirection, MessageStatus } from '@/models/enums';
@@ -16,6 +18,9 @@ import { MessageEntity } from '@/modules/database/rcs/entities/message.entity';
 
 import { ChatDto } from './chat.dto';
 
+@JSONSchema({
+  $ref: getSchemaPath(MessageDto),
+})
 export class MessageDto {
   @IsUUID()
   @IsEmpty()
@@ -54,9 +59,7 @@ export class MessageDto {
   @IsDate()
   updatedAt: Date;
 
-  toEntity(
-    override?: DeepPartial<MessageDto | MessageEntity>,
-  ): DeepPartial<MessageEntity> {
+  toEntity(override?: DeepPartial<MessageDto>): DeepPartial<MessageEntity> {
     return {
       id: this.id,
       chatId: this.chatId,

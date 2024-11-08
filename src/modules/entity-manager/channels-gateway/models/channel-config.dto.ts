@@ -1,3 +1,4 @@
+import { getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsEmpty,
@@ -18,7 +19,7 @@ import { ChannelConfigStatus } from '@/modules/database/channels-gateway/entitie
 import { ChannelLinkDto } from './channel-link.dto';
 
 @JSONSchema({
-  $ref: '#/components/schemas/channel-configs',
+  $ref: getSchemaPath(ChannelConfigDto),
 })
 export class ChannelConfigDto {
   @IsUUID()

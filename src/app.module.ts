@@ -1,10 +1,12 @@
 import { CacheModule, CacheStore } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { redisStore } from 'cache-manager-redis-store';
 import { LoggerModule } from 'nestjs-pino';
 
 import { EnvVars } from './config/env-vars';
+import { CompanyTokenGuard } from './guards/company-token.guard';
 import { AwsS3Module } from './modules/aws-s3/aws-s3.module';
 import { PontalTechModule } from './modules/brokers/pontal-tech/pontal-tech.module';
 import { DatabaseModule } from './modules/database/database.module';
@@ -82,7 +84,12 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     HealthModule,
     AwsS3Module,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: CompanyTokenGuard,
+    },
+  ],
   controllers: [],
 })
 export class AppModule {}

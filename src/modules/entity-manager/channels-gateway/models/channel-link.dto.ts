@@ -1,3 +1,4 @@
+import { getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEmpty, IsEnum, IsUUID } from 'class-validator';
 import { JSONSchema } from 'class-validator-jsonschema';
@@ -9,7 +10,7 @@ import { ChannelDirection } from '@/modules/database/channels-gateway/entities/e
 import { ChannelConfigDto } from './channel-config.dto';
 
 @JSONSchema({
-  $ref: '#/components/schemas/channel-links',
+  $ref: getSchemaPath(ChannelLinkDto),
 })
 export class ChannelLinkDto {
   @IsUUID()

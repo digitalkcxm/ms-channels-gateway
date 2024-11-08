@@ -6,6 +6,8 @@ import {
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
 
+import { PublicRoute } from '@/config/public-route';
+
 import { RabbitMQHealthCheckService } from './rabbit-mq-health-check.service';
 
 @Controller('health')
@@ -18,6 +20,7 @@ export class HealthController {
   ) {}
 
   @Get()
+  @PublicRoute()
   @HealthCheck()
   check() {
     return this.health.check([

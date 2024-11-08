@@ -3,14 +3,15 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   Param,
   ParseBoolPipe,
   Post,
   Put,
   Query,
 } from '@nestjs/common';
+import { ApiSecurity } from '@nestjs/swagger';
 
+import { CompanyToken } from '@/config/company-token.decorator';
 import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import { CreateChannelConfigDto } from '@/modules/entity-manager/channels-gateway/models/create-channel-config.dto';
 import { UpdateChannelConfigDto } from '@/modules/entity-manager/channels-gateway/models/update-channel-config.dto';
@@ -18,12 +19,13 @@ import { UpdateChannelConfigDto } from '@/modules/entity-manager/channels-gatewa
 import { ChannelConfigDto } from '../models/channel-config.dto';
 import { ChannelConfigService } from '../services/channel-config.service';
 
+@ApiSecurity('companyToken')
 @Controller('manager/channel-configs')
 export class ChannelConfigController {
   constructor(private readonly channelConfigService: ChannelConfigService) {}
 
   @Get()
-  getAllChannelByCompany(@Headers('Authorization') companyToken: string) {
+  getAllChannelByCompany(@CompanyToken() companyToken: string) {
     return this.channelConfigService.getAllByCompany(companyToken);
   }
 
@@ -42,7 +44,7 @@ export class ChannelConfigController {
 
   @Post()
   create(
-    @Headers('Authorization') companyToken: string,
+    @CompanyToken() companyToken: string,
     @Body() dto: CreateChannelConfigDto,
   ) {
     return this.channelConfigService.create(companyToken, dto);
@@ -50,7 +52,7 @@ export class ChannelConfigController {
 
   @Put(':id')
   update(
-    @Headers('Authorization') companyToken: string,
+    @CompanyToken() companyToken: string,
     @Param('id') id: string,
     @Body() dto: UpdateChannelConfigDto,
   ) {
@@ -58,10 +60,7 @@ export class ChannelConfigController {
   }
 
   @Delete(':id')
-  delete(
-    @Headers('Authorization') companyToken: string,
-    @Param('id') id: string,
-  ) {
+  delete(@CompanyToken() companyToken: string, @Param('id') id: string) {
     return this.channelConfigService.delete(companyToken, id);
   }
 }

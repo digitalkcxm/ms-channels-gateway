@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 
 import { EXCHANGE_NAMES } from '@/config/constants';
 import { BrokerType, ChannelType } from '@/models/enums';
-import { OutboundMessageDto } from '@/models/outbound-message.model';
+import { OutboundMessageDto } from '@/models/outbound-message.dto';
 import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/services/channel-config.service';
 
 @Injectable()

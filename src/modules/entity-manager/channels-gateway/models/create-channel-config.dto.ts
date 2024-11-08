@@ -1,4 +1,4 @@
-import { OmitType } from '@nestjs/mapped-types';
+import { OmitType } from '@nestjs/swagger';
 import { DeepPartial } from 'typeorm';
 
 import { ChannelConfigEntity } from '@/modules/database/channels-gateway/entities/channel-config.entity';

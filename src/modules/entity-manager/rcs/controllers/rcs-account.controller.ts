@@ -28,7 +28,7 @@ export class RcsAccountController {
   }
 
   @Get('reference/:referenceId')
-  getAllChannelByCompany(
+  getByReference(
     @Param('id') referenceId: string,
     @Query('broker', new ParseEnumPipe(BrokerType)) broker: BrokerType,
   ) {

@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { CHANNELS, EXCHANGE_NAMES } from '@/config/constants';
 import { BrokerType, ChannelType } from '@/models/enums';
-import { OutboundMessageDto } from '@/models/outbound-message.model';
+import { OutboundMessageDto } from '@/models/outbound-message.dto';
 import { RcsPontalTechService } from '@/modules/rcs/pontal-tech/rcs-pontal-tech.service';
 
 @Injectable()

@@ -1,3 +1,4 @@
+import { getSchemaPath } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID } from 'class-validator';
 import { JSONSchema } from 'class-validator-jsonschema';
 import { DeepPartial } from 'typeorm';
@@ -5,7 +6,7 @@ import { DeepPartial } from 'typeorm';
 import { PontalTechRcsAccountEntity } from '@/modules/database/rcs/entities/pontal-tech-rcs-account.entity';
 
 @JSONSchema({
-  $ref: '#/components/schemas/pontal-tech-rcs-accounts',
+  $ref: getSchemaPath(PontalTechRcsAccountDto),
 })
 export class PontalTechRcsAccountDto {
   @IsUUID()

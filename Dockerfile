@@ -44,7 +44,7 @@ COPY --chown=node:node --from=build /usr/src/app/package*.json ./
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
-EXPOSE 5060
+EXPOSE 7060
 EXPOSE 80
 
 CMD [ "node", "dist/src/main" ]

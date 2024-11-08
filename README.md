@@ -10,7 +10,7 @@ Projeto que será responsável por rotear as mensagens ao seus respectivos pares
 > **Ativo** ::  _plataforma -> cliente_
 
 ### Publish
-> _POST_ /api/v1/messages/publish
+> _POST_ /api/v1/**messages**/publish
 
 Fluxo responsável por receber uma mensagem, validar o payload e enfileirar para processamento de acordo com as configurações do channelConfigId
 
@@ -284,7 +284,7 @@ Tipos possíveis:
 {
   "eventType": "status",
   "direction": "inbound",
-  "status": "delivered",
+  "status": "delivered",****
   "referenceChatId": "0f27a7e4-0e8a-43c0-b6b4-8805e39825ae",
   "messageId": "f31d4449-c85c-4394-8229-8ca2ed5fe5f1",
   "date": "2024-10-23T17:09:20.594Z",

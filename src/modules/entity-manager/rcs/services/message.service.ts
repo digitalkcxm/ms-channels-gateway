@@ -1,7 +1,7 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
-import { PagedDto } from '@/models/paged.dto';
+import { PaginatedDto } from '@/models/paginated.dto';
 import { MessageRepository } from '@/modules/database/rcs/repositories/message.repository';
 
 import { MessageDto } from '../models/message.dto';
@@ -59,7 +59,7 @@ export class MessageService {
         },
       })
       .then(([rows, total]) =>
-        PagedDto.create(rows?.map(MessageDto.fromEntity), total, offset, limit),
+        PaginatedDto.create(rows?.map(MessageDto.fromEntity), total, offset, limit),
       );
   }
 }

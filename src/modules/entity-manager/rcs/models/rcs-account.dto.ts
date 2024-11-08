@@ -1,3 +1,4 @@
+import { getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsEmpty,
@@ -17,7 +18,7 @@ import { RcsAccountEntity } from '@/modules/database/rcs/entities/rcs-account.en
 import { PontalTechRcsAccountDto } from './pontal-tech-rcs-account.dto';
 
 @JSONSchema({
-  $ref: '#/components/schemas/rcs-accounts',
+  $ref: getSchemaPath(RcsAccountDto),
 })
 export class RcsAccountDto {
   @IsUUID()

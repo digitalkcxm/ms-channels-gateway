@@ -1,7 +1,7 @@
 import { BrokerType, ChannelType } from '@/models/enums';
 import { MessageContentNotSupportedException } from '@/models/exceptions/message-content-not-supported.exception';
 import { RcsMessageContentParserException } from '@/models/exceptions/rcs-message-content-parser.exception';
-import { OutboundMessageDto } from '@/models/outbound-message.model';
+import { OutboundMessageDto } from '@/models/outbound-message.dto';
 import {
   RcsMessageCarouselContentDto,
   RcsMessageDocumentContentDto,
