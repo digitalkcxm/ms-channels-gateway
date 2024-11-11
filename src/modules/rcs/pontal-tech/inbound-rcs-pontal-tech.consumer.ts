@@ -10,7 +10,7 @@ import {
 import { BrokerType, ChannelType } from '@/models/enums';
 import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.exception';
 import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.exception';
-import { InboundMessage } from '@/models/inbound-message.model';
+import { InboundMessageDto } from '@/models/inbound-message.dto';
 import { InboundProducer } from '@/modules/message/producers/inbound.producer';
 import { RcsPontalTechService } from '@/modules/rcs/pontal-tech/rcs-pontal-tech.service';
 
@@ -36,7 +36,7 @@ export class InboundRcsPontalTechConsumer {
     },
   })
   public async consume(
-    message: InboundMessage,
+    message: InboundMessageDto,
     originalMessage: ConsumeMessage,
   ) {
     try {

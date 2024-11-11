@@ -5,7 +5,7 @@ import { catchError, map } from 'rxjs';
 
 import { EnvVars } from '@/config/env-vars';
 
-import type { PontalTechRcsMessageApiRequest } from '../models/pontal-tech-rcs.models';
+import { PontalTechRcsMessageApiRequest } from '../models/pontal-tech-rcs.models';
 import { PontalTechSendRcsApiResponse } from '../models/v2/pontal-tech-send-rcs-api-response.model';
 
 @Injectable()

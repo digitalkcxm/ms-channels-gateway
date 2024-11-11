@@ -3,15 +3,15 @@ import { Injectable } from '@nestjs/common';
 
 import { EXCHANGE_NAMES, QUEUE_MESSAGE_HEADERS } from '@/config/constants';
 import {
-  InboundMediaMessage,
-  InboundMessage,
-} from '@/models/inbound-message.model';
+  InboundMediaMessageDto,
+  InboundMessageDto,
+} from '@/models/inbound-message.dto';
 
 @Injectable()
 export class InboundProducer {
   constructor(private readonly amqpConnection: AmqpConnection) {}
 
-  async publish(message: InboundMessage, retryCount = 0) {
+  async publish(message: InboundMessageDto, retryCount = 0) {
     const { broker, channel } = message;
 
     const rabbitChannel = this.amqpConnection.channel;
@@ -41,7 +41,7 @@ export class InboundProducer {
     }
   }
 
-  async media(message: InboundMediaMessage, retryCount = 0) {
+  async media(message: InboundMediaMessageDto, retryCount = 0) {
     const rabbitChannel = this.amqpConnection.channel;
 
     await rabbitChannel.assertExchange(EXCHANGE_NAMES.INBOUND, 'topic', {

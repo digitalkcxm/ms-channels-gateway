@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsIn,
@@ -361,6 +362,7 @@ export class RcsMessageDto {
     },
     keepDiscriminatorProperty: true,
   })
+  @ApiProperty()
   content:
     | RcsMessageAudioContentDto
     | RcsMessageCarouselContentDto

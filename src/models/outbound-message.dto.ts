@@ -1,4 +1,4 @@
-import { getSchemaPath } from '@nestjs/swagger';
+import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsString, IsUUID, ValidateNested } from 'class-validator';
 import { JSONSchema } from 'class-validator-jsonschema';
@@ -15,12 +15,15 @@ export type OutboundMessagePayload = RcsMessageDto;
 })
 export class OutboundMessageDto {
   @IsUUID()
+  @ApiProperty({ type: 'string', format: 'uuid' })
   channelConfigId: string;
 
-  @IsUUID()
+  @IsString()
+  @ApiProperty()
   referenceChatId: string;
 
   @IsString({ each: true })
+  @ApiProperty()
   recipients: string[];
 
   @ValidateNested()
@@ -33,6 +36,9 @@ export class OutboundMessageDto {
       subTypes: [{ value: RcsMessageDto, name: 'rcs' }],
     },
     keepDiscriminatorProperty: true,
+  })
+  @ApiProperty({
+    oneOf: [{ $ref: getSchemaPath(RcsMessageDto) }],
   })
   payload: RcsMessageDto;
 }

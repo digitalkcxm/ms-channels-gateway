@@ -9,7 +9,7 @@ import * as crypto from 'node:crypto';
 
 import { EnvVars } from '@/config/env-vars';
 import { MessageDirection, MessageStatus } from '@/models/enums';
-import { InboundMediaMessage } from '@/models/inbound-message.model';
+import { InboundMediaMessageDto } from '@/models/inbound-message.dto';
 import { OutboundMessagePayload } from '@/models/outbound-message.dto';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
 import {
@@ -264,7 +264,7 @@ export class RcsMessageService {
     referenceChatId,
     channelConfigId,
     payload,
-  }: InboundMediaMessage) {
+  }: InboundMediaMessageDto) {
     const dbMessage = await this.messageService.getByBrokerMessage(
       brokerMessageId,
       chatId,

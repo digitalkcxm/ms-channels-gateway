@@ -11,13 +11,13 @@ import {
   RcsMessageVideoContentDto,
 } from './rsc-message.dto';
 
-export type InboundMessage = {
+export type InboundMessageDto = {
   broker: BrokerType;
   channel: ChannelType;
   payload: PontalTechWebhookApiRequest;
 };
 
-export type InboundMediaMessage = {
+export type InboundMediaMessageDto = {
   brokerMessageId: string;
   chatId: string;
   referenceChatId: string;

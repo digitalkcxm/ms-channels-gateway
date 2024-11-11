@@ -11,7 +11,7 @@ import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.except
 import { MessageContentNotSupportedException } from '@/models/exceptions/message-content-not-supported.exception';
 import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.exception';
 import { RcsAccountNotFoundException } from '@/models/exceptions/rcs-account-not-found.exception';
-import { InboundMessage } from '@/models/inbound-message.model';
+import { InboundMessageDto } from '@/models/inbound-message.dto';
 import { OutboundMessageDto } from '@/models/outbound-message.dto';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
 import { BaseRcsMessageContentDto } from '@/models/rsc-message.dto';
@@ -120,7 +120,7 @@ export class RcsPontalTechService {
     }
   }
 
-  public async inbound(inboundMessage: InboundMessage) {
+  public async inbound(inboundMessage: InboundMessageDto) {
     const webhook = inboundMessage.payload as PontalTechWebhookApiRequest;
 
     this.logger.debug(webhook, 'webhook');

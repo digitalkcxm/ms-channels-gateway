@@ -2,7 +2,7 @@ import { Nack, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { CHANNELS, EXCHANGE_NAMES, QUEUE_NAMES } from '@/config/constants';
-import { InboundMediaMessage } from '@/models/inbound-message.model';
+import { InboundMediaMessageDto } from '@/models/inbound-message.dto';
 import { RcsMessageService } from '@/modules/message/services/rcs-message.service';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class InboundRcsMediaProcessConsumer {
       deadLetterExchange: EXCHANGE_NAMES.INBOUND_DLX,
     },
   })
-  public async consume(message: InboundMediaMessage) {
+  public async consume(message: InboundMediaMessageDto) {
     try {
       this.logger.debug(message, 'consume :: media message received');
 
