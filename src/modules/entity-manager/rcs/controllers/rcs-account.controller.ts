@@ -9,6 +9,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { ApiQuery } from '@nestjs/swagger';
 
 import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import { BrokerType } from '@/models/enums';
@@ -28,6 +29,7 @@ export class RcsAccountController {
   }
 
   @Get('reference/:referenceId')
+  @ApiQuery({ name: 'broker', type: 'enum', enum: BrokerType })
   getByReference(
     @Param('id') referenceId: string,
     @Query('broker', new ParseEnumPipe(BrokerType)) broker: BrokerType,
@@ -37,6 +39,7 @@ export class RcsAccountController {
   }
 
   @Get(':id')
+  @ApiQuery({ name: 'broker', type: 'enum', enum: BrokerType })
   getById(
     @Param('id') id: string,
     @Query('broker', new ParseEnumPipe(BrokerType)) broker: BrokerType,

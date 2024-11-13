@@ -9,7 +9,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ApiSecurity } from '@nestjs/swagger';
+import { ApiQuery, ApiSecurity } from '@nestjs/swagger';
 
 import { CompanyToken } from '@/config/company-token.decorator';
 import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
@@ -35,9 +35,11 @@ export class ChannelConfigController {
   }
 
   @Get(':id')
+  @ApiQuery({ name: 'includeLinks', required: false, type: 'boolean' })
   getById(
     @Param('id') id: string,
-    @Query('includeLinks', ParseBoolPipe) includeLinks = true,
+    @Query('includeLinks', new ParseBoolPipe({ optional: true }))
+    includeLinks = true,
   ) {
     return this.channelConfigService.getById(id, includeLinks);
   }

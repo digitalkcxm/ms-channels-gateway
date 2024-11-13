@@ -8,6 +8,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { ApiQuery } from '@nestjs/swagger';
 
 import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import { CreateChannelLinkDto } from '@/modules/entity-manager/channels-gateway/models/create-channel-link.dto';
@@ -29,6 +30,7 @@ export class ChannelLinkController {
   }
 
   @Get()
+  @ApiQuery({ name: 'referenceId', type: 'string' })
   getAllByReference(@Query('referenceId') referenceId: string) {
     return this.channelLinkService.getAllByReference(referenceId);
   }
