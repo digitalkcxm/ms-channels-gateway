@@ -13,12 +13,18 @@ import { IS_PUBLIC_ROUTE_KEY } from '@/config/public-route';
 export class CompanyTokenGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isHttpContext = context.getType() === 'http';
+
+    if (!isHttpContext) {
+      return true;
+    }
+
     const isPublic = this.reflector.getAllAndOverride<boolean>(
       IS_PUBLIC_ROUTE_KEY,
       [context.getHandler(), context.getClass()],
     );
+
     if (isPublic) {
-      // 💡 See this condition
       return true;
     }
 
