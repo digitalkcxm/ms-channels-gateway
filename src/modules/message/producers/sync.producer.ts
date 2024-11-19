@@ -15,7 +15,6 @@ export class SyncProducer {
     await channel.assertQueue(queueName, {
       durable: true,
       autoDelete: false,
-      maxPriority: 5,
     });
 
     const sentToQueue = channel.sendToQueue(
