@@ -22,6 +22,10 @@ export class OutboundMessageDto {
   @ApiProperty()
   referenceChatId: string;
 
+  @IsString()
+  @ApiProperty()
+  referenceMessageId: string;
+
   @IsString({ each: true })
   @ApiProperty()
   recipients: string[];

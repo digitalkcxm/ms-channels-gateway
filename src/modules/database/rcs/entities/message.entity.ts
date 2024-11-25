@@ -44,6 +44,9 @@ export class MessageEntity {
   @Column({ nullable: true })
   brokerMessageId?: string;
 
+  @Column({ nullable: true })
+  referenceMessageId?: string;
+
   @Column()
   recipient: string;
 

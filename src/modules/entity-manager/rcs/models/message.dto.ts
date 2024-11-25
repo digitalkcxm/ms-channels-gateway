@@ -38,6 +38,9 @@ export class MessageDto {
   brokerMessageId?: string;
 
   @IsString()
+  referenceMessageId?: string;
+
+  @IsString()
   recipient: string;
 
   @IsEnum(MessageDirection)
@@ -65,6 +68,7 @@ export class MessageDto {
       chatId: this.chatId,
       chat: this.chat,
       brokerMessageId: this.brokerMessageId,
+      referenceMessageId: this.referenceMessageId,
       recipient: this.recipient,
       direction: this.direction,
       status: this.status,
@@ -87,6 +91,7 @@ export class MessageDto {
     dto.chatId = entity.chatId;
     dto.chat = ChatDto.fromEntity(entity.chat);
     dto.brokerMessageId = entity.brokerMessageId;
+    dto.referenceMessageId = entity.referenceMessageId;
     dto.recipient = entity.recipient;
     dto.direction = entity.direction;
     dto.status = entity.status;

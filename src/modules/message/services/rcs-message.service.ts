@@ -59,6 +59,7 @@ export class RcsMessageService {
       rcsAccountId: string;
     },
     brokerMessageId?: string,
+    referenceMessageId?: string,
     errorMessage?: string,
   ) {
     try {
@@ -76,6 +77,9 @@ export class RcsMessageService {
 
       const dbMessage = await this.messageRepository.create({
         brokerMessageId,
+        referenceMessageId:
+          referenceMessageId ||
+          crypto.randomUUID({ disableEntropyCache: true }),
         recipient,
         direction,
         rawMessage: outboundMessagePayload.content,
@@ -90,10 +94,12 @@ export class RcsMessageService {
           direction,
           status,
           referenceChatId: dbChat.referenceChatId,
+          referenceMessageId: dbMessage.referenceMessageId,
           messageId: dbMessage.id,
           date: dbMessage.createdAt,
           message: outboundMessagePayload.content,
           errorMessage,
+          contact: recipient,
         },
         channelConfigId,
       );
@@ -135,6 +141,7 @@ export class RcsMessageService {
       const dbMessage = await this.messageRepository.create(
         {
           brokerMessageId: inboundMessage.brokerMessageId,
+          referenceMessageId: crypto.randomUUID({ disableEntropyCache: true }),
           chatId: dbChat.id,
           direction: inboundMessage.direction,
           rawMessage: inboundMessage.message,
@@ -153,9 +160,11 @@ export class RcsMessageService {
           direction: inboundMessage.direction,
           status: inboundMessage.status,
           referenceChatId: dbChat.referenceChatId,
+          referenceMessageId: dbMessage.referenceMessageId,
           messageId: dbMessage.id,
           date: dbMessage.createdAt,
           message: inboundMessage.message,
+          contact: inboundMessage.recipient,
         },
         channelConfigId,
       );
@@ -216,9 +225,11 @@ export class RcsMessageService {
             status: newStatus,
             referenceChatId,
             messageId: existingMessage.id,
+            referenceMessageId: existingMessage.referenceMessageId,
             date: updatedMessage.updatedAt,
             message: incomingMessage.message,
             errorMessage: incomingMessage.errorMessage,
+            contact: existingMessage.recipient,
           },
           channelConfigId,
         );
@@ -300,9 +311,11 @@ export class RcsMessageService {
             direction: dbMessage.direction,
             status: MessageStatus.DELIVERED,
             referenceChatId,
+            referenceMessageId: dbMessage.referenceMessageId,
             messageId: dbMessage.id,
             date: dbMessage.createdAt,
             message: updatedMessage,
+            contact: dbMessage.recipient,
           },
           channelConfigId,
         );
@@ -340,9 +353,11 @@ export class RcsMessageService {
             direction: dbMessage.direction,
             status: MessageStatus.DELIVERED,
             referenceChatId,
+            referenceMessageId: dbMessage.referenceMessageId,
             messageId: dbMessage.id,
             date: dbMessage.createdAt,
             message: updatedMessage,
+            contact: dbMessage.recipient,
           },
           channelConfigId,
         );
@@ -382,9 +397,11 @@ export class RcsMessageService {
             direction: dbMessage.direction,
             status: MessageStatus.DELIVERED,
             referenceChatId,
+            referenceMessageId: dbMessage.referenceMessageId,
             messageId: dbMessage.id,
             date: dbMessage.createdAt,
             message: message,
+            contact: dbMessage.recipient,
           },
           channelConfigId,
         );

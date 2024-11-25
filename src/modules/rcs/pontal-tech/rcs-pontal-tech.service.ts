@@ -245,6 +245,7 @@ export class RcsPontalTechService {
           rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
         },
         dataMessage.id,
+        outboundMessageDto.referenceMessageId,
       )
       .then((savedMessage) => {
         this.logger.debug(savedMessage, 'sendMessage :: saved message');
@@ -268,18 +269,21 @@ export class RcsPontalTechService {
         rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
       },
       undefined,
+      outboundMessageDto.referenceMessageId,
       error.message,
     );
 
     this.rcsMessageService.notify(
       {
         referenceChatId: outboundMessageDto.referenceChatId,
+        referenceMessageId: outboundMessageDto.referenceMessageId,
         date: dbMessage.createdAt,
         direction: MessageDirection.OUTBOUND,
         eventType: SyncEventType.STATUS,
         messageId: dbMessage.id,
         status: MessageStatus.ERROR,
         errorMessage: error.message,
+        contact: dbMessage.recipient,
       },
       channelConfigId,
     );
