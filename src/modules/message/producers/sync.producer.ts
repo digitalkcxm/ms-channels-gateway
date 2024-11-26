@@ -10,14 +10,7 @@ export class SyncProducer {
   async publish(companyToken: string, message: SyncModel) {
     const queueName = `ms-channels-gateway.${companyToken}`;
 
-    const channel = this.amqpConnection.channel;
-
-    await channel.assertQueue(queueName, {
-      durable: true,
-      autoDelete: false,
-    });
-
-    const sentToQueue = channel.sendToQueue(
+    const sentToQueue = this.amqpConnection.channel.sendToQueue(
       queueName,
       Buffer.from(JSON.stringify(message)),
       {
