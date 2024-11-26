@@ -7,7 +7,7 @@ import { PontalTechWebhookApiRequest } from '@/modules/brokers/pontal-tech/model
 import { InboundProducer } from '@/modules/message/producers/inbound.producer';
 
 @Controller('webhooks')
-@ApiTags('Webhooks', 'teste')
+@ApiTags('Webhooks')
 export class PontalTechRcsWebhookController {
   constructor(private readonly inboundProducer: InboundProducer) {}
 

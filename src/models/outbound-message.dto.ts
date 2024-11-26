@@ -1,6 +1,6 @@
 import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsString, IsUUID, ValidateNested } from 'class-validator';
+import { IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { JSONSchema } from 'class-validator-jsonschema';
 
 import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
@@ -23,8 +23,9 @@ export class OutboundMessageDto {
   referenceChatId: string;
 
   @IsString()
+  @IsOptional()
   @ApiProperty()
-  referenceMessageId: string;
+  referenceMessageId?: string;
 
   @IsString({ each: true })
   @ApiProperty()

@@ -35,7 +35,7 @@ export type SyncModel = {
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto;
   referenceChatId: string;
-  referenceMessageId: string;
+  referenceMessageId?: string;
   contact: string;
   channelConfigId?: string;
   channel?: ChannelType;
