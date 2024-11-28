@@ -14,6 +14,7 @@ export class UpdateChannelLinkDto extends OmitType(ChannelLinkDto, [
       referenceId: this.referenceId,
       direction: this.direction,
       channelConfigId: this.channelConfigId,
+      channelConfig: this.channelConfig?.toEntity(),
     };
   }
 }

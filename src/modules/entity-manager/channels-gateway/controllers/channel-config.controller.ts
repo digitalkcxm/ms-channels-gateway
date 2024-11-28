@@ -53,16 +53,16 @@ export class ChannelConfigController {
   }
 
   @Put(':id')
-  update(
+  async update(
     @CompanyToken() companyToken: string,
     @Param('id') id: string,
     @Body() dto: UpdateChannelConfigDto,
   ) {
-    return this.channelConfigService.update(companyToken, id, dto);
+    await this.channelConfigService.update(companyToken, id, dto);
   }
 
   @Delete(':id')
-  delete(@CompanyToken() companyToken: string, @Param('id') id: string) {
-    return this.channelConfigService.delete(companyToken, id);
+  async delete(@CompanyToken() companyToken: string, @Param('id') id: string) {
+    await this.channelConfigService.delete(companyToken, id);
   }
 }

@@ -14,9 +14,12 @@ export class CreateChannelConfigDto extends OmitType(ChannelConfigDto, [
     override?: DeepPartial<ChannelConfigEntity>,
   ): DeepPartial<ChannelConfigEntity> {
     return {
+      name: this.name,
+      description: this.description,
       channel: this.channel,
       broker: this.broker,
       status: this.status,
+      links: this.links?.map((link) => link?.toEntity()),
       ...override,
     };
   }

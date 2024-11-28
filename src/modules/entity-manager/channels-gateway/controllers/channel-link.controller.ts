@@ -45,16 +45,16 @@ export class ChannelLinkController {
   }
 
   @Put(':id')
-  update(
+  async update(
     @CompanyToken() companyToken: string,
     @Param('id') id: string,
     @Body() entity: UpdateChannelLinkDto,
   ) {
-    return this.channelLinkService.update(companyToken, id, entity);
+    await this.channelLinkService.update(companyToken, id, entity);
   }
 
   @Delete(':id')
-  delete(@CompanyToken() companyToken: string, @Param('id') id: string) {
-    return this.channelLinkService.delete(companyToken, id);
+  async delete(@CompanyToken() companyToken: string, @Param('id') id: string) {
+    await this.channelLinkService.delete(companyToken, id);
   }
 }
