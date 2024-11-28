@@ -20,9 +20,14 @@ export class ChannelLinkRepository {
     });
   }
 
-  async getAllByReference(referenceId: string) {
+  async getAllByReference(companyToken: string, referenceId: string) {
     return await this.channelLinkRepository.find({
-      where: { referenceId },
+      where: {
+        referenceId,
+        channelConfig: {
+          companyToken,
+        },
+      },
       relations: {
         channelConfig: true,
       },

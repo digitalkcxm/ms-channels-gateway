@@ -33,8 +33,11 @@ export class ChannelLinkService {
     return data;
   }
 
-  async getAllByReference(referenceId: string) {
-    const cacheKey = CacheKeyBuilder.getAllByReference({ referenceId });
+  async getAllByReference(companyToken: string, referenceId: string) {
+    const cacheKey = CacheKeyBuilder.getAllByReference({
+      companyToken,
+      referenceId,
+    });
 
     const cached = await this.cacheManager.get<ChannelLinkDto>(cacheKey);
 
@@ -43,7 +46,7 @@ export class ChannelLinkService {
     }
 
     const data = await this.channelLinkRepository
-      .getAllByReference(referenceId)
+      .getAllByReference(companyToken, referenceId)
       .then((rows) => rows?.map(ChannelLinkDto.fromEntity));
 
     if (data) {
@@ -59,25 +62,31 @@ export class ChannelLinkService {
       .then(ChannelLinkDto.fromEntity);
   }
 
-  async update(id: string, dto: UpdateChannelLinkDto) {
+  async update(companyToken: string, id: string, dto: UpdateChannelLinkDto) {
     const data = await this.channelLinkRepository.update(id, dto.toEntity());
 
     this.cacheManager.del(CacheKeyBuilder.getById({ id }));
     this.cacheManager.del(
-      CacheKeyBuilder.getAllByReference({ referenceId: dto.referenceId }),
+      CacheKeyBuilder.getAllByReference({
+        companyToken,
+        referenceId: dto.referenceId,
+      }),
     );
 
     return data;
   }
 
-  async delete(id: string) {
+  async delete(companyToken: string, id: string) {
     const data = await this.getById(id);
 
     await this.channelLinkRepository.delete(id);
 
     this.cacheManager.del(CacheKeyBuilder.getById({ id }));
     this.cacheManager.del(
-      CacheKeyBuilder.getAllByReference({ referenceId: data.referenceId }),
+      CacheKeyBuilder.getAllByReference({
+        companyToken,
+        referenceId: data.referenceId,
+      }),
     );
   }
 }
@@ -87,7 +96,13 @@ class CacheKeyBuilder {
     return `ms-channels-gateway:channel-config:id-${id}`;
   }
 
-  static getAllByReference({ referenceId }: { referenceId: string }) {
-    return `ms-channels-gateway:channel-config:referenceId-${referenceId}`;
+  static getAllByReference({
+    companyToken,
+    referenceId,
+  }: {
+    companyToken: string;
+    referenceId: string;
+  }) {
+    return `ms-channels-gateway:channel-config:company-${companyToken}:referenceId-${referenceId}`;
   }
 }

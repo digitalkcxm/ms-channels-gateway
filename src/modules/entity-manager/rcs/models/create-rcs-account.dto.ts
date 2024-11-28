@@ -10,11 +10,12 @@ export class CreateRcsAccountDto extends OmitType(RcsAccountDto, [
   'toEntity',
 ] as const) {
   toEntity(
-    override?: DeepPartial<RcsAccountDto | RcsAccountEntity>,
+    override?: DeepPartial<RcsAccountEntity>,
   ): DeepPartial<RcsAccountEntity> {
     return {
       referenceId: this.referenceId,
       broker: this.broker,
+      pontalTechRcsAccount: this.pontalTechRcsAccount?.toEntity(),
       ...override,
     };
   }

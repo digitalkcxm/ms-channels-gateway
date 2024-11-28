@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 
+import { CompanyToken } from '@/config/company-token.decorator';
 import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import { CreateChannelLinkDto } from '@/modules/entity-manager/channels-gateway/models/create-channel-link.dto';
 import { UpdateChannelLinkDto } from '@/modules/entity-manager/channels-gateway/models/update-channel-link.dto';
@@ -31,8 +32,11 @@ export class ChannelLinkController {
 
   @Get()
   @ApiQuery({ name: 'referenceId', type: 'string' })
-  getAllByReference(@Query('referenceId') referenceId: string) {
-    return this.channelLinkService.getAllByReference(referenceId);
+  getAllByReference(
+    @CompanyToken() companyToken: string,
+    @Query('referenceId') referenceId: string,
+  ) {
+    return this.channelLinkService.getAllByReference(companyToken, referenceId);
   }
 
   @Post()
@@ -41,12 +45,16 @@ export class ChannelLinkController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() entity: UpdateChannelLinkDto) {
-    return this.channelLinkService.update(id, entity);
+  update(
+    @CompanyToken() companyToken: string,
+    @Param('id') id: string,
+    @Body() entity: UpdateChannelLinkDto,
+  ) {
+    return this.channelLinkService.update(companyToken, id, entity);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    return this.channelLinkService.delete(id);
+  delete(@CompanyToken() companyToken: string, @Param('id') id: string) {
+    return this.channelLinkService.delete(companyToken, id);
   }
 }

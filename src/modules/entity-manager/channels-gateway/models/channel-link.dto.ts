@@ -1,6 +1,6 @@
 import { getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEmpty, IsEnum, IsUUID } from 'class-validator';
+import { IsEmpty, IsEnum, IsString, IsUUID } from 'class-validator';
 import { JSONSchema } from 'class-validator-jsonschema';
 import { DeepPartial } from 'typeorm';
 
@@ -17,7 +17,7 @@ export class ChannelLinkDto {
   @IsEmpty()
   id: string;
 
-  @IsUUID()
+  @IsString()
   referenceId: string;
 
   @IsEnum(ChannelDirection)
