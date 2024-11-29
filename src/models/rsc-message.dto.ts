@@ -278,6 +278,13 @@ export class RcsOutboundMessageCarouselItemDto {
 
   @IsUrl()
   fileUrl: string;
+
+  @IsOptional()
+  suggestions?: {
+    type: 'openUrl';
+    title: string;
+    value: string;
+  }[];
 }
 
 export class RcsMessageCarouselContentDto extends BaseRcsMessageContentDto {
@@ -308,6 +315,13 @@ export class RcsMessageRichCardContentDto extends BaseRcsMessageContentDto {
   @IsUrl()
   @IsNotEmpty()
   fileUrl: string;
+
+  @IsOptional()
+  suggestions?: {
+    type: 'openUrl';
+    title: string;
+    value: string;
+  }[];
 }
 
 export class RcsMessageLocationContentDto extends BaseRcsMessageContentDto {

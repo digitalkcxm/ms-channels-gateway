@@ -158,6 +158,11 @@ export class PontalTechRcsApiRequestMapper {
           title: item.title,
           fileUrl: item.fileUrl,
           description: item.description,
+          suggestions: item.suggestions?.map((suggestion) => ({
+            title: suggestion.title,
+            type: suggestion.type,
+            value: suggestion.value,
+          })),
         })),
       };
     },
@@ -209,6 +214,11 @@ export class PontalTechRcsApiRequestMapper {
           title: content.title,
           description: content.description,
           fileUrl: content.fileUrl,
+          suggestions: content.suggestions?.map((suggestion) => ({
+            title: suggestion.title,
+            type: suggestion.type,
+            value: suggestion.value,
+          })),
         },
       };
     },
