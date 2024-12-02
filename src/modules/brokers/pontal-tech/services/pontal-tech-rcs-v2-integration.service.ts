@@ -17,14 +17,25 @@ export class PontalTechRcsV2IntegrationService {
 
   private readonly logger = new Logger(PontalTechRcsV2IntegrationService.name);
 
-  public sendRcsBasicMessage(model: PontalTechRcsMessageApiRequest) {
+  public sendRcsBasicMessage(
+    apiKey: string,
+    model: PontalTechRcsMessageApiRequest,
+  ) {
     return this.httpService
-      .post<PontalTechSendRcsApiResponse>('/api/v2/rcs', {
-        ...model,
-        callback: this.configService.getOrThrow<string>(
-          'PONTALTECH_WEBHOOK_URL',
-        ),
-      })
+      .post<PontalTechSendRcsApiResponse>(
+        '/api/v2/rcs',
+        {
+          ...model,
+          callback: this.configService.getOrThrow<string>(
+            'PONTALTECH_WEBHOOK_URL',
+          ),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+          },
+        },
+      )
       .pipe(
         map(({ data }) => data),
         catchError((error) => {
@@ -35,14 +46,25 @@ export class PontalTechRcsV2IntegrationService {
       );
   }
 
-  public sendRcsSingleMessage(model: PontalTechRcsMessageApiRequest) {
+  public sendRcsSingleMessage(
+    apiKey: string,
+    model: PontalTechRcsMessageApiRequest,
+  ) {
     return this.httpService
-      .post<PontalTechSendRcsApiResponse>('/api/v2/rcs', {
-        ...model,
-        callback: this.configService.getOrThrow<string>(
-          'PONTALTECH_WEBHOOK_URL',
-        ),
-      })
+      .post<PontalTechSendRcsApiResponse>(
+        '/api/v2/rcs',
+        {
+          ...model,
+          callback: this.configService.getOrThrow<string>(
+            'PONTALTECH_WEBHOOK_URL',
+          ),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+          },
+        },
+      )
       .pipe(
         map(({ data }) => data),
         catchError((error) => {

@@ -299,6 +299,7 @@ export class RcsPontalTechService {
   ) {
     const data = await lastValueFrom(
       this.pontalTechRcsV2IntegrationService.sendRcsSingleMessage(
+        account.pontalTechRcsAccount?.apiKey,
         pontalTechApiModel,
       ),
     );
@@ -326,6 +327,7 @@ export class RcsPontalTechService {
   ) {
     const data = await lastValueFrom(
       this.pontalTechRcsV2IntegrationService.sendRcsBasicMessage(
+        account.pontalTechRcsAccount?.apiKey,
         pontalTechApiModel,
       ),
     );

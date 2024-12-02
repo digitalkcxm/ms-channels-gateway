@@ -12,9 +12,6 @@ import { PontalTechRcsV2IntegrationService } from './services/pontal-tech-rcs-v2
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService<EnvVars>) => ({
         baseURL: configService.getOrThrow<string>('PONTALTECH_API_URL'),
-        headers: {
-          Authorization: `Bearer ${configService.getOrThrow<string>('PONTALTECH_API_KEY')}`,
-        },
       }),
       inject: [ConfigService],
     }),
