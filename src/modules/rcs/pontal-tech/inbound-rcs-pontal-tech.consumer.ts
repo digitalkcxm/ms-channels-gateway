@@ -30,6 +30,7 @@ export class InboundRcsPontalTechConsumer {
     createQueueIfNotExists: true,
     queueOptions: {
       channel: CHANNELS.INBOUND,
+      deadLetterRoutingKey: `${ChannelType.RCS}.${BrokerType.PONTAL_TECH}`,
       durable: true,
       autoDelete: false,
       deadLetterExchange: EXCHANGE_NAMES.INBOUND_DLX,

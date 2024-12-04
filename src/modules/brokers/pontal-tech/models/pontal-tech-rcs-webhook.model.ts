@@ -11,6 +11,8 @@ export type PontalTechRcsWebhookType =
   | 'text'
   | 'video'
   | 'single'
+  | 'suggestion'
+  | 'suggestionResponse'
   | 'DELIVERED'
   | 'READ'
   | 'EXCEPTION'
@@ -20,6 +22,7 @@ export type PontalTechRcsWebhookStatus = 'bloqueado por duplicidade';
 
 export type PontalTechRcsContentType =
   | 'audio'
+  | 'carousel'
   | 'text'
   | 'image'
   | 'video'
@@ -27,7 +30,9 @@ export type PontalTechRcsContentType =
   | 'document'
   | 'location'
   | 'richCard'
-  | 'carousel';
+  | 'carousel'
+  | 'suggestion'
+  | 'suggestionResponse';
 
 export type PontalTechRcsWebhookFileContent = {
   mimeType: string;
@@ -39,6 +44,11 @@ export type PontalTechRcsWebhookFileContent = {
 export type PontalTechRcsWebhookAudioContent = {
   contentType?: 'audio';
   audio: PontalTechRcsWebhookFileContent;
+};
+
+export type PontalTechRcsWebhookCarouselContent = {
+  contentType?: 'carousel';
+  message: PontalTechRcsWebhookCarouselContentMessage;
 };
 
 export type PontalTechRcsWebhookContactContent = {
@@ -75,6 +85,19 @@ export type PontalTechRcsWebhookRichCardContentMessage = {
   title: string;
   description?: string;
   fileUrl: string;
+  suggestions?: PontalTechRcsWebhookSuggestionItem[];
+};
+
+export type PontalTechRcsWebhookCarouselItem = {
+  title: string;
+  description?: string;
+  fileUrl: string;
+  suggestions?: PontalTechRcsWebhookSuggestionItem[];
+};
+
+export type PontalTechRcsWebhookCarouselContentMessage = {
+  text: string;
+  items?: PontalTechRcsWebhookCarouselItem[];
 };
 
 export type PontalTechRcsWebhookRichCardContent = {
@@ -92,8 +115,39 @@ export type PontalTechRcsWebhookVideoContent = {
   video: PontalTechRcsWebhookFileContent;
 };
 
+export type PontalTechRcsWebhookSuggestionItem = {
+  type: 'openUrl' | 'call' | 'reply';
+  title?: string;
+  value: string;
+};
+
+export type PontalTechRcsWebhookSuggestionContent = {
+  contentType?: 'suggestion';
+  text?: string;
+  suggestion: {
+    suggestions: PontalTechRcsWebhookSuggestionItem[];
+  };
+};
+
+export type PontalTechRcsWebhookSuggestionResponseType =
+  | 'OPENURL'
+  | 'CALL'
+  | 'REPLY';
+
+export type PontalTechRcsWebhookSuggestionResponse = {
+  type: PontalTechRcsWebhookSuggestionResponseType;
+  text?: string;
+  postbackData: string;
+};
+
+export type PontalTechRcsWebhookSuggestionResponseContent = {
+  contentType?: 'suggestionResponse';
+  suggestionResponse: PontalTechRcsWebhookSuggestionResponse;
+};
+
 export type PontalTechRcsWebhookContentTypes =
   | PontalTechRcsWebhookAudioContent
+  | PontalTechRcsWebhookCarouselContent
   | PontalTechRcsWebhookContactContent
   | PontalTechRcsWebhookDocumentContent
   | PontalTechRcsWebhookFileTextContent
@@ -102,6 +156,7 @@ export type PontalTechRcsWebhookContentTypes =
   | PontalTechRcsWebhookRichCardContent
   | PontalTechRcsWebhookTextContent
   | PontalTechRcsWebhookVideoContent
+  | PontalTechRcsWebhookSuggestionResponseContent
   | string;
 
 export type PontalTechWebhookApiRequest = {

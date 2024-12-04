@@ -1,6 +1,6 @@
 import { BrokerType, ChannelType } from '@/models/enums';
 
-import { RcsMessageDto } from '../rsc-message.dto';
+import { RcsMessageDto } from '../rcs/rsc-message.dto';
 
 export class RcsMessageContentParserException extends Error {
   public readonly code: number = 1200;

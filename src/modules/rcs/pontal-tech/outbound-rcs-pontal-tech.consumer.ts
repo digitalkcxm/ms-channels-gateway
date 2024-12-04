@@ -19,6 +19,7 @@ export class OutboundRcsPontalTechConsumer {
     createQueueIfNotExists: true,
     queueOptions: {
       channel: CHANNELS.OUTBOUND,
+      deadLetterRoutingKey: `${ChannelType.RCS}.${BrokerType.PONTAL_TECH}`,
       durable: true,
       autoDelete: false,
       deadLetterExchange: EXCHANGE_NAMES.OUTBOUND_DLX,

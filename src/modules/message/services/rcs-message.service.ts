@@ -11,12 +11,12 @@ import { EnvVars } from '@/config/env-vars';
 import { MessageDirection, MessageStatus } from '@/models/enums';
 import { InboundMediaMessageDto } from '@/models/inbound-message.dto';
 import { OutboundMessagePayload } from '@/models/outbound-message.dto';
-import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
+import { RcsMessageDocumentContentDto } from '@/models/rcs/rcs-message-document-content.dto';
 import {
   RcsMessageCarouselContentDto,
-  RcsMessageDocumentContentDto,
   RcsMessageRichCardContentDto,
-} from '@/models/rsc-message.dto';
+} from '@/models/rcs/rsc-message.dto';
+import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
 import { SyncEventType, SyncModel } from '@/models/sync-message.model';
 import { AwsS3Service } from '@/modules/aws-s3/aws-s3.service';
 import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';

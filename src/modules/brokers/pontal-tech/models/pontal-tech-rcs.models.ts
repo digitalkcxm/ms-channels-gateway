@@ -2,17 +2,18 @@ import { BrokerType, ChannelType } from '@/models/enums';
 import { MessageContentNotSupportedException } from '@/models/exceptions/message-content-not-supported.exception';
 import { RcsMessageContentParserException } from '@/models/exceptions/rcs-message-content-parser.exception';
 import { OutboundMessageDto } from '@/models/outbound-message.dto';
+import { RcsMessageActionContentDto } from '@/models/rcs/rcs-messag-action.dto';
+import { RcsMessageDocumentContentDto } from '@/models/rcs/rcs-message-document-content.dto';
+import { RcsMessageType } from '@/models/rcs/rcs-nessage-type';
 import {
   RcsMessageCarouselContentDto,
-  RcsMessageDocumentContentDto,
   RcsMessageDto,
   RcsMessageImageContentDto,
   RcsMessageLocationContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
-  RcsMessageType,
   RcsMessageVideoContentDto,
-} from '@/models/rsc-message.dto';
+} from '@/models/rcs/rsc-message.dto';
 
 export type PontalTechRcsMessageTextContent = {
   text: {
@@ -42,6 +43,13 @@ export type PontalTechRcsMessageVideoContent = {
 export type PontalTechRcsMessagePdfContent = {
   pdf: {
     url: string;
+  };
+};
+
+export type PontalTechRcsMessageSuggestionContent = {
+  suggestion: {
+    text: string;
+    suggestions: PontalTechRcsMessageSuggestion[];
   };
 };
 
@@ -78,6 +86,7 @@ export type PontalTechRcsMessageContentsAll =
   | PontalTechRcsMessageLocationContent
   | PontalTechRcsMessagePdfContent
   | PontalTechRcsMessageRichCardContent
+  | PontalTechRcsMessageSuggestionContent
   | PontalTechRcsMessageTextContent
   | PontalTechRcsMessageVideoContent;
 
@@ -144,6 +153,19 @@ export class PontalTechRcsApiRequestMapper {
       payload: RcsMessageDto,
     ) => PontalTechRcsMessageContentsAll;
   } = {
+    actions: (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessageActionContentDto;
+      return {
+        suggestion: {
+          text: content.title,
+          suggestions: content.actions?.map((action) => ({
+            type: action.type,
+            title: action.title,
+            value: action.value,
+          })),
+        },
+      };
+    },
     audio: (payload: RcsMessageDto) => {
       throw new MessageContentNotSupportedException(
         ChannelType.RCS,

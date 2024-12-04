@@ -6,7 +6,7 @@ import { JSONSchema } from 'class-validator-jsonschema';
 import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 
 import { BaseMessageDto } from './outbound-base.model';
-import { RcsMessageDto } from './rsc-message.dto';
+import { RcsMessageDto } from './rcs/rsc-message.dto';
 
 export type OutboundMessagePayload = RcsMessageDto;
 

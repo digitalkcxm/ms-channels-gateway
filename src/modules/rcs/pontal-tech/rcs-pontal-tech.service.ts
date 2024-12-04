@@ -13,8 +13,8 @@ import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.
 import { RcsAccountNotFoundException } from '@/models/exceptions/rcs-account-not-found.exception';
 import { InboundMessageDto } from '@/models/inbound-message.dto';
 import { OutboundMessageDto } from '@/models/outbound-message.dto';
+import { BaseRcsMessageContentDto } from '@/models/rcs/base-rcs-message-content.dto';
 import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
-import { BaseRcsMessageContentDto } from '@/models/rsc-message.dto';
 import { SyncEventType } from '@/models/sync-message.model';
 import { PontalTechWebhookApiRequest } from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs-webhook.model';
 import {
@@ -127,8 +127,6 @@ export class RcsPontalTechService {
 
     const chat = await this.getChatOrThrow(webhook);
 
-    const existingMessage = await this.getExistingMessageOrThrow(webhook, chat);
-
     const status =
       BaseRcsMessageContentDto.extractStatusFromPontalTechRcsWebhookApiRequest(
         webhook,
@@ -141,6 +139,10 @@ export class RcsPontalTechService {
       BaseRcsMessageContentDto.extractErrorFromPontalTechRcsWebhookApiRequest(
         webhook,
       );
+
+    const existingMessage = await this.getExistingMessageOrThrow(webhook, chat);
+
+    this.logger.debug(existingMessage, 'existingMessage');
 
     const rcsInboundMessage: RcsInboundMessage = {
       brokerChatId: webhook.reference,
@@ -158,29 +160,24 @@ export class RcsPontalTechService {
     };
 
     this.logger.debug(rcsInboundMessage, 'rcsInboundMessage');
-    this.logger.debug(existingMessage, 'existingMessage');
 
     if (existingMessage) {
-      await this.rcsMessageService.syncStatus(
+      return await this.rcsMessageService.syncStatus(
         chat.rcsAccount.referenceId,
         chat.referenceChatId,
         existingMessage,
         rcsInboundMessage,
       );
-
-      return;
     }
 
     const isReplyingMessage =
       webhook.event_id !== existingMessage?.brokerMessageId;
 
     if (isReplyingMessage) {
-      await this.rcsMessageService.inboundMessage(
+      return await this.rcsMessageService.inboundMessage(
         chat.rcsAccount.referenceId,
         rcsInboundMessage,
       );
-
-      return;
     }
   }
 

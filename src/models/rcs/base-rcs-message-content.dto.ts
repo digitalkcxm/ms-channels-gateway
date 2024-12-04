@@ -1,78 +1,54 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import {
-  IsIn,
-  IsLatitude,
-  IsLongitude,
-  IsMimeType,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUrl,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
-import { JSONSchema } from 'class-validator-jsonschema';
+import { IsIn } from 'class-validator';
 
-import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import {
   PontalTechRcsContentType,
   PontalTechRcsWebhookAudioContent,
+  PontalTechRcsWebhookCarouselContent,
   PontalTechRcsWebhookContactContent,
   PontalTechRcsWebhookDocumentContent,
   PontalTechRcsWebhookFileTextContent,
   PontalTechRcsWebhookImageContent,
   PontalTechRcsWebhookLocationContent,
   PontalTechRcsWebhookRichCardContent,
+  PontalTechRcsWebhookSuggestionResponseContent,
+  PontalTechRcsWebhookSuggestionResponseType,
   PontalTechRcsWebhookTextContent,
-  PontalTechRcsWebhookType,
   PontalTechRcsWebhookVideoContent,
   PontalTechWebhookApiRequest,
 } from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs-webhook.model';
 
-import { MessageStatus } from './enums';
-import { BaseMessageDto, OutboundMessageType } from './outbound-base.model';
+import {
+  RcsMessageActionCallbackDto,
+  RcsMessageActionContentDto,
+} from './rcs-messag-action.dto';
+import { RcsMessageActionType } from './rcs-message-action-type';
+import { RcsMessageDocumentContentDto } from './rcs-message-document-content.dto';
+import { RcsMessageType, RcsMessageTypes } from './rcs-nessage-type';
+import {
+  RcsMessageAudioContentDto,
+  RcsMessageCarouselContentDto,
+  RcsMessageImageContentDto,
+  RcsMessageLocationContentDto,
+  RcsMessageRichCardContentDto,
+  RcsMessageTextContentDto,
+  RcsMessageVideoContentDto,
+  TYPE_TO_STATUS,
+} from './rsc-message.dto';
 
-const RcsOutboundMessageTypes = [
-  'audio',
-  'text',
-  'image',
-  'video',
-  'document',
-  'location',
-  'rich-card',
-  'carousel',
-] as const;
-export type RcsMessageType = (typeof RcsOutboundMessageTypes)[number];
-
-const TYPE_TO_STATUS: {
-  [key in PontalTechRcsWebhookType]: MessageStatus;
-} = {
-  audio: MessageStatus.QUEUED,
-  carousel: MessageStatus.QUEUED,
-  contact: MessageStatus.QUEUED,
-  document: MessageStatus.QUEUED,
-  image: MessageStatus.QUEUED,
-  location: MessageStatus.SENT,
-  richCard: MessageStatus.QUEUED,
-  text: MessageStatus.SENT,
-  video: MessageStatus.QUEUED,
-  single: MessageStatus.DELIVERED,
-  DELIVERED: MessageStatus.DELIVERED,
-  READ: MessageStatus.READ,
-  EXCEPTION: MessageStatus.ERROR,
-  ERROR: MessageStatus.ERROR,
-} as const;
+import { MessageStatus } from '../enums';
+import { BaseMessageDto, OutboundMessageType } from '../outbound-base.model';
 
 export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
   readonly type: OutboundMessageType = 'rcs';
 
-  @IsIn(RcsOutboundMessageTypes)
+  @IsIn(RcsMessageTypes)
   abstract messageType: RcsMessageType;
 
   public static fromPontalTechRcsWebhookApiRequest(
     model: PontalTechWebhookApiRequest,
   ):
+    | RcsMessageActionContentDto
+    | RcsMessageActionCallbackDto
     | RcsMessageAudioContentDto
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto
@@ -112,10 +88,39 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
     return null;
   }
 
+  public static extractStatusFromPontalTechRcsWebhookApiRequest(
+    webhook: PontalTechWebhookApiRequest,
+  ): MessageStatus {
+    const mappedStatus = TYPE_TO_STATUS[webhook.type] || MessageStatus.ERROR;
+
+    if (['bloqueado por duplicidade'].includes(webhook.status)) {
+      return MessageStatus.ERROR;
+    }
+
+    return mappedStatus;
+  }
+
+  public static convertSuggestionResponseTypeToActionType(
+    suggestionResponseType: PontalTechRcsWebhookSuggestionResponseType,
+  ): RcsMessageActionType {
+    switch (suggestionResponseType) {
+      case 'REPLY':
+        return 'reply';
+      case 'OPENURL':
+        return 'openUrl';
+      case 'CALL':
+        return 'call';
+      default:
+        return 'reply';
+    }
+  }
+
   private static PONTAL_TECH_RCS_WEBHOOK_TYPE_MAPPER: {
     [key in PontalTechRcsContentType]: (
       model: PontalTechWebhookApiRequest,
     ) =>
+      | RcsMessageActionContentDto
+      | RcsMessageActionCallbackDto
       | RcsMessageAudioContentDto
       | RcsMessageCarouselContentDto
       | RcsMessageDocumentContentDto
@@ -136,7 +141,25 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
           content.audio.fileName || content.audio.fileUri.split('/').pop(),
       };
     },
-    carousel: () => null,
+    carousel: (
+      model: PontalTechWebhookApiRequest,
+    ): RcsMessageCarouselContentDto => {
+      const content = model.message as PontalTechRcsWebhookCarouselContent;
+      return {
+        type: 'rcs',
+        messageType: 'carousel',
+        items: content.message.items.map((item) => ({
+          title: item.title,
+          description: item.description,
+          fileUrl: item.fileUrl,
+          suggestions: item.suggestions?.map((suggestion) => ({
+            type: suggestion.type,
+            title: suggestion.title,
+            value: suggestion.value,
+          })),
+        })),
+      };
+    },
     contact: (
       model: PontalTechWebhookApiRequest,
     ): RcsMessageDocumentContentDto => {
@@ -194,6 +217,50 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
         title: content.message.title,
         description: content.message.description,
         fileUrl: content.message.fileUrl,
+        suggestions: content.message.suggestions?.map((suggestion) => ({
+          type: suggestion.type,
+          title: suggestion.title,
+          value: suggestion.value,
+        })),
+      };
+    },
+    suggestion: (
+      model: PontalTechWebhookApiRequest,
+    ): RcsMessageActionContentDto => {
+      const content =
+        model.message as PontalTechRcsWebhookSuggestionResponseContent;
+
+      return {
+        type: 'rcs',
+        messageType: 'actions',
+        title: content?.suggestionResponse?.text,
+        actions: [
+          {
+            type: BaseRcsMessageContentDto.convertSuggestionResponseTypeToActionType(
+              content?.suggestionResponse.type,
+            ),
+            title: content?.suggestionResponse.text,
+            value: content?.suggestionResponse.postbackData,
+          },
+        ],
+      };
+    },
+    suggestionResponse: (
+      model: PontalTechWebhookApiRequest,
+    ): RcsMessageActionCallbackDto => {
+      const content =
+        model.message as PontalTechRcsWebhookSuggestionResponseContent;
+
+      return {
+        type: 'rcs',
+        messageType: 'action-callback',
+        callback: {
+          type: BaseRcsMessageContentDto.convertSuggestionResponseTypeToActionType(
+            content?.suggestionResponse.type,
+          ),
+          title: content?.suggestionResponse.text,
+          value: content?.suggestionResponse.postbackData,
+        },
       };
     },
     text: (
@@ -233,157 +300,4 @@ export abstract class BaseRcsMessageContentDto implements BaseMessageDto {
       };
     },
   };
-
-  public static extractStatusFromPontalTechRcsWebhookApiRequest(
-    webhook: PontalTechWebhookApiRequest,
-  ): MessageStatus {
-    const mappedStatus = TYPE_TO_STATUS[webhook.type] || MessageStatus.ERROR;
-
-    if (['bloqueado por duplicidade'].includes(webhook.status)) {
-      return MessageStatus.ERROR;
-    }
-
-    return mappedStatus;
-  }
-}
-
-export class RcsMessageDocumentContentDto extends BaseRcsMessageContentDto {
-  readonly messageType: RcsMessageType = 'document';
-
-  @IsUrl()
-  url: string;
-
-  @IsMimeType()
-  @IsOptional()
-  mimeType?: string;
-
-  @IsString()
-  @IsOptional()
-  fileName?: string;
-}
-
-export class RcsMessageAudioContentDto extends RcsMessageDocumentContentDto {
-  readonly messageType: RcsMessageType = 'audio';
-}
-
-export class RcsOutboundMessageCarouselItemDto {
-  @IsString()
-  @MaxLength(160)
-  title: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(2000)
-  description?: string;
-
-  @IsUrl()
-  fileUrl: string;
-
-  @IsOptional()
-  suggestions?: {
-    type: 'openUrl';
-    title: string;
-    value: string;
-  }[];
-}
-
-export class RcsMessageCarouselContentDto extends BaseRcsMessageContentDto {
-  readonly messageType: RcsMessageType = 'carousel';
-
-  @ValidateNested({ each: true })
-  @Type(() => RcsOutboundMessageCarouselItemDto)
-  items: RcsOutboundMessageCarouselItemDto[];
-}
-
-export class RcsMessageImageContentDto extends RcsMessageDocumentContentDto {
-  readonly messageType: RcsMessageType = 'image';
-}
-
-export class RcsMessageRichCardContentDto extends BaseRcsMessageContentDto {
-  readonly messageType: RcsMessageType = 'rich-card';
-
-  @IsString()
-  @MaxLength(160)
-  @IsNotEmpty()
-  title: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(2000)
-  description?: string;
-
-  @IsUrl()
-  @IsNotEmpty()
-  fileUrl: string;
-
-  @IsOptional()
-  suggestions?: {
-    type: 'openUrl';
-    title: string;
-    value: string;
-  }[];
-}
-
-export class RcsMessageLocationContentDto extends BaseRcsMessageContentDto {
-  readonly messageType: RcsMessageType = 'location';
-
-  @IsLatitude()
-  latitude: string;
-
-  @IsLongitude()
-  longitude?: string;
-}
-
-export class RcsMessageTextContentDto extends BaseRcsMessageContentDto {
-  readonly messageType: RcsMessageType = 'text';
-
-  @IsString()
-  @MaxLength(5000)
-  text: string;
-}
-
-export class RcsMessageVideoContentDto extends RcsMessageDocumentContentDto {
-  readonly messageType: RcsMessageType = 'video';
-}
-
-export class RcsMessageDto {
-  @ValidateNested()
-  @JSONSchema({
-    oneOf: [
-      dtoToJsonSchema(RcsMessageAudioContentDto),
-      dtoToJsonSchema(RcsMessageCarouselContentDto),
-      dtoToJsonSchema(RcsMessageDocumentContentDto),
-      dtoToJsonSchema(RcsMessageImageContentDto),
-      dtoToJsonSchema(RcsMessageLocationContentDto),
-      dtoToJsonSchema(RcsMessageRichCardContentDto),
-      dtoToJsonSchema(RcsMessageTextContentDto),
-      dtoToJsonSchema(RcsMessageVideoContentDto),
-    ],
-  })
-  @Type(() => BaseRcsMessageContentDto, {
-    discriminator: {
-      property: 'messageType',
-      subTypes: [
-        { value: RcsMessageAudioContentDto, name: 'audio' },
-        { value: RcsMessageCarouselContentDto, name: 'carousel' },
-        { value: RcsMessageDocumentContentDto, name: 'document' },
-        { value: RcsMessageImageContentDto, name: 'image' },
-        { value: RcsMessageLocationContentDto, name: 'location' },
-        { value: RcsMessageRichCardContentDto, name: 'rich-card' },
-        { value: RcsMessageTextContentDto, name: 'text' },
-        { value: RcsMessageVideoContentDto, name: 'video' },
-      ],
-    },
-    keepDiscriminatorProperty: true,
-  })
-  @ApiProperty()
-  content:
-    | RcsMessageAudioContentDto
-    | RcsMessageCarouselContentDto
-    | RcsMessageImageContentDto
-    | RcsMessageDocumentContentDto
-    | RcsMessageLocationContentDto
-    | RcsMessageRichCardContentDto
-    | RcsMessageTextContentDto
-    | RcsMessageVideoContentDto;
 }
