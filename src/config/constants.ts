@@ -20,4 +20,5 @@ export const QUEUE_NAMES = {
 
 export const QUEUE_MESSAGE_HEADERS = {
   X_RETRY_COUNT: 'x-retry-count',
+  X_DELAY: 'x-delay',
 };

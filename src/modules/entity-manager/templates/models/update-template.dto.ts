@@ -6,10 +6,15 @@ import { TemplateEntity } from '@/modules/database/templates/entities';
 import { TemplateDto } from './template.dto';
 
 export class UpdateTemplateDto extends PartialType(
-  OmitType(TemplateDto, ['id', 'companyToken', 'toEntity'] as const),
+  OmitType(TemplateDto, [
+    'id',
+    'companyToken',
+    'variables',
+    'toEntity',
+  ] as const),
 ) {
   toEntity(
-    override?: DeepPartial<TemplateDto | TemplateEntity>,
+    override?: DeepPartial<TemplateEntity>,
   ): DeepPartial<TemplateEntity> {
     return {
       name: this.name,

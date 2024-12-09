@@ -98,10 +98,6 @@ export class TemplateDto {
 
   @ValidateNested({ each: true })
   @Type(() => TemplateLinkDto)
-  @JSONSchema({
-    type: 'array',
-    items: dtoToJsonSchema(TemplateLinkDto),
-  })
   @IsOptional()
   links?: TemplateLinkDto[];
 

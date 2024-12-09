@@ -8,6 +8,7 @@ import { TemplateDto } from './template.dto';
 export class CreateTemplateDto extends OmitType(TemplateDto, [
   'id',
   'companyToken',
+  'variables',
   'toEntity',
 ] as const) {
   toEntity(
