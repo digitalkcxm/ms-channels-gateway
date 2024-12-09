@@ -23,8 +23,11 @@ export class TemplateController {
   constructor(private readonly templateService: TemplateService) {}
 
   @Get()
-  getAllByCompany(@CompanyToken() companyToken: string) {
-    return this.templateService.getAllByCompany(companyToken);
+  getAllByCompany(
+    @CompanyToken() companyToken: string,
+    @Query('referenceId') referenceId?: string,
+  ) {
+    return this.templateService.getAllByCompany(companyToken, referenceId);
   }
 
   @Get('schema')

@@ -42,6 +42,17 @@ export class TemplateLinkRepository {
     return await this.templateLinkRepository.update(id, channelLink);
   }
 
+  async upsert(id: string, channelLink: DeepPartial<TemplateLinkEntity>) {
+    return await this.templateLinkRepository.upsert(channelLink, {
+      conflictPaths: {
+        referenceId: true,
+        templateId: true,
+      },
+      skipUpdateIfNoValuesChanged: true,
+      upsertType: 'on-conflict-do-update',
+    });
+  }
+
   async delete(id: string) {
     return await this.templateLinkRepository.delete(id);
   }

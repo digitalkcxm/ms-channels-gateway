@@ -10,11 +10,8 @@ import { RcsAccountController } from './rcs/controllers/rcs-account.controller';
 import { ChatService } from './rcs/services/chat.service';
 import { MessageService } from './rcs/services/message.service';
 import { RcsAccountService } from './rcs/services/rcs-account.service';
-import {
-  TemplateController,
-  TemplateLinkController,
-} from './templates/controllers';
-import { TemplateLinkService, TemplateService } from './templates/services';
+import { TemplateController } from './templates/controllers';
+import { TemplateService } from './templates/services';
 
 @Module({
   imports: [DatabaseModule],
@@ -23,7 +20,6 @@ import { TemplateLinkService, TemplateService } from './templates/services';
     ChannelLinkController,
     RcsAccountController,
     TemplateController,
-    TemplateLinkController,
   ],
   providers: [
     ChannelConfigService,
@@ -32,7 +28,6 @@ import { TemplateLinkService, TemplateService } from './templates/services';
     MessageService,
     RcsAccountService,
     TemplateService,
-    TemplateLinkService,
   ],
   exports: [
     ChannelConfigService,
@@ -41,7 +36,6 @@ import { TemplateLinkService, TemplateService } from './templates/services';
     MessageService,
     RcsAccountService,
     TemplateService,
-    TemplateLinkService,
   ],
 })
 export class EntityManagerModule {}

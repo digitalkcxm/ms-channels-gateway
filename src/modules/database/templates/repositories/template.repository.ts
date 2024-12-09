@@ -12,9 +12,14 @@ export class TemplateRepository {
     private readonly templateRepository: Repository<TemplateEntity>,
   ) {}
 
-  async getAllByCompany(companyToken: string) {
+  async getAllByCompany(companyToken: string, referenceId: string) {
     return await this.templateRepository.find({
-      where: { companyToken },
+      where: {
+        companyToken,
+        links: {
+          referenceId,
+        },
+      },
       relations: { links: true },
     });
   }
@@ -30,11 +35,13 @@ export class TemplateRepository {
 
   async create(entity: DeepPartial<TemplateEntity>) {
     entity.variables = this.extractTemplateVariables(entity);
+
     return await this.templateRepository.save(entity);
   }
 
   async update(id: string, entity: DeepPartial<TemplateEntity>) {
     entity.variables = this.extractTemplateVariables(entity);
+
     return await this.templateRepository.update(
       { id, companyToken: entity.companyToken },
       entity,

@@ -67,7 +67,9 @@ export class TemplateEntity {
   @Column({ type: 'jsonb', nullable: true })
   variables?: string[];
 
-  @OneToMany(() => TemplateLinkEntity, (entity) => entity.template)
+  @OneToMany(() => TemplateLinkEntity, (entity) => entity.template, {
+    cascade: true,
+  })
   links: TemplateLinkEntity[];
 
   @CreateDateColumn()

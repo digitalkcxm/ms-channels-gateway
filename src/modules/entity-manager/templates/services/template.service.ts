@@ -1,6 +1,7 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 
+import { TemplateLinkRepository } from '@/modules/database/templates/repositories';
 import { TemplateRepository } from '@/modules/database/templates/repositories/template.repository';
 
 import { CreateTemplateDto, TemplateDto, UpdateTemplateDto } from '../models';
@@ -10,6 +11,7 @@ export class TemplateService {
   constructor(
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly templateRepository: TemplateRepository,
+    private readonly templateLinkRepository: TemplateLinkRepository,
   ) {}
 
   async getById(id: string, includeLinks = true) {
@@ -32,8 +34,11 @@ export class TemplateService {
     return data;
   }
 
-  async getAllByCompany(companyToken: string) {
-    const cacheKey = CacheKeyBuilder.getAllByCompany({ companyToken });
+  async getAllByCompany(companyToken: string, referenceId?: string) {
+    const cacheKey = CacheKeyBuilder.getAllByCompany({
+      companyToken,
+      referenceId,
+    });
 
     const cached = await this.cacheManager.get<TemplateDto[]>(cacheKey);
 
@@ -42,7 +47,7 @@ export class TemplateService {
     }
 
     const data = await this.templateRepository
-      .getAllByCompany(companyToken)
+      .getAllByCompany(companyToken, referenceId)
       .then((rows) => rows?.map(TemplateDto.fromEntity));
 
     if (data) {
@@ -61,10 +66,14 @@ export class TemplateService {
   }
 
   async update(companyToken: string, id: string, entity: UpdateTemplateDto) {
-    const data = await this.templateRepository.update(
-      id,
-      entity.toEntity({ companyToken }),
-    );
+    const links = [...entity.links];
+
+    delete entity.links;
+
+    await Promise.all([
+      this.templateRepository.update(id, entity.toEntity({ companyToken })),
+      links.map((link) => this.templateLinkRepository.upsert(link.id, link)),
+    ]);
 
     const delKeys = await this.cacheManager.store.keys(
       CacheKeyBuilder.getById({
@@ -74,8 +83,6 @@ export class TemplateService {
     );
     Promise.all(delKeys?.map((key) => this.cacheManager.del(key)));
     this.cacheManager.del(CacheKeyBuilder.getAllByCompany({ companyToken }));
-
-    return data;
   }
 
   async delete(companyToken: string, id: string) {
@@ -112,7 +119,13 @@ class CacheKeyBuilder {
     return `ms-channels-gateway:template:id-${id}-includeLinks-${includeLinks}`;
   }
 
-  static getAllByCompany({ companyToken }: { companyToken: string }) {
-    return `ms-channels-gateway:template:company-${companyToken}`;
+  static getAllByCompany({
+    companyToken,
+    referenceId,
+  }: {
+    companyToken: string;
+    referenceId?: string;
+  }) {
+    return `ms-channels-gateway:template:company-${companyToken}:referenceId-${referenceId}`;
   }
 }

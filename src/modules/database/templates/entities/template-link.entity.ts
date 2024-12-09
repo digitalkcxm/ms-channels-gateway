@@ -6,6 +6,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -18,6 +19,10 @@ import { TemplateEntity } from './template.entity';
 @Index('ix_template_links_reference_id', (entity: TemplateLinkEntity) => [
   entity.referenceId,
 ])
+@Unique(
+  'uq_template_links_template_id_reference_id',
+  (entity: TemplateLinkEntity) => [entity.referenceId, entity.templateId],
+)
 export class TemplateLinkEntity {
   @PrimaryGeneratedColumn('uuid', {
     primaryKeyConstraintName: 'pk_template_links_id',
