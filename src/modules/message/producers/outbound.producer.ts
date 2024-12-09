@@ -4,14 +4,10 @@ import { Injectable } from '@nestjs/common';
 import { EXCHANGE_NAMES } from '@/config/constants';
 import { BrokerType, ChannelType } from '@/models/enums';
 import { OutboundMessageDto } from '@/models/outbound-message.dto';
-import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/services/channel-config.service';
 
 @Injectable()
 export class OutboundProducer {
-  constructor(
-    private readonly amqpConnection: AmqpConnection,
-    private readonly channelConfigService: ChannelConfigService,
-  ) {}
+  constructor(private readonly amqpConnection: AmqpConnection) {}
 
   async publish(
     message: OutboundMessageDto,

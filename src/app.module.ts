@@ -14,6 +14,7 @@ import { EntityManagerModule } from './modules/entity-manager/entity-manager.mod
 import { HealthModule } from './modules/health/health.module';
 import { MessageModule } from './modules/message/message.module';
 import { RcsModule } from './modules/rcs/rcs.module';
+import { TemplatesModule } from './modules/templates/templates.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
@@ -83,6 +84,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     RcsModule,
     HealthModule,
     AwsS3Module,
+    TemplatesModule,
   ],
   providers: [
     {

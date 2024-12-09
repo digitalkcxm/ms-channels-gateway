@@ -31,6 +31,7 @@ export class InboundProducer {
         mandatory: true,
         headers: {
           [QUEUE_MESSAGE_HEADERS.X_RETRY_COUNT]: retryCount,
+          [QUEUE_MESSAGE_HEADERS.X_DELAY]: retryCount * 1000,
         },
       },
     );
@@ -59,6 +60,7 @@ export class InboundProducer {
         mandatory: true,
         headers: {
           [QUEUE_MESSAGE_HEADERS.X_RETRY_COUNT]: retryCount,
+          [QUEUE_MESSAGE_HEADERS.X_DELAY]: retryCount * 1000,
         },
       },
     );
