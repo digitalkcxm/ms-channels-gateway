@@ -13,7 +13,7 @@ import { MessageDirection, MessageStatus } from '@/models/enums';
 import {
   RcsMessageActionCallbackDto,
   RcsMessageActionContentDto,
-} from '@/models/rcs/rcs-messag-action.dto';
+} from '@/models/rcs/rcs-message-action.dto';
 import { RcsMessageDocumentContentDto } from '@/models/rcs/rcs-message-document-content.dto';
 import {
   RcsMessageAudioContentDto,

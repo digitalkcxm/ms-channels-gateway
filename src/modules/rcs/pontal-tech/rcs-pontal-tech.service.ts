@@ -1,14 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
 
-import {
-  BrokerType,
-  ChannelType,
-  MessageDirection,
-  MessageStatus,
-} from '@/models/enums';
+import * as crypto from 'node:crypto';
+
+import { BrokerType, MessageDirection, MessageStatus } from '@/models/enums';
 import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.exception';
-import { MessageContentNotSupportedException } from '@/models/exceptions/message-content-not-supported.exception';
 import { MessageNotReadyException } from '@/models/exceptions/message-not-ready.exception';
 import { RcsAccountNotFoundException } from '@/models/exceptions/rcs-account-not-found.exception';
 import { InboundMessageDto } from '@/models/inbound-message.dto';
@@ -21,8 +17,8 @@ import {
   PontalTechRcsApiRequestMapper,
   PontalTechRcsMessageApiRequest,
 } from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs.models';
-import { PontalTechSendRcsApiResponse } from '@/modules/brokers/pontal-tech/models/v2/pontal-tech-send-rcs-api-response.model';
-import { PontalTechRcsV2IntegrationService } from '@/modules/brokers/pontal-tech/services/pontal-tech-rcs-v2-integration.service';
+import { PontalTechRcsV3IntegrationService } from '@/modules/brokers/pontal-tech/v3/pontal-tech-rcs-v3-integration.service';
+import { PontalTechSendRcsApiResponse } from '@/modules/brokers/pontal-tech/v3/pontal-tech-send-rcs-api-response.model';
 import { ChatDto } from '@/modules/entity-manager/rcs/models/chat.dto';
 import { RcsAccountDto } from '@/modules/entity-manager/rcs/models/rcs-account.dto';
 import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service';
@@ -33,7 +29,7 @@ import { RcsMessageService } from '@/modules/message/services/rcs-message.servic
 @Injectable()
 export class RcsPontalTechService {
   constructor(
-    private readonly pontalTechRcsV2IntegrationService: PontalTechRcsV2IntegrationService,
+    private readonly pontalTechRcsV3IntegrationService: PontalTechRcsV3IntegrationService,
     private readonly rcsMessageService: RcsMessageService,
     private readonly rcsAccountService: RcsAccountService,
 
@@ -56,7 +52,7 @@ export class RcsPontalTechService {
         outboundMessageDto,
         account,
       ),
-    standard: (
+    single: (
       pontalTechApiModel: PontalTechRcsMessageApiRequest,
       channelConfigId: string,
       outboundMessageDto: OutboundMessageDto,
@@ -76,33 +72,25 @@ export class RcsPontalTechService {
     const account = await this.tryGetAccount(channelConfigId);
 
     try {
-      const [pontalTechMessageType, pontalTechApiModel] =
+      const pontalTechApiModel =
         PontalTechRcsApiRequestMapper.fromOutboundMessageDto(
           account.pontalTechRcsAccount.pontalTechAccountId,
           outboundMessageDto,
         );
 
       this.logger.debug(
-        [pontalTechMessageType, pontalTechApiModel, outboundMessageDto],
+        [
+          account.pontalTechRcsAccount?.pontalTechAccountType,
+          pontalTechApiModel,
+          outboundMessageDto,
+        ],
         'sendMessage :: OUTBOUND',
       );
 
-      //TODO validação se o usuário pode ou nao enviar o tipo de mensagem com a conta atual
-
-      const strategy = this.OUTBOUND_STRATEGIES[pontalTechMessageType];
-
-      if (!strategy) {
-        this.logger.warn(
-          outboundMessageDto,
-          'rcsPontalTechHandler :: Message type not supported',
-        );
-
-        throw new MessageContentNotSupportedException(
-          ChannelType.RCS,
-          BrokerType.PONTAL_TECH,
-          outboundMessageDto.payload,
-        );
-      }
+      const strategy =
+        this.OUTBOUND_STRATEGIES[
+          account.pontalTechRcsAccount?.pontalTechAccountType
+        ];
 
       await strategy(
         pontalTechApiModel,
@@ -120,10 +108,10 @@ export class RcsPontalTechService {
     }
   }
 
-  public async inbound(inboundMessage: InboundMessageDto) {
+  public async outboundStatus(inboundMessage: InboundMessageDto) {
     const webhook = inboundMessage.payload as PontalTechWebhookApiRequest;
 
-    this.logger.debug(webhook, 'webhook');
+    this.logger.debug(webhook, 'outboundStatus :: webhook');
 
     const chat = await this.getChatOrThrow(webhook);
 
@@ -140,18 +128,10 @@ export class RcsPontalTechService {
         webhook,
       );
 
-    const existingMessage = await this.getExistingMessageOrThrow(webhook, chat);
-
-    this.logger.debug(existingMessage, 'existingMessage');
-
     const rcsInboundMessage: RcsInboundMessage = {
       brokerChatId: webhook.reference,
       brokerMessageId: webhook.event_id,
-      direction:
-        existingMessage?.direction ||
-        (webhook.direction === 'inbound'
-          ? MessageDirection.INBOUND
-          : MessageDirection.OUTBOUND),
+      direction: MessageDirection.OUTBOUND,
       message,
       errorMessage,
       rcsAccountId: chat.rcsAccountId,
@@ -161,24 +141,57 @@ export class RcsPontalTechService {
 
     this.logger.debug(rcsInboundMessage, 'rcsInboundMessage');
 
-    if (existingMessage) {
-      return await this.rcsMessageService.syncStatus(
-        chat.rcsAccount.referenceId,
-        chat.referenceChatId,
-        existingMessage,
-        rcsInboundMessage,
-      );
-    }
+    const existingMessage = await this.getExistingMessageOrThrow(webhook, chat);
 
-    const isReplyingMessage =
-      webhook.event_id !== existingMessage?.brokerMessageId;
+    this.logger.debug(existingMessage, 'existingMessage');
 
-    if (isReplyingMessage) {
-      return await this.rcsMessageService.inboundMessage(
-        chat.rcsAccount.referenceId,
-        rcsInboundMessage,
+    return await this.rcsMessageService.syncStatus(
+      chat.rcsAccount.referenceId,
+      chat.referenceChatId,
+      existingMessage,
+      rcsInboundMessage,
+    );
+  }
+
+  public async inbound(inboundMessage: InboundMessageDto) {
+    const webhook = inboundMessage.payload as PontalTechWebhookApiRequest;
+
+    this.logger.debug(webhook, 'inbound :: webhook');
+
+    const originMessage = await this.messageService.getById(
+      inboundMessage.messageId,
+    );
+
+    const status =
+      BaseRcsMessageContentDto.extractStatusFromPontalTechRcsWebhookApiRequest(
+        webhook,
       );
-    }
+
+    const message =
+      BaseRcsMessageContentDto.fromPontalTechRcsWebhookApiRequest(webhook);
+
+    const errorMessage =
+      BaseRcsMessageContentDto.extractErrorFromPontalTechRcsWebhookApiRequest(
+        webhook,
+      );
+
+    const rcsInboundMessage: RcsInboundMessage = {
+      brokerChatId: originMessage.chat.brokerChatId,
+      brokerMessageId: webhook.event_id,
+      direction: MessageDirection.INBOUND,
+      message,
+      errorMessage,
+      rcsAccountId: originMessage.chat.rcsAccountId,
+      status,
+      recipient: webhook.user_id,
+    };
+
+    this.logger.debug(rcsInboundMessage, 'rcsInboundMessage');
+
+    return await this.rcsMessageService.inboundMessage(
+      originMessage.chat.rcsAccount.referenceId,
+      rcsInboundMessage,
+    );
   }
 
   private async getExistingMessageOrThrow(
@@ -223,39 +236,13 @@ export class RcsPontalTechService {
     return chat;
   }
 
-  private async saveOutbound(
-    channelConfigId: string,
-    dataMessage: { id: string; number: string; session_id: string },
-    outboundMessageDto: OutboundMessageDto,
-    account: RcsAccountDto,
-  ): Promise<void> {
-    return this.rcsMessageService
-      .outboundMessage(
-        channelConfigId,
-        MessageDirection.OUTBOUND,
-        MessageStatus.QUEUED,
-        dataMessage.number,
-        outboundMessageDto.payload,
-        {
-          referenceChatId: outboundMessageDto.referenceChatId,
-          brokerChatId: dataMessage.session_id,
-          rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
-        },
-        dataMessage.id,
-        outboundMessageDto.referenceMessageId,
-      )
-      .then((savedMessage) => {
-        this.logger.debug(savedMessage, 'sendMessage :: saved message');
-      });
-  }
-
   private async saveOutboundError(
     channelConfigId: string,
     outboundMessageDto: OutboundMessageDto,
     account: RcsAccountDto,
     error: Error,
   ) {
-    const dbMessage = await this.rcsMessageService.outboundMessage(
+    const dbMessage = await this.rcsMessageService.saveMessage(
       channelConfigId,
       MessageDirection.OUTBOUND,
       MessageStatus.ERROR,
@@ -265,6 +252,7 @@ export class RcsPontalTechService {
         referenceChatId: outboundMessageDto.referenceChatId,
         rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
       },
+      undefined,
       undefined,
       outboundMessageDto.referenceMessageId,
       error.message,
@@ -294,10 +282,13 @@ export class RcsPontalTechService {
     outboundMessageDto: OutboundMessageDto,
     account: RcsAccountDto,
   ) {
+    const messageId = crypto.randomUUID({ disableEntropyCache: true });
+
     const data = await lastValueFrom(
-      this.pontalTechRcsV2IntegrationService.sendRcsSingleMessage(
+      this.pontalTechRcsV3IntegrationService.sendRcsSingleMessage(
         account.pontalTechRcsAccount?.apiKey,
         pontalTechApiModel,
+        messageId,
       ),
     );
 
@@ -307,6 +298,7 @@ export class RcsPontalTechService {
     );
 
     await this.processOutboundResponse(
+      messageId,
       data,
       channelConfigId,
       outboundMessageDto,
@@ -322,16 +314,20 @@ export class RcsPontalTechService {
     outboundMessageDto: OutboundMessageDto,
     account: RcsAccountDto,
   ) {
+    const messageId = crypto.randomUUID({ disableEntropyCache: true });
+
     const data = await lastValueFrom(
-      this.pontalTechRcsV2IntegrationService.sendRcsBasicMessage(
+      this.pontalTechRcsV3IntegrationService.sendRcsBasicMessage(
         account.pontalTechRcsAccount?.apiKey,
         pontalTechApiModel,
+        messageId,
       ),
     );
 
     this.logger.debug(data, 'sendMessage(basic) :: Pontal Tech API response');
 
     await this.processOutboundResponse(
+      messageId,
       data,
       channelConfigId,
       outboundMessageDto,
@@ -342,19 +338,33 @@ export class RcsPontalTechService {
   }
 
   private async processOutboundResponse(
+    messageId: string,
     data: PontalTechSendRcsApiResponse,
     channelConfigId: string,
     outboundMessageDto: OutboundMessageDto,
     account: RcsAccountDto,
   ) {
     await Promise.all(
-      data.messages.map((dataMessage) =>
-        this.saveOutbound(
-          channelConfigId,
-          dataMessage,
-          outboundMessageDto,
-          account,
-        ),
+      data.validMessages.map((dataMessage) =>
+        this.rcsMessageService
+          .saveMessage(
+            channelConfigId,
+            MessageDirection.OUTBOUND,
+            MessageStatus.QUEUED,
+            dataMessage.number,
+            outboundMessageDto.payload,
+            {
+              referenceChatId: outboundMessageDto.referenceChatId,
+              brokerChatId: dataMessage.id,
+              rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
+            },
+            messageId,
+            dataMessage.id,
+            outboundMessageDto.referenceMessageId,
+          )
+          .then((savedMessage) => {
+            this.logger.debug(savedMessage, 'saveOutbound');
+          }),
       ),
     );
   }

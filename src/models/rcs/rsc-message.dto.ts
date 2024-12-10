@@ -22,9 +22,9 @@ import {
   RcsActionItemOpenUrlDto,
   RcsActionItemReplyDto,
   RcsMessageActionContentDto,
-} from './rcs-messag-action.dto.js';
+} from './rcs-message-action.dto.js';
 import { RcsMessageDocumentContentDto } from './rcs-message-document-content.dto';
-import { RcsMessageType } from './rcs-nessage-type.js';
+import { RcsMessageType } from './rcs-message-type.js';
 
 import { MessageStatus } from '../enums';
 

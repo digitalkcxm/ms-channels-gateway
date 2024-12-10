@@ -47,7 +47,7 @@ export class RcsMessageService {
 
   private readonly logger = new Logger(RcsMessageService.name);
 
-  public async outboundMessage(
+  public async saveMessage(
     channelConfigId: string,
     direction: MessageDirection,
     status: MessageStatus,
@@ -58,6 +58,7 @@ export class RcsMessageService {
       brokerChatId?: string;
       rcsAccountId: string;
     },
+    messageId?: string,
     brokerMessageId?: string,
     referenceMessageId?: string,
     errorMessage?: string,
@@ -76,6 +77,7 @@ export class RcsMessageService {
       );
 
       const dbMessage = await this.messageRepository.create({
+        id: messageId,
         brokerMessageId,
         referenceMessageId:
           referenceMessageId ||

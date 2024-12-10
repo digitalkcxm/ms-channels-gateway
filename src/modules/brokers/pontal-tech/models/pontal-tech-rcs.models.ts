@@ -2,9 +2,9 @@ import { BrokerType, ChannelType } from '@/models/enums';
 import { MessageContentNotSupportedException } from '@/models/exceptions/message-content-not-supported.exception';
 import { RcsMessageContentParserException } from '@/models/exceptions/rcs-message-content-parser.exception';
 import { OutboundMessageDto } from '@/models/outbound-message.dto';
-import { RcsMessageActionContentDto } from '@/models/rcs/rcs-messag-action.dto';
+import { RcsMessageActionContentDto } from '@/models/rcs/rcs-message-action.dto';
 import { RcsMessageDocumentContentDto } from '@/models/rcs/rcs-message-document-content.dto';
-import { RcsMessageType } from '@/models/rcs/rcs-nessage-type';
+import { RcsMessageType } from '@/models/rcs/rcs-message-type';
 import {
   RcsMessageCarouselContentDto,
   RcsMessageDto,
@@ -107,7 +107,7 @@ export class PontalTechRcsApiRequestMapper {
   public static fromOutboundMessageDto(
     account: string,
     dto: OutboundMessageDto,
-  ): [type?: string, model?: PontalTechRcsMessageApiRequest] {
+  ): PontalTechRcsMessageApiRequest {
     const { recipients, payload } = dto;
 
     if (payload as RcsMessageDto) {
@@ -122,23 +122,13 @@ export class PontalTechRcsApiRequestMapper {
         );
       }
 
-      const type =
-        payload.content?.messageType !== 'text' ||
-        (payload.content?.messageType === 'text' &&
-          (payload.content as RcsMessageTextContentDto)?.text?.length > 160)
-          ? 'standard'
-          : 'basic';
-
-      return [
-        type,
-        {
-          account,
-          messages: recipients.map((number) => ({
-            number,
-          })),
-          content,
-        },
-      ];
+      return {
+        account,
+        messages: recipients.map((number) => ({
+          number,
+        })),
+        content,
+      };
     }
 
     throw new MessageContentNotSupportedException(

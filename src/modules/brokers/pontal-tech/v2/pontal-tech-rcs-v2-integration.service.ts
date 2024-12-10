@@ -6,7 +6,7 @@ import { catchError, map } from 'rxjs';
 import { EnvVars } from '@/config/env-vars';
 
 import { PontalTechRcsMessageApiRequest } from '../models/pontal-tech-rcs.models';
-import { PontalTechSendRcsApiResponse } from '../models/v2/pontal-tech-send-rcs-api-response.model';
+import { PontalTechSendRcsApiResponse } from '../v2/pontal-tech-send-rcs-api-response.model';
 
 @Injectable()
 export class PontalTechRcsV2IntegrationService {
@@ -17,10 +17,7 @@ export class PontalTechRcsV2IntegrationService {
 
   private readonly logger = new Logger(PontalTechRcsV2IntegrationService.name);
 
-  public sendRcsBasicMessage(
-    apiKey: string,
-    model: PontalTechRcsMessageApiRequest,
-  ) {
+  public send(apiKey: string, model: PontalTechRcsMessageApiRequest) {
     return this.httpService
       .post<PontalTechSendRcsApiResponse>(
         '/api/v2/rcs',
@@ -41,35 +38,6 @@ export class PontalTechRcsV2IntegrationService {
         catchError((error) => {
           console.log('error', error);
           this.logger.error(model, 'sendRcsBasicMessage');
-          throw new Error(error.message);
-        }),
-      );
-  }
-
-  public sendRcsSingleMessage(
-    apiKey: string,
-    model: PontalTechRcsMessageApiRequest,
-  ) {
-    return this.httpService
-      .post<PontalTechSendRcsApiResponse>(
-        '/api/v2/rcs',
-        {
-          ...model,
-          callback: this.configService.getOrThrow<string>(
-            'PONTALTECH_WEBHOOK_URL',
-          ),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        },
-      )
-      .pipe(
-        map(({ data }) => data),
-        catchError((error) => {
-          console.log('error', error);
-          this.logger.error(model, 'sendRcsSingleMessage');
           throw new Error(error.message);
         }),
       );

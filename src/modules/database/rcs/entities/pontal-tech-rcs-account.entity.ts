@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { PontalTechRcsAccountType } from './enums';
 import { RcsAccountEntity } from './rcs-account.entity';
 
 @Entity({ name: 'pontal_tech_rcs_accounts', schema: 'rcs' })
@@ -17,15 +18,15 @@ import { RcsAccountEntity } from './rcs-account.entity';
   'idx_pontal_tech_rcs_account_reference_id',
   (entity: PontalTechRcsAccountEntity) => [entity.rcsAccountId],
 )
+@Unique(
+  'uq_pontal_tech_rcs_account_rcs_account_id',
+  (entity: PontalTechRcsAccountEntity) => [entity.rcsAccountId],
+)
 export class PontalTechRcsAccountEntity {
   @PrimaryColumn({
     type: 'uuid',
     primaryKeyConstraintName: 'pk_pontal_tech_rcs_accounts_rcs_account_id',
   })
-  @Unique(
-    'uq_pontal_tech_rcs_account_rcs_account_id',
-    (entity: PontalTechRcsAccountEntity) => [entity.rcsAccountId],
-  )
   rcsAccountId: string;
 
   @OneToOne(() => RcsAccountEntity, (entity) => entity.id)
@@ -41,6 +42,16 @@ export class PontalTechRcsAccountEntity {
 
   @Column()
   pontalTechAccountId: string;
+
+  @Column({
+    type: 'simple-enum',
+    enum: PontalTechRcsAccountType,
+    enumName: 'pontal_tech_rcs_account_type',
+    foreignKeyConstraintName:
+      'fk_pontal_tech_rcs_accounts_pontal_tech_rcs_account_type',
+    default: PontalTechRcsAccountType.SINGLE,
+  })
+  pontalTechAccountType: PontalTechRcsAccountType;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -15,7 +15,7 @@ import {
   RcsMessageActionType,
   RcsMessageActionTypes,
 } from './rcs-message-action-type';
-import { RcsMessageType } from './rcs-nessage-type';
+import { RcsMessageType } from './rcs-message-type';
 
 export abstract class BaseRcsActionItemDto {
   @IsIn(RcsMessageActionTypes)

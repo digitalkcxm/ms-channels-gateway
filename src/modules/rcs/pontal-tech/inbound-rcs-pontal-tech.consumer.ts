@@ -43,28 +43,40 @@ export class InboundRcsPontalTechConsumer {
     try {
       this.logger.debug(message, 'consume :: Message received');
 
-      const retryCount =
-        (originalMessage.properties.headers[
-          QUEUE_MESSAGE_HEADERS.X_RETRY_COUNT
-        ] as number) ?? 0;
+      if (
+        message.payload.direction === 'outbound' ||
+        (message.payload.direction === 'inbound' &&
+          (!message.payload.message || message.payload.status))
+      ) {
+        const retryCount =
+          (originalMessage.properties.headers[
+            QUEUE_MESSAGE_HEADERS.X_RETRY_COUNT
+          ] as number) ?? 0;
 
-      if (retryCount < 5) {
-        try {
-          return await this.rcsPontalTechService.inbound(message);
-        } catch (error) {
-          const isChatNotFound = error instanceof ChatNotReadyException;
-          const isMessageNotReady = error instanceof MessageNotReadyException;
-          if (isChatNotFound || isMessageNotReady) {
-            this.logger.warn(error, 'consume :: retrying...');
+        if (retryCount < 5) {
+          try {
+            return await this.rcsPontalTechService.outboundStatus(message);
+          } catch (error) {
+            const isChatNotFound = error instanceof ChatNotReadyException;
+            const isMessageNotReady = error instanceof MessageNotReadyException;
 
-            return await this.inboundProducer.publish(message, retryCount + 1);
+            if (isChatNotFound || isMessageNotReady) {
+              this.logger.warn(error, 'consume :: retrying...');
+
+              return await this.inboundProducer.publish(
+                message,
+                retryCount + 1,
+              );
+            }
+
+            throw error;
           }
-
-          throw error;
         }
+
+        throw new Error('Max retries reached');
       }
 
-      throw new Error('Max retries reached');
+      return await this.rcsPontalTechService.inbound(message);
     } catch (error) {
       this.logger.error(error, 'consume');
 

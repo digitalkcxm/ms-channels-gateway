@@ -20,10 +20,10 @@ import {
 import {
   RcsMessageActionCallbackDto,
   RcsMessageActionContentDto,
-} from './rcs-messag-action.dto';
+} from './rcs-message-action.dto';
 import { RcsMessageActionType } from './rcs-message-action-type';
 import { RcsMessageDocumentContentDto } from './rcs-message-document-content.dto';
-import { RcsMessageType, RcsMessageTypes } from './rcs-nessage-type';
+import { RcsMessageType, RcsMessageTypes } from './rcs-message-type';
 import {
   RcsMessageAudioContentDto,
   RcsMessageCarouselContentDto,
