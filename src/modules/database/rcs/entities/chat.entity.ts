@@ -26,7 +26,7 @@ export class ChatEntity {
   })
   id: string;
 
-  @Column('uuid')
+  @Column()
   referenceChatId: string;
 
   @Column({ nullable: true })
