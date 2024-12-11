@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsLatitude,
@@ -171,6 +171,9 @@ export class RcsMessageVideoContentDto extends RcsMessageDocumentContentDto {
   readonly messageType: RcsMessageType = 'video';
 }
 
+@JSONSchema({
+  $ref: getSchemaPath(RcsMessageDto),
+})
 export class RcsMessageDto {
   @ValidateNested()
   @JSONSchema({
