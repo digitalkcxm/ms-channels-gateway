@@ -171,7 +171,11 @@ export class RcsMessageService {
         channelConfigId,
       );
 
-      if (inboundMessage.message?.messageType !== 'text') {
+      if (
+        !['text', 'action-callback'].includes(
+          inboundMessage.message?.messageType,
+        )
+      ) {
         await this.inboundProducer.media({
           brokerMessageId: inboundMessage.brokerMessageId,
           chatId: dbChat.id,

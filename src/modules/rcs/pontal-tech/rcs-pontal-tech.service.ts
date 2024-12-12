@@ -19,7 +19,6 @@ import {
 } from '@/modules/brokers/pontal-tech/models/pontal-tech-rcs.models';
 import { PontalTechRcsV3IntegrationService } from '@/modules/brokers/pontal-tech/v3/pontal-tech-rcs-v3-integration.service';
 import { PontalTechSendRcsApiResponse } from '@/modules/brokers/pontal-tech/v3/pontal-tech-send-rcs-api-response.model';
-import { ChatDto } from '@/modules/entity-manager/rcs/models/chat.dto';
 import { RcsAccountDto } from '@/modules/entity-manager/rcs/models/rcs-account.dto';
 import { ChatService } from '@/modules/entity-manager/rcs/services/chat.service';
 import { MessageService } from '@/modules/entity-manager/rcs/services/message.service';
@@ -141,7 +140,10 @@ export class RcsPontalTechService {
 
     this.logger.debug(rcsInboundMessage, 'rcsInboundMessage');
 
-    const existingMessage = await this.getExistingMessageOrThrow(webhook, chat);
+    const existingMessage = await this.getExistingMessageOrThrow(
+      inboundMessage.messageId,
+      webhook,
+    );
 
     this.logger.debug(existingMessage, 'existingMessage');
 
@@ -195,13 +197,10 @@ export class RcsPontalTechService {
   }
 
   private async getExistingMessageOrThrow(
+    messageId: string,
     webhook: PontalTechWebhookApiRequest,
-    chat: ChatDto,
   ) {
-    const existingMessage = await this.messageService.getByBrokerMessage(
-      webhook.event_id,
-      chat.id,
-    );
+    const existingMessage = await this.messageService.getById(messageId);
 
     if (
       !existingMessage &&
@@ -210,10 +209,7 @@ export class RcsPontalTechService {
       )
     ) {
       this.logger.error(webhook, 'process :: message not ready');
-      throw new MessageNotReadyException(
-        webhook.reference,
-        BrokerType.PONTAL_TECH,
-      );
+      throw new MessageNotReadyException(messageId, BrokerType.PONTAL_TECH);
     }
 
     return existingMessage;

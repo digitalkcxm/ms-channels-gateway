@@ -16,6 +16,8 @@ export const QUEUE_NAMES = {
   INBOUND_DEAD: 'ms-channels-gateway.inbound.dead',
   OUTBOUND_DEAD: 'ms-channels-gateway.outbound.dead',
   RCS_BILLING: 'ms-channels-gateway.rcs.billing',
+  INBOUND_RCS_PONTAL_TECH: 'ms-channels-gateway.rcs.pontal-tech.inbound',
+  OUTBOUND_RCS_PONTAL_TECH: 'ms-channels-gateway.rcs.pontal-tech.outbound',
 } as const;
 
 export const QUEUE_MESSAGE_HEADERS = {

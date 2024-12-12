@@ -6,6 +6,7 @@ import {
   CHANNELS,
   EXCHANGE_NAMES,
   QUEUE_MESSAGE_HEADERS,
+  QUEUE_NAMES,
 } from '@/config/constants';
 import { BrokerType, ChannelType } from '@/models/enums';
 import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.exception';
@@ -26,7 +27,7 @@ export class InboundRcsPontalTechConsumer {
   @RabbitRPC({
     exchange: EXCHANGE_NAMES.INBOUND,
     routingKey: `${ChannelType.RCS}.${BrokerType.PONTAL_TECH}`,
-    queue: `ms-channels-gateway.${ChannelType.RCS}.${BrokerType.PONTAL_TECH}.inbound`,
+    queue: QUEUE_NAMES.INBOUND_RCS_PONTAL_TECH,
     createQueueIfNotExists: true,
     queueOptions: {
       channel: CHANNELS.INBOUND,

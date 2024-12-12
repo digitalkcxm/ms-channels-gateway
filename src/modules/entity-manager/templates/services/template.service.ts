@@ -62,6 +62,16 @@ export class TemplateService {
       .create(entity.toEntity({ companyToken }))
       .then(TemplateDto.fromEntity);
 
+    Promise.all(
+      entity.links?.map(({ referenceId }) =>
+        this.cacheManager.del(
+          CacheKeyBuilder.getAllByCompany({ companyToken, referenceId }),
+        ),
+      ),
+    );
+
+    this.cacheManager.del(CacheKeyBuilder.getAllByCompany({ companyToken }));
+
     return data;
   }
 
@@ -81,8 +91,18 @@ export class TemplateService {
         remove: true,
       }),
     );
+
     Promise.all(delKeys?.map((key) => this.cacheManager.del(key)));
+
     this.cacheManager.del(CacheKeyBuilder.getAllByCompany({ companyToken }));
+
+    Promise.all(
+      entity.links?.map(({ referenceId }) =>
+        this.cacheManager.del(
+          CacheKeyBuilder.getAllByCompany({ companyToken, referenceId }),
+        ),
+      ),
+    );
   }
 
   async delete(companyToken: string, id: string) {
