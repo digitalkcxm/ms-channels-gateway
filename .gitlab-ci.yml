@@ -1,77 +1,87 @@
 stages:
-  # - test
+  - test
   - build_homol
   - deploy_homol
   - release
   - prod
   - check_prod
-  - build_prod
-  - deploy_prod
 
 variables:
   WEBHOOK_URL: "https://discord.com/api/webhooks/1072308956535463976/nSlzRWXytHn4kRyL6OxmCuMVD8NRRmiDVXxFDGKVhByuM2EneHovUbd8UjWEhVDZxix9" 
 
-# integration:
-#   stage: test
-#   image: public.ecr.aws/lts/ubuntu:22.04_stable
-#   before_script:
-#     - apt update && apt install jq git unzip zip curl bash openssl wget rsync tar -y
-#     - DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata > /dev/null 2>&1
-#     - rm -rf /etc/localtime
-#     - ln -s /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
-#   script:
-#     - >
-#       wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/integration_tests_exec.sh/raw?ref=master' -O integration_tests_exec.sh
+integration:
+  stage: test
+  image: ubuntu:20.04
+  services:
+    - mongo:latest
+    - redis:latest
+    - postgres:latest
+    - rabbitmq:latest
+  variables:
+    POSTGRES_DB: nice_marmot
+    POSTGRES_USER: runner
+    POSTGRES_PASSWORD: "root"
+    POSTGRES_HOST_AUTH_METHOD: trust
+    RABBITMQ_PORT: 5672
+  before_script:
+    - apt update  
+    - apt install jq git unzip zip curl bash openssl wget rsync tar -y > /dev/null 2>&1
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata > /dev/null 2>&1
+    - rm -rf /etc/localtime
+    - ln -s /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+  script:
+    - >
+      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/integration_tests_exec.sh/raw?ref=master' -O integration_tests_exec.sh
     
-#     - chmod +x integration_tests_exec.sh 
-#     - ./integration_tests_exec.sh
+    - chmod +x integration_tests_exec.sh 
+    - ./integration_tests_exec.sh
 
-#   after_script:
-#     - >
-#       if [[ "$CI_JOB_STATUS" == "success" ]]; then
+  after_script:
+    - >
+      if [[ "$CI_JOB_STATUS" == "success" ]]; then
 
-#         curl -s \
-#           -H "Content-Type: application/json" \
-#           -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 3065620}]}' \
-#           $WEBHOOK_URL       
+        curl -s \
+          -H "Content-Type: application/json" \
+          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 3065620}]}' \
+          $WEBHOOK_URL       
 
-#       else
+      else
 
-#         curl -s \
-#           -H "Content-Type: application/json" \
-#           -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 12389167}]}' \
-#           $WEBHOOK_URL
+        curl -s \
+          -H "Content-Type: application/json" \
+          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 12389167}]}' \
+          $WEBHOOK_URL
 
-#       fi 
-          
-#   only:
-#     - develop
-#   tags:
-#     - microservicos
+      fi 
+      
+  only:
+    - main
+  tags:
+    - microservicos
 
-# quality:
-#   stage: test
-#   image: 
-#     name: public.ecr.aws/qwak-us-east-1/infra/sonarsource/sonar-scanner-cli:5.0
-#     entrypoint: [""]
-#   variables:
-#     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
-#     GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
-#   cache:
-#     key: "${CI_JOB_NAME}"
-#     paths:
-#       - .sonar/cache
-#   script: 
-#     - sonar-scanner
-#   allow_failure: true
-#   only:
-#     - develop
-#   tags:
-#     - microservicos
+quality:
+  stage: test
+  image: 
+    name: sonarsource/sonar-scanner-cli:5.0
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script: 
+    - sonar-scanner
+  allow_failure: true
+  only:
+    - main
+  tags:
+    - microservicos
 
 build_homol:
   stage: build_homol 
-  image: public.ecr.aws/docker/library/docker:20.10.24
+  image: docker:18.09
   before_script:
     - apk update 
     - apk add --no-cache tzdata python3 py-pip py3-pip jq git unzip zip curl bash openssl wget tar bash bash-completion > /dev/null 2>&1
@@ -103,7 +113,7 @@ build_homol:
     - export VERSION="${TAG_RELEASE}"
   script:
     - >
-      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/build_img_nest.sh/raw?ref=master' -O build_img.sh
+      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/build_img.sh/raw?ref=master' -O build_img.sh
     - chmod +x build_img.sh 
     - ./build_img.sh
 
@@ -126,22 +136,23 @@ build_homol:
       fi 
 
   only:
-   - develop
+   - main
   allow_failure: false
-  # needs: 
-    # - integration
-    # - quality
-  # dependencies:
-    # - integration
-    # - quality
+  needs: 
+    - integration
+    - quality
+  dependencies:
+    - integration
+    - quality
   tags:
-    - microservicos  
+    - microservicos
 
 deploy_homol:
   stage: deploy_homol
-  image: public.ecr.aws/docker/library/node:20
+  image: ubuntu:20.04
   before_script:
-    - apt update && apt install jq git unzip zip curl bash openssl wget rsync tar python3 -y
+    - apt update > /dev/null 2>&1 
+    - apt install jq git unzip zip curl bash openssl wget rsync tar python3 -y > /dev/null 2>&1
     - DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata > /dev/null 2>&1
     - rm -rf /etc/localtime
     - ln -s /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
@@ -178,7 +189,7 @@ deploy_homol:
     - export VERSION="${TAG_RELEASE}"
   script:
     - >
-      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/deploy_ms_k8s_nest.sh/raw?ref=master' -O deploy_ms_k8s.sh
+      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/deploy_ms_k8s.sh/raw?ref=master' -O deploy_ms_k8s.sh
     - chmod +x deploy_ms_k8s.sh 
     - ./deploy_ms_k8s.sh
 
@@ -198,10 +209,10 @@ deploy_homol:
           -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 12389167}]}' \
           $WEBHOOK_URL
 
-      fi 
+      fi     
 
   only:
-   - develop
+   - main
   allow_failure: false
   needs: 
     - build_homol
@@ -210,8 +221,9 @@ deploy_homol:
   tags:
     - microservicos
 
+
 create-release:
-  image: public.ecr.aws/docker/library/node:20
+  image: node
   stage: release
   before_script:
     - DATE=$(date +%d-%m-%YH%H:%M:%S)
@@ -254,81 +266,20 @@ create-release:
   only:
    - main
   when: manual
+  needs: 
+    - deploy_homol
   allow_failure: false
+  dependencies:
+    - deploy_homol
   tags:
     - microservicos
 
-build_prod:
-  stage: build_prod
-  image: public.ecr.aws/docker/library/docker:20.10.24
-  before_script:
-    - apk update 
-    - apk add --no-cache tzdata python3 py-pip py3-pip jq git unzip zip curl bash openssl wget tar bash bash-completion > /dev/null 2>&1
-    - pip install pyyaml==5.3.1 > /dev/null 2>&1
-    - pip install awscli > /dev/null 2>&1
-    - cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
-    - rm /bin/sh && ln -s /bin/bash /bin/sh
-    - curl -s https://releases.hashicorp.com/vault/1.5.3/vault_1.5.3_linux_amd64.zip -o "vault.zip"
-    - unzip -q vault.zip ; mv vault /usr/bin/ ; chmod +x /usr/bin/vault
-    - vault -v
-    # START INSTALL GCLOUD
-    - curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-373.0.0-linux-x86_64.tar.gz ; tar -xf google-cloud-sdk-373.0.0-linux-x86_64.tar.gz
-    - ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=false --command-completion=true -q
-    - ./google-cloud-sdk/bin/gsutil -v
-    # FINISH INSTALL GCLOUD
-    # START GCP AUTH
-    - cp $DEV_GCP_AUTH .gcp_storage_key.json
-    - ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file .gcp_storage_key.json
-    - ./google-cloud-sdk/bin/gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
-    # FINISH GCP AUTH
-    - export ENV=prod
-    - export AWS_ACCESS_KEY_ID="${PROD_AWS_ACCESS_KEY_ID}"
-    - export AWS_SECRET_ACCESS_KEY="${PROD_AWS_SECRET_ACCESS_KEY}"
-    - export AWS_ACCOUNT_ID="${PROD_AWS_ACCOUNT_ID}"
-    - export AWS_DEFAULT_ID="${PROD_AWS_ACCOUNT_ID}"
-    - export AWS_DEFAULT_REGION="${PROD_AWS_DEFAULT_REGION}"
-    - export TAG_RELEASE=`git describe --abbrev=0 --tags`
-    - export VERSION="${TAG_RELEASE}"
-  script:
-    - >
-      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/build_img_nest.sh/raw?ref=master' -O build_img.sh
-    - chmod +x build_img.sh 
-    - ./build_img.sh
-
-  after_script:
-    - >
-      if [[ "$CI_JOB_STATUS" == "success" ]]; then
-
-        curl -s \
-          -H "Content-Type: application/json" \
-          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 3065620}]}' \
-          $WEBHOOK_URL       
-
-      else
-
-        curl -s \
-          -H "Content-Type: application/json" \
-          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 12389167}]}' \
-          $WEBHOOK_URL
-
-      fi 
-
-  only:
-   - main
-  allow_failure: false
-  needs: 
-    - create-release
-  dependencies:
-    - create-release
-  tags:
-    - microservicos  
-
 deploy_prod:
-  stage: deploy_prod
-  image: public.ecr.aws/docker/library/node:20
+  stage: prod
+  image: ubuntu:20.04
   before_script:
-    - apt update
-    - apt install jq git unzip zip curl bash openssl wget rsync tar python3 -y
+    - apt update > /dev/null 2>&1 
+    - apt install dos2unix python3 python3-pip jq git unzip zip curl bash openssl wget rsync -y > /dev/null 2>&1
     - DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata > /dev/null 2>&1
     - rm -rf /etc/localtime
     - ln -s /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
@@ -338,36 +289,91 @@ deploy_prod:
     - unzip -q awscliv2.zip
     - ./aws/install
     - aws --version
-    # START INSTALL GCLOUD
-    - curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-373.0.0-linux-x86_64.tar.gz ; tar -xf google-cloud-sdk-373.0.0-linux-x86_64.tar.gz
-    - ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=false --command-completion=true -q
-    - source ./google-cloud-sdk/path.bash.inc
-    - gsutil -v
-    # FINISH INSTALL GCLOUD
     - vault -v
-    - curl -LO https://dl.k8s.io/release/v1.21.0/bin/linux/amd64/kubectl
-    - mv kubectl /usr/bin/ ; chmod +x /usr/bin/kubectl
-    - kubectl version --client
+    - echo $DATE
+    - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+    - eval $(ssh-agent -s)
+    # Setup SSH deploy keys
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - export TXT_RED="\e[31m" && export TXT_BLUE="\e[34m" && export TXT_GREEN="\e[32m" && export TXT_CYAN="\e[36m" && export TXT_YELLOW="\e[33m"
     - export DATE=$(date +%d-%m-%YH%H:%M:%S)
     - export VAULT_ADDR="${VAULT_ADDR}"
     - export VAULT_TOKEN="${VAULT_TOKEN}"
     - export ENV=prod
     - export AWS_ACCESS_KEY_ID="${PROD_AWS_ACCESS_KEY_ID}"
     - export AWS_SECRET_ACCESS_KEY="${PROD_AWS_SECRET_ACCESS_KEY}"
-    - export AWS_DEFAULT_ID="${PROD_AWS_ACCOUNT_ID}"
-    - export AWS_DEFAULT_REGION="${PROD_AWS_DEFAULT_REGION}"
-    - export EKS_CLUSTER_NAME="${PROD_EKS_CLUSTER_NAME}"
-    # START GCP AUTH
-    - cp $DEV_GCP_AUTH .gcp_storage_key.json
-    - gcloud auth activate-service-account --key-file .gcp_storage_key.json
-    # FINISH GCP AUTH
     - export TAG_RELEASE=`git describe --abbrev=0 --tags`
-    - export VERSION="${TAG_RELEASE}"
   script:
     - >
-      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/deploy_ms_k8s_nest.sh/raw?ref=master' -O deploy_ms_k8s.sh
-    - chmod +x deploy_ms_k8s.sh 
-    - ./deploy_ms_k8s.sh
+      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/deploy_ms_node.sh/raw?ref=master' -O deploy_ms_node.sh
+    - chmod +x deploy_ms_node.sh 
+    - sed -i '/ms-server/s/ms-server/ms-servers-prod-2/g' deploy_ms_node.sh
+    - ./deploy_ms_node.sh
+
+  after_script:
+    - >
+      if [[ "$CI_JOB_STATUS" == "success" ]]; then
+
+        curl -s \
+          -H "Content-Type: application/json" \
+          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 3065620}]}' \
+          $WEBHOOK_URL       
+
+      else
+
+        curl -s \
+          -H "Content-Type: application/json" \
+          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 12389167}]}' \
+          $WEBHOOK_URL
+
+      fi     
+
+  only:
+    - tags
+  when: manual
+  allow_failure: false
+  tags:
+    - microservicos  
+
+check_prod:
+  stage: check_prod
+  image: ubuntu:20.04
+  before_script:
+    - apt update > /dev/null 2>&1 
+    - apt install dos2unix python3 python3-pip jq git unzip zip curl bash openssl wget rsync -y > /dev/null 2>&1
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata > /dev/null 2>&1
+    - rm -rf /etc/localtime
+    - ln -s /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+    - curl -s https://releases.hashicorp.com/vault/1.5.3/vault_1.5.3_linux_amd64.zip -o "vault.zip"
+    - unzip -q vault.zip ; mv vault /usr/bin/ ; chmod +x /usr/bin/vault
+    - curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    - unzip -q awscliv2.zip
+    - ./aws/install
+    - aws --version
+    - vault -v
+    - echo $DATE
+    - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+    - eval $(ssh-agent -s)
+    # Setup SSH deploy keys
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - export TXT_RED="\e[31m" && export TXT_BLUE="\e[34m" && export TXT_GREEN="\e[32m" && export TXT_CYAN="\e[36m" && export TXT_YELLOW="\e[33m"
+    - export DATE=$(date +%d-%m-%YH%H:%M:%S)
+    - export VAULT_ADDR="${VAULT_ADDR}"
+    - export VAULT_TOKEN="${VAULT_TOKEN}"
+    - export ENV=prod
+    - export AWS_ACCESS_KEY_ID="${PROD_AWS_ACCESS_KEY_ID}"
+    - export AWS_SECRET_ACCESS_KEY="${PROD_AWS_SECRET_ACCESS_KEY}"
+    - export TAG_RELEASE=`git describe --abbrev=0 --tags`
+  script:
+    - >
+      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/check_services.sh/raw?ref=master' -O check_services.sh
+    - chmod +x check_services.sh
+    - sed -i '/ms-server/s/ms-server/ms-servers-prod-2/g' check_services.sh 
+    - ./check_services.sh
 
   after_script:
     - >
@@ -388,18 +394,15 @@ deploy_prod:
       fi 
 
   only:
-   - main
+    - tags
   allow_failure: false
-  needs: 
-    - build_prod
-  dependencies:
-    - build_prod
+  needs: ["deploy_prod"]
   tags:
-    - microservicos
+    - microservicos  
 
 deploy_ld:
   stage: prod
-  image: ubuntu
+  image: ubuntu:20.04
   before_script:
     - apt update > /dev/null 2>&1 
     - apt install dos2unix python3 python3-pip jq git unzip zip curl bash openssl wget rsync -y > /dev/null 2>&1
@@ -453,19 +456,15 @@ deploy_ld:
       fi 
 
   only:
-    - master
+    - tags
   when: manual
-  needs: 
-    - create-release
-  dependencies:
-    - create-release  
   allow_failure: false
   tags:
     - microservicos  
 
 check_ld:
   stage: check_prod
-  image: node
+  image: ubuntu:20.04
   before_script:
     - apt update > /dev/null 2>&1 
     - apt install dos2unix python3 python3-pip jq git unzip zip curl bash openssl wget rsync -y > /dev/null 2>&1
@@ -519,11 +518,132 @@ check_ld:
       fi 
 
   only:
-    - master
+    - tags
   allow_failure: false
   needs: ["deploy_ld"]
   tags:
     - microservicos
 
+deploy_syscob:
+  stage: prod
+  image: ubuntu:20.04
+  before_script:
+    - apt update > /dev/null 2>&1 
+    - apt install dos2unix python3 python3-pip jq git unzip zip curl bash openssl wget rsync -y > /dev/null 2>&1
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata > /dev/null 2>&1
+    - rm -rf /etc/localtime
+    - ln -s /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+    - curl -s https://releases.hashicorp.com/vault/1.5.3/vault_1.5.3_linux_amd64.zip -o "vault.zip"
+    - unzip -q vault.zip ; mv vault /usr/bin/ ; chmod +x /usr/bin/vault
+    - curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    - unzip -q awscliv2.zip
+    - ./aws/install
+    - aws --version
+    - vault -v
+    - echo $DATE
+    - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+    - eval $(ssh-agent -s)
+    # Setup SSH deploy keys
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - export TXT_RED="\e[31m" && export TXT_BLUE="\e[34m" && export TXT_GREEN="\e[32m" && export TXT_CYAN="\e[36m" && export TXT_YELLOW="\e[33m"
+    - export DATE=$(date +%d-%m-%YH%H:%M:%S)
+    - export VAULT_ADDR="${VAULT_ADDR}"
+    - export VAULT_TOKEN="${VAULT_TOKEN}"
+    - export ENV=syscob
+    - export AWS_ACCESS_KEY_ID="${syscob_AWS_ACCESS_KEY_ID}"
+    - export AWS_SECRET_ACCESS_KEY="${syscob_AWS_SECRET_ACCESS_KEY}"
+    - export TAG_RELEASE=`git describe --abbrev=0 --tags`
+  script:
+    - >
+      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/deploy_ms_node.sh/raw?ref=master' -O deploy_ms_node.sh
+    - chmod +x deploy_ms_node.sh 
+    - ./deploy_ms_node.sh
 
+  after_script:
+    - >
+      if [[ "$CI_JOB_STATUS" == "success" ]]; then
 
+        curl -s \
+          -H "Content-Type: application/json" \
+          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 3065620}]}' \
+          $WEBHOOK_URL       
+
+      else
+
+        curl -s \
+          -H "Content-Type: application/json" \
+          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 12389167}]}' \
+          $WEBHOOK_URL
+
+      fi 
+
+  only:
+    - tags
+  when: manual
+  allow_failure: false
+  tags:
+    - microservicos  
+
+check_ld:
+  stage: check_prod
+  image: ubuntu:20.04
+  before_script:
+    - apt update > /dev/null 2>&1 
+    - apt install dos2unix python3 python3-pip jq git unzip zip curl bash openssl wget rsync -y > /dev/null 2>&1
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata > /dev/null 2>&1
+    - rm -rf /etc/localtime
+    - ln -s /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+    - curl -s https://releases.hashicorp.com/vault/1.5.3/vault_1.5.3_linux_amd64.zip -o "vault.zip"
+    - unzip -q vault.zip ; mv vault /usr/bin/ ; chmod +x /usr/bin/vault
+    - curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    - unzip -q awscliv2.zip
+    - ./aws/install
+    - aws --version
+    - vault -v
+    - echo $DATE
+    - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+    - eval $(ssh-agent -s)
+    # Setup SSH deploy keys
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - export TXT_RED="\e[31m" && export TXT_BLUE="\e[34m" && export TXT_GREEN="\e[32m" && export TXT_CYAN="\e[36m" && export TXT_YELLOW="\e[33m"
+    - export DATE=$(date +%d-%m-%YH%H:%M:%S)
+    - export VAULT_ADDR="${VAULT_ADDR}"
+    - export VAULT_TOKEN="${VAULT_TOKEN}"
+    - export ENV=syscob
+    - export AWS_ACCESS_KEY_ID="${syscob_AWS_ACCESS_KEY_ID}"
+    - export AWS_SECRET_ACCESS_KEY="${syscob_AWS_SECRET_ACCESS_KEY}"
+    - export TAG_RELEASE=`git describe --abbrev=0 --tags`
+  script:
+    - >
+      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/check_services.sh/raw?ref=master' -O check_services.sh
+    - chmod +x check_services.sh 
+    - ./check_services.sh
+
+  after_script:
+    - >
+      if [[ "$CI_JOB_STATUS" == "success" ]]; then
+
+        curl -s \
+          -H "Content-Type: application/json" \
+          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 3065620}]}' \
+          $WEBHOOK_URL       
+
+      else
+
+        curl -s \
+          -H "Content-Type: application/json" \
+          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 12389167}]}' \
+          $WEBHOOK_URL
+
+      fi 
+
+  only:
+    - tags
+  allow_failure: false
+  needs: ["deploy_syscob"]
+  tags:
+    - microservicos     
