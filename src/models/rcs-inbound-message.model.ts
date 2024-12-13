@@ -1,14 +1,18 @@
 import { MessageDirection, MessageStatus } from '@/models/enums';
 
 import {
+  RcsMessageActionCallbackDto,
+  RcsMessageActionContentDto,
+} from './rcs/rcs-message-action.dto';
+import { RcsMessageDocumentContentDto } from './rcs/rcs-message-document-content.dto';
+import {
   RcsMessageAudioContentDto,
   RcsMessageCarouselContentDto,
-  RcsMessageDocumentContentDto,
   RcsMessageImageContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageVideoContentDto,
-} from './rsc-message.dto';
+} from './rcs/rsc-message.dto';
 
 export type RcsInboundMessage = {
   rcsAccountId: string;
@@ -17,6 +21,8 @@ export type RcsInboundMessage = {
   direction: MessageDirection;
   status: MessageStatus;
   message?:
+    | RcsMessageActionContentDto
+    | RcsMessageActionCallbackDto
     | RcsMessageAudioContentDto
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto

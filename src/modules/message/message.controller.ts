@@ -6,7 +6,7 @@ import { dtoToJsonSchema } from '@/helpers/dto-to-json-schema.helper';
 import { BaseMessageDto } from '@/models/outbound-base.model';
 import { OutboundMessageDto } from '@/models/outbound-message.dto';
 import { PaginatedDto } from '@/models/paginated.dto';
-import { RcsMessageDto } from '@/models/rsc-message.dto';
+import { RcsMessageDto } from '@/models/rcs/rsc-message.dto';
 
 import { OutboundMessageService } from './services/outbound-message.service';
 

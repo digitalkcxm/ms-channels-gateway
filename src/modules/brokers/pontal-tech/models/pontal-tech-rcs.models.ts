@@ -2,17 +2,18 @@ import { BrokerType, ChannelType } from '@/models/enums';
 import { MessageContentNotSupportedException } from '@/models/exceptions/message-content-not-supported.exception';
 import { RcsMessageContentParserException } from '@/models/exceptions/rcs-message-content-parser.exception';
 import { OutboundMessageDto } from '@/models/outbound-message.dto';
+import { RcsMessageActionContentDto } from '@/models/rcs/rcs-message-action.dto';
+import { RcsMessageDocumentContentDto } from '@/models/rcs/rcs-message-document-content.dto';
+import { RcsMessageType } from '@/models/rcs/rcs-message-type';
 import {
   RcsMessageCarouselContentDto,
-  RcsMessageDocumentContentDto,
   RcsMessageDto,
   RcsMessageImageContentDto,
   RcsMessageLocationContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
-  RcsMessageType,
   RcsMessageVideoContentDto,
-} from '@/models/rsc-message.dto';
+} from '@/models/rcs/rsc-message.dto';
 
 export type PontalTechRcsMessageTextContent = {
   text: {
@@ -42,6 +43,13 @@ export type PontalTechRcsMessageVideoContent = {
 export type PontalTechRcsMessagePdfContent = {
   pdf: {
     url: string;
+  };
+};
+
+export type PontalTechRcsMessageSuggestionContent = {
+  suggestion: {
+    text: string;
+    suggestions: PontalTechRcsMessageSuggestion[];
   };
 };
 
@@ -78,6 +86,7 @@ export type PontalTechRcsMessageContentsAll =
   | PontalTechRcsMessageLocationContent
   | PontalTechRcsMessagePdfContent
   | PontalTechRcsMessageRichCardContent
+  | PontalTechRcsMessageSuggestionContent
   | PontalTechRcsMessageTextContent
   | PontalTechRcsMessageVideoContent;
 
@@ -98,7 +107,7 @@ export class PontalTechRcsApiRequestMapper {
   public static fromOutboundMessageDto(
     account: string,
     dto: OutboundMessageDto,
-  ): [type?: string, model?: PontalTechRcsMessageApiRequest] {
+  ): PontalTechRcsMessageApiRequest {
     const { recipients, payload } = dto;
 
     if (payload as RcsMessageDto) {
@@ -113,23 +122,13 @@ export class PontalTechRcsApiRequestMapper {
         );
       }
 
-      const type =
-        payload.content?.messageType !== 'text' ||
-        (payload.content?.messageType === 'text' &&
-          (payload.content as RcsMessageTextContentDto)?.text?.length > 160)
-          ? 'standard'
-          : 'basic';
-
-      return [
-        type,
-        {
-          account,
-          messages: recipients.map((number) => ({
-            number,
-          })),
-          content,
-        },
-      ];
+      return {
+        account,
+        messages: recipients.map((number) => ({
+          number,
+        })),
+        content,
+      };
     }
 
     throw new MessageContentNotSupportedException(
@@ -144,6 +143,19 @@ export class PontalTechRcsApiRequestMapper {
       payload: RcsMessageDto,
     ) => PontalTechRcsMessageContentsAll;
   } = {
+    actions: (payload: RcsMessageDto) => {
+      const content = payload.content as RcsMessageActionContentDto;
+      return {
+        suggestion: {
+          text: content.title,
+          suggestions: content.actions?.map((action) => ({
+            type: action.type,
+            title: action.title,
+            value: action.value,
+          })),
+        },
+      };
+    },
     audio: (payload: RcsMessageDto) => {
       throw new MessageContentNotSupportedException(
         ChannelType.RCS,
@@ -158,6 +170,11 @@ export class PontalTechRcsApiRequestMapper {
           title: item.title,
           fileUrl: item.fileUrl,
           description: item.description,
+          suggestions: item.suggestions?.map((suggestion) => ({
+            title: suggestion.title,
+            type: suggestion.type,
+            value: suggestion.value,
+          })),
         })),
       };
     },
@@ -209,6 +226,11 @@ export class PontalTechRcsApiRequestMapper {
           title: content.title,
           description: content.description,
           fileUrl: content.fileUrl,
+          suggestions: content.suggestions?.map((suggestion) => ({
+            title: suggestion.title,
+            type: suggestion.type,
+            value: suggestion.value,
+          })),
         },
       };
     },

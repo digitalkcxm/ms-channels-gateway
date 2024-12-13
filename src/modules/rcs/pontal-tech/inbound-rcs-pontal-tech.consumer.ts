@@ -6,6 +6,7 @@ import {
   CHANNELS,
   EXCHANGE_NAMES,
   QUEUE_MESSAGE_HEADERS,
+  QUEUE_NAMES,
 } from '@/config/constants';
 import { BrokerType, ChannelType } from '@/models/enums';
 import { ChatNotReadyException } from '@/models/exceptions/chat-not-ready.exception';
@@ -26,10 +27,11 @@ export class InboundRcsPontalTechConsumer {
   @RabbitRPC({
     exchange: EXCHANGE_NAMES.INBOUND,
     routingKey: `${ChannelType.RCS}.${BrokerType.PONTAL_TECH}`,
-    queue: `ms-channels-gateway.${ChannelType.RCS}.${BrokerType.PONTAL_TECH}.inbound`,
+    queue: QUEUE_NAMES.INBOUND_RCS_PONTAL_TECH,
     createQueueIfNotExists: true,
     queueOptions: {
       channel: CHANNELS.INBOUND,
+      deadLetterRoutingKey: `${ChannelType.RCS}.${BrokerType.PONTAL_TECH}`,
       durable: true,
       autoDelete: false,
       deadLetterExchange: EXCHANGE_NAMES.INBOUND_DLX,
@@ -42,28 +44,40 @@ export class InboundRcsPontalTechConsumer {
     try {
       this.logger.debug(message, 'consume :: Message received');
 
-      const retryCount =
-        (originalMessage.properties.headers[
-          QUEUE_MESSAGE_HEADERS.X_RETRY_COUNT
-        ] as number) ?? 0;
+      if (
+        message.payload.direction === 'outbound' ||
+        (message.payload.direction === 'inbound' &&
+          (!message.payload.message || message.payload.status))
+      ) {
+        const retryCount =
+          (originalMessage.properties.headers[
+            QUEUE_MESSAGE_HEADERS.X_RETRY_COUNT
+          ] as number) ?? 0;
 
-      if (retryCount < 5) {
-        try {
-          return await this.rcsPontalTechService.inbound(message);
-        } catch (error) {
-          const isChatNotFound = error instanceof ChatNotReadyException;
-          const isMessageNotReady = error instanceof MessageNotReadyException;
-          if (isChatNotFound || isMessageNotReady) {
-            this.logger.warn(error, 'consume :: retrying...');
+        if (retryCount < 5) {
+          try {
+            return await this.rcsPontalTechService.outboundStatus(message);
+          } catch (error) {
+            const isChatNotFound = error instanceof ChatNotReadyException;
+            const isMessageNotReady = error instanceof MessageNotReadyException;
 
-            return await this.inboundProducer.publish(message, retryCount + 1);
+            if (isChatNotFound || isMessageNotReady) {
+              this.logger.warn(error, 'consume :: retrying...');
+
+              return await this.inboundProducer.publish(
+                message,
+                retryCount + 1,
+              );
+            }
+
+            throw error;
           }
-
-          throw error;
         }
+
+        throw new Error('Max retries reached');
       }
 
-      throw new Error('Max retries reached');
+      return await this.rcsPontalTechService.inbound(message);
     } catch (error) {
       this.logger.error(error, 'consume');
 

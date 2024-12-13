@@ -18,6 +18,7 @@ export class InboundRcsMediaProcessConsumer {
     createQueueIfNotExists: true,
     queueOptions: {
       channel: CHANNELS.INBOUND,
+      deadLetterRoutingKey: 'media-process',
       durable: true,
       autoDelete: false,
       deadLetterExchange: EXCHANGE_NAMES.INBOUND_DLX,

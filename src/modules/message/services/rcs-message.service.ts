@@ -11,12 +11,12 @@ import { EnvVars } from '@/config/env-vars';
 import { MessageDirection, MessageStatus } from '@/models/enums';
 import { InboundMediaMessageDto } from '@/models/inbound-message.dto';
 import { OutboundMessagePayload } from '@/models/outbound-message.dto';
-import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
+import { RcsMessageDocumentContentDto } from '@/models/rcs/rcs-message-document-content.dto';
 import {
   RcsMessageCarouselContentDto,
-  RcsMessageDocumentContentDto,
   RcsMessageRichCardContentDto,
-} from '@/models/rsc-message.dto';
+} from '@/models/rcs/rsc-message.dto';
+import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
 import { SyncEventType, SyncModel } from '@/models/sync-message.model';
 import { AwsS3Service } from '@/modules/aws-s3/aws-s3.service';
 import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
@@ -47,7 +47,7 @@ export class RcsMessageService {
 
   private readonly logger = new Logger(RcsMessageService.name);
 
-  public async outboundMessage(
+  public async saveMessage(
     channelConfigId: string,
     direction: MessageDirection,
     status: MessageStatus,
@@ -58,6 +58,7 @@ export class RcsMessageService {
       brokerChatId?: string;
       rcsAccountId: string;
     },
+    messageId?: string,
     brokerMessageId?: string,
     referenceMessageId?: string,
     errorMessage?: string,
@@ -76,6 +77,7 @@ export class RcsMessageService {
       );
 
       const dbMessage = await this.messageRepository.create({
+        id: messageId,
         brokerMessageId,
         referenceMessageId:
           referenceMessageId ||
@@ -169,7 +171,11 @@ export class RcsMessageService {
         channelConfigId,
       );
 
-      if (inboundMessage.message?.messageType !== 'text') {
+      if (
+        !['text', 'action-callback'].includes(
+          inboundMessage.message?.messageType,
+        )
+      ) {
         await this.inboundProducer.media({
           brokerMessageId: inboundMessage.brokerMessageId,
           chatId: dbChat.id,

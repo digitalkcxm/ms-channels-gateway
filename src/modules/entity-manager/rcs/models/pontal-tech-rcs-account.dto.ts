@@ -1,8 +1,9 @@
 import { getSchemaPath } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { JSONSchema } from 'class-validator-jsonschema';
 import { DeepPartial } from 'typeorm';
 
+import { PontalTechRcsAccountType } from '@/modules/database/rcs/entities/enums';
 import { PontalTechRcsAccountEntity } from '@/modules/database/rcs/entities/pontal-tech-rcs-account.entity';
 
 @JSONSchema({
@@ -20,6 +21,9 @@ export class PontalTechRcsAccountDto {
   @IsString()
   pontalTechAccountId: string;
 
+  @IsEnum(PontalTechRcsAccountType)
+  pontalTechAccountType: PontalTechRcsAccountType;
+
   toEntity(
     override?: DeepPartial<
       PontalTechRcsAccountDto | PontalTechRcsAccountEntity
@@ -29,6 +33,7 @@ export class PontalTechRcsAccountDto {
       rcsAccountId: this.rcsAccountId,
       apiKey: this.apiKey,
       pontalTechAccountId: this.pontalTechAccountId,
+      pontalTechAccountType: this.pontalTechAccountType,
       ...override,
     };
   }
@@ -45,6 +50,7 @@ export class PontalTechRcsAccountDto {
     dto.rcsAccountId = entity?.rcsAccountId;
     dto.apiKey = entity?.apiKey;
     dto.pontalTechAccountId = entity?.pontalTechAccountId;
+    dto.pontalTechAccountType = entity?.pontalTechAccountType;
 
     return dto;
   }

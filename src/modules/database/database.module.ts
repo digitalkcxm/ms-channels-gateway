@@ -13,6 +13,11 @@ import { RcsAccountEntity } from './rcs/entities/rcs-account.entity';
 import { ChatRepository } from './rcs/repositories/chat.repository';
 import { MessageRepository } from './rcs/repositories/message.repository';
 import { RcsAccountRepository } from './rcs/repositories/rcs-account.repository';
+import { TemplateEntity, TemplateLinkEntity } from './templates/entities';
+import {
+  TemplateLinkRepository,
+  TemplateRepository,
+} from './templates/repositories';
 import { TypeOrmConfigService } from './type-orm-config.service';
 
 @Module({
@@ -28,6 +33,8 @@ import { TypeOrmConfigService } from './type-orm-config.service';
       MessageEntity,
       PontalTechRcsAccountEntity,
       RcsAccountEntity,
+      TemplateEntity,
+      TemplateLinkEntity,
     ]),
   ],
   providers: [
@@ -36,6 +43,8 @@ import { TypeOrmConfigService } from './type-orm-config.service';
     ChatRepository,
     MessageRepository,
     RcsAccountRepository,
+    TemplateRepository,
+    TemplateLinkRepository,
   ],
   exports: [
     ChannelConfigRepository,
@@ -43,6 +52,8 @@ import { TypeOrmConfigService } from './type-orm-config.service';
     ChatRepository,
     MessageRepository,
     RcsAccountRepository,
+    TemplateRepository,
+    TemplateLinkRepository,
   ],
 })
 export class DatabaseModule {}

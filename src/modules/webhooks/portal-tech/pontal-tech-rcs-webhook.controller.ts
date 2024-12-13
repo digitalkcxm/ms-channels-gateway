@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { PublicRoute } from '@/config/public-route';
@@ -11,12 +11,16 @@ import { InboundProducer } from '@/modules/message/producers/inbound.producer';
 export class PontalTechRcsWebhookController {
   constructor(private readonly inboundProducer: InboundProducer) {}
 
-  @Post('pontal-tech/rcs')
+  @Post('pontal-tech/rcs/:messageId')
   @PublicRoute()
-  public async webhook(@Body() payload: PontalTechWebhookApiRequest) {
+  public async webhook(
+    @Param('messageId') messageId: string,
+    @Body() payload: PontalTechWebhookApiRequest,
+  ) {
     this.inboundProducer.publish({
       channel: ChannelType.RCS,
       broker: BrokerType.PONTAL_TECH,
+      messageId,
       payload,
     });
   }

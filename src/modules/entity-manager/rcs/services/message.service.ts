@@ -13,6 +13,39 @@ export class MessageService {
     private readonly messageRepository: MessageRepository,
   ) {}
 
+  async getById(id: string) {
+    if (!id) {
+      throw new BadRequestException('id is required');
+    }
+
+    const cacheKey = CacheKeyBuilder.getById(id);
+
+    const cached = await this.cacheManager.get<MessageDto>(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    const data = await this.messageRepository
+      .getBy(
+        {
+          id,
+        },
+        {
+          chat: {
+            rcsAccount: true,
+          },
+        },
+      )
+      .then(MessageDto.fromEntity);
+
+    if (data) {
+      await this.cacheManager.set(cacheKey, data);
+    }
+
+    return data;
+  }
+
   async getByBrokerMessage(brokerMessageId: string, chatId: string) {
     if (!brokerMessageId) {
       throw new BadRequestException('brokerMessageId is required');
@@ -59,12 +92,21 @@ export class MessageService {
         },
       })
       .then(([rows, total]) =>
-        PaginatedDto.create(rows?.map(MessageDto.fromEntity), total, offset, limit),
+        PaginatedDto.create(
+          rows?.map(MessageDto.fromEntity),
+          total,
+          offset,
+          limit,
+        ),
       );
   }
 }
 
 class CacheKeyBuilder {
+  static getById(id: string) {
+    return `ms-channels-gateway:message:id-${id}`;
+  }
+
   static getByBrokerMessage({
     brokerMessageId,
     chatId,

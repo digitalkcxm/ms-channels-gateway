@@ -66,7 +66,7 @@ export class RabbitMQConfigFactory
       .withVHost(vHost)
       .build();
 
-    return {
+    const result: RabbitMQConfig = {
       uri,
       connectionInitOptions: {
         wait: false,
@@ -146,5 +146,7 @@ export class RabbitMQConfigFactory
       ],
       registerHandlers: true,
     };
+
+    return result;
   }
 }

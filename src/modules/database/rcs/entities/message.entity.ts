@@ -11,14 +11,18 @@ import {
 
 import { MessageDirection, MessageStatus } from '@/models/enums';
 import {
+  RcsMessageActionCallbackDto,
+  RcsMessageActionContentDto,
+} from '@/models/rcs/rcs-message-action.dto';
+import { RcsMessageDocumentContentDto } from '@/models/rcs/rcs-message-document-content.dto';
+import {
   RcsMessageAudioContentDto,
   RcsMessageCarouselContentDto,
-  RcsMessageDocumentContentDto,
   RcsMessageImageContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageVideoContentDto,
-} from '@/models/rsc-message.dto';
+} from '@/models/rcs/rsc-message.dto';
 
 import { ChatEntity } from './chat.entity';
 
@@ -72,6 +76,8 @@ export class MessageEntity {
 
   @Column({ type: 'jsonb' })
   rawMessage:
+    | RcsMessageActionContentDto
+    | RcsMessageActionCallbackDto
     | RcsMessageAudioContentDto
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto

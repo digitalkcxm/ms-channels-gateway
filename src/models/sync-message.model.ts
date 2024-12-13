@@ -6,15 +6,19 @@ import {
 } from '@/models/enums';
 
 import {
+  RcsMessageActionCallbackDto,
+  RcsMessageActionContentDto,
+} from './rcs/rcs-message-action.dto';
+import { RcsMessageDocumentContentDto } from './rcs/rcs-message-document-content.dto';
+import {
   RcsMessageAudioContentDto,
   RcsMessageCarouselContentDto,
-  RcsMessageDocumentContentDto,
   RcsMessageImageContentDto,
   RcsMessageLocationContentDto,
   RcsMessageRichCardContentDto,
   RcsMessageTextContentDto,
   RcsMessageVideoContentDto,
-} from './rsc-message.dto';
+} from './rcs/rsc-message.dto';
 
 export enum SyncEventType {
   MESSAGE = 'message',
@@ -26,6 +30,8 @@ export type SyncModel = {
   direction: MessageDirection;
   status: MessageStatus;
   message?:
+    | RcsMessageActionContentDto
+    | RcsMessageActionCallbackDto
     | RcsMessageAudioContentDto
     | RcsMessageCarouselContentDto
     | RcsMessageImageContentDto

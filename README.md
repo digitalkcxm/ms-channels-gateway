@@ -27,7 +27,7 @@ Fluxo responsável por receber uma mensagem, validar o payload e enfileirar para
     ],
     "payload": {
         "type": "rcs",
-        "content": {/* text, image, document, carousel, rich card */}
+        "content": {/* text, image, document, video, carousel, rich-card, actions */}
     }
 }
 ```
@@ -67,11 +67,28 @@ Fluxo responsável por receber uma mensagem, validar o payload e enfileirar para
 {
   "messageType": "carousel",
   "items": [
-      {
-          "title": "Item 1",
-          "description": "Já chegam sabendo onde fazer as necessidades <3",
-          "fileUrl": "https://example.com/image.png"
-      },
+    {
+      "title": "Item 1",
+      "description": "Já chegam sabendo onde fazer as necessidades <3",
+      "fileUrl": "https://example.com/image.png",
+      "suggestions": [ 
+        {
+          "type": "openUrl",
+          "title": "Link?",
+          "value": "https://digitalk.com.br/?query="
+        },
+        {
+          "type": "call",
+          "title": "Call?",
+          "value": 48991900104
+        },
+        {
+        "type": "reply",
+        "title": "Reply #1",
+        "value": "VALOR DO REPLY #1"
+        }
+      ]
+    },
   ]  
 }
 ```
@@ -84,11 +101,53 @@ Fluxo responsável por receber uma mensagem, validar o payload e enfileirar para
   "messageType": "rich-card",
   "title": "Que tal um rich card com gatinhos?",
   "description": "E uma descrição massa?!",
-  "fileUrl": "https://example.com/image.png" 
+  "fileUrl": "https://example.com/image.png",
+  "suggestions": [ 
+    {
+      "type": "openUrl",
+      "title": "Link?",
+      "value": "https://digitalk.com.br/?query="
+    },
+    {
+      "type": "call",
+      "title": "Call?",
+      "value": 48991900104
+    },
+    {
+    "type": "reply",
+    "title": "Reply #1",
+    "value": "VALOR DO REPLY #1"
+    }
+  ]
 }
 ```
 > tile deve ter no máximo 160 caracteres<br>
 > description deve ter no máximo 2000 caracteres
+
+#### actions
+```json
+{
+  "messageType": "actions",
+  "title": "Escolha uma das opções:",
+  "actions": [ 
+    {
+      "type": "openUrl",
+      "title": "Link?",
+      "value": "https://digitalk.com.br/?query="
+    },
+    {
+      "type": "call",
+      "title": "Call?",
+      "value": 48991900104
+    },
+    {
+    "type": "reply",
+    "title": "Reply #1",
+    "value": "VALOR DO REPLY #1"
+    }
+  ]
+}
+```
 
 ### Diagrama de fluxo da publicação de mensagem
 
@@ -169,7 +228,9 @@ _Mensagem enviada ao Broker_
   },
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -186,7 +247,9 @@ _Mensagem enviada ao Broker_
   "errorMessage": null,
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -203,7 +266,9 @@ _Mensagem enviada ao Broker_
   "errorMessage": null,
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -220,7 +285,9 @@ _Mensagem enviada ao Broker_
   "errorMessage": null,
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -248,7 +315,9 @@ Tipos possíveis:
   },
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -275,7 +344,9 @@ Tipos possíveis:
   },
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -297,7 +368,9 @@ Tipos possíveis:
   },
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -321,7 +394,9 @@ Tipos possíveis:
   },
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -343,7 +418,9 @@ Tipos possíveis:
   },
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -365,7 +442,9 @@ Tipos possíveis:
   },
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -386,9 +465,38 @@ Tipos possíveis:
   },
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
+
+#### Resposta de callback de action
+```json
+{
+  "channel": "rcs",
+  "broker": "pontal-tech",
+  "eventType": "message",
+  "direction": "inbound",
+  "status": "read",
+  "referenceChatId": "55b917c5-0e5a-40cc-958e-9a308dc50c75",
+  "referenceMessageId": "68412613-a50a-4fcd-8a56-51b2a889ed32",
+  "messageId": "5c03d742-aff5-4074-9d8a-0bcd173191fd",
+  "date": "2024-12-04T20:04:24.661Z",
+  "message": {
+    "type": "rcs",
+    "messageType": "action-callback",
+    "callback": {
+      "type": "reply",
+      "title": "Reply #2 c/ 25 caracteres",
+      "value": "VALOR DO REPLY #2"
+    }
+  },
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
+}
+```
+
 ### Erros
 > Direto ao ponto: Ainda não é feito nenhum mapeamento dos erros retornados pelos brokers, o serviço apenas repassa a mensagem de erro recebida
 
@@ -406,7 +514,9 @@ Tipos possíveis:
   "errorMessage": "Request failed with status code 404",
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
@@ -424,7 +534,9 @@ Tipos possíveis:
   "errorMessage": "bloqueado por duplicidade",
   "channelConfigId":"b838e316-8289-4146-bc8f-91ca3c65c565",
   "channel":"rcs",
-  "broker":"pontal-tech"
+  "broker":"pontal-tech",
+  "contact": "48991900104",
+  "channelConfigId": "b838e316-8289-4146-bc8f-91ca3c65c565"
 }
 ```
 
