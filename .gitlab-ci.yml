@@ -526,8 +526,8 @@ deploy_ld:
   when: manual
   needs: 
     - build_ld
-  dependencies:
-    - create-release  
+ # dependencies:
+  #  - create-release  
   allow_failure: false
   tags:
     - microservicos  
