@@ -7,6 +7,8 @@ stages:
   - check_prod
   - build_prod
   - deploy_prod
+  - build_ld
+  - deploy_ld
 
 variables:
   WEBHOOK_URL: "https://discord.com/api/webhooks/1072308956535463976/nSlzRWXytHn4kRyL6OxmCuMVD8NRRmiDVXxFDGKVhByuM2EneHovUbd8UjWEhVDZxix9" 
