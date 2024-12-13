@@ -397,6 +397,75 @@ deploy_prod:
   tags:
     - microservicos
 
+build_ld:
+  stage: build_ld
+  image: docker:18.09
+  before_script:
+    - apk update 
+    - apk add --no-cache tzdata python3 py-pip py3-pip jq git unzip zip curl bash openssl wget tar bash bash-completion > /dev/null 2>&1
+    - pip install pyyaml==5.3.1 > /dev/null 2>&1
+    - pip install awscli > /dev/null 2>&1
+    - cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+    - rm /bin/sh && ln -s /bin/bash /bin/sh
+    - curl -s https://releases.hashicorp.com/vault/1.5.3/vault_1.5.3_linux_amd64.zip -o "vault.zip"
+    - unzip -q vault.zip ; mv vault /usr/bin/ ; chmod +x /usr/bin/vault
+    - vault -v
+    # START INSTALL GCLOUD
+    - curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-373.0.0-linux-x86_64.tar.gz ; tar -xf google-cloud-sdk-373.0.0-linux-x86_64.tar.gz
+    - ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=false --command-completion=true -q
+    - ./google-cloud-sdk/bin/gsutil -v
+    # FINISH INSTALL GCLOUD
+    # START GCP AUTH
+    - cp $DEV_GCP_AUTH .gcp_storage_key.json
+    - ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file .gcp_storage_key.json
+    - ./google-cloud-sdk/bin/gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
+    # FINISH GCP AUTH
+    - export ENV=homol
+    - export AWS_ACCESS_KEY_ID="${HOMOL_AWS_ACCESS_KEY_ID}"
+    - export AWS_SECRET_ACCESS_KEY="${HOMOL_AWS_SECRET_ACCESS_KEY}"
+    - export AWS_DEFAULT_ID="${HOMOL_AWS_ACCOUNT_ID}"
+    - export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}"
+    - export VAULT_ADDR="${VAULT_ADDR}"
+    - export VAULT_TOKEN="${VAULT_TOKEN}"
+    - TAG_RELEASE="${CI_COMMIT_SHORT_SHA}"
+    - export VERSION="${TAG_RELEASE}"
+  script:
+    - >
+      wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/build_img.sh/raw?ref=master' -O build_img.sh
+    - chmod +x build_img.sh 
+    - ./build_img.sh
+
+  after_script:
+    - >
+      if [[ "$CI_JOB_STATUS" == "success" ]]; then
+
+        curl -s \
+          -H "Content-Type: application/json" \
+          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 3065620}]}' \
+          $WEBHOOK_URL       
+
+      else
+
+        curl -s \
+          -H "Content-Type: application/json" \
+          -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 12389167}]}' \
+          $WEBHOOK_URL
+
+      fi 
+
+  only:
+   - master
+  allow_failure: false
+  needs: 
+    - integration
+    - quality
+  dependencies:
+    - integration
+    - quality
+  tags:
+    - microservicos  
+
+
 deploy_ld:
   stage: prod
   image: ubuntu
@@ -456,7 +525,7 @@ deploy_ld:
     - main
   when: manual
   needs: 
-    - create-release
+    - build_ld
   dependencies:
     - create-release  
   allow_failure: false
