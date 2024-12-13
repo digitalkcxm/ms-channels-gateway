@@ -453,7 +453,7 @@ deploy_ld:
       fi 
 
   only:
-    - master
+    - main
   when: manual
   needs: 
     - create-release
@@ -519,7 +519,7 @@ check_ld:
       fi 
 
   only:
-    - master
+    - main
   allow_failure: false
   needs: ["deploy_ld"]
   tags:
