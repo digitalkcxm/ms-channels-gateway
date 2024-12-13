@@ -523,13 +523,14 @@ deploy_ld:
       fi 
 
   only:
-    - main
-  when: manual
-  needs: 
-    - build_ld
- # dependencies:
-  #  - create-release  
+    - master
   allow_failure: false
+  needs: 
+    # Remover: - integration
+    - quality
+  dependencies:
+    # Remover: - integration
+    - quality
   tags:
     - microservicos  
 
