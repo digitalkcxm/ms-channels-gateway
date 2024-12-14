@@ -300,7 +300,7 @@ deploy_prod:
 
 deploy_ld:
   stage: deploy_ld
-  image: public.ecr.aws/docker/library/docker:20.10.24
+  image: public.ecr.aws/docker/library/node:20
   before_script:
     - apt update > /dev/null 2>&1 
     - apt install dos2unix python3 python3-pip jq git unzip zip curl bash openssl wget rsync -y > /dev/null 2>&1
