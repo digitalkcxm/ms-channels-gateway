@@ -435,27 +435,21 @@ build_ld:
       wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/build_img_nest.sh/raw?ref=master' -O build_img.sh
     - chmod +x build_img.sh 
     - ./build_img.sh
-
   after_script:
     - >
       if [[ "$CI_JOB_STATUS" == "success" ]]; then
-
         curl -s \
           -H "Content-Type: application/json" \
           -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 3065620}]}' \
-          $WEBHOOK_URL       
-
+          $WEBHOOK_URL
       else
-
         curl -s \
           -H "Content-Type: application/json" \
           -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 12389167}]}' \
           $WEBHOOK_URL
-
-      fi 
-
+      fi
   only:
-   - main
+    - main
   allow_failure: false
   needs: 
     - create-release
@@ -465,7 +459,7 @@ build_ld:
     - microservicos    
 
 deploy_ld:
-  stage: prod
+  stage: deploy_ld
   image: ubuntu:20.04
   before_script:
     - apt update > /dev/null 2>&1 
@@ -483,7 +477,6 @@ deploy_ld:
     - echo $DATE
     - 'which ssh-agent || ( apt-get install -qq openssh-client )'
     - eval $(ssh-agent -s)
-    # Setup SSH deploy keys
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
@@ -500,31 +493,25 @@ deploy_ld:
       wget --header='PRIVATE-TOKEN: '${GITLAB_TOKEN}'' 'https://'${URL_GITLAB}'/api/v4/projects/'${PROJECT_SCRIPTS_ID}'/repository/files/deploy_ms_node.sh/raw?ref=master' -O deploy_ms_node.sh
     - chmod +x deploy_ms_node.sh 
     - ./deploy_ms_node.sh
-
   after_script:
     - >
       if [[ "$CI_JOB_STATUS" == "success" ]]; then
-
         curl -s \
           -H "Content-Type: application/json" \
           -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 3065620}]}' \
-          $WEBHOOK_URL       
-
+          $WEBHOOK_URL
       else
-
         curl -s \
           -H "Content-Type: application/json" \
           -d '{"embeds": [{"title": "'${CI_JOB_NAME}'","description": "'${CI_JOB_STATUS}' - Ao executar o job '${CI_JOB_NAME}' do projeto '${CI_PROJECT_NAME}'","color": 12389167}]}' \
           $WEBHOOK_URL
-
-      fi 
-
+      fi
   only:
-   - main
+    - main
   allow_failure: false
   needs: 
     - build_ld
   dependencies:
     - build_ld
   tags:
-    - microservicos     
+    - microservicos
