@@ -39,7 +39,7 @@ export class PontalTechRcsV3IntegrationService {
       .pipe(
         map(({ data }) => data),
         catchError((error) => {
-          this.logger.error(model, 'sendRcsBasicMessage');
+          this.logger.error(error, 'sendRcsBasicMessage');
           throw error;
         }),
       );
@@ -66,7 +66,7 @@ export class PontalTechRcsV3IntegrationService {
       .pipe(
         map(({ data }) => data),
         catchError((error) => {
-          this.logger.error(model, 'sendRcsSingleMessage');
+          this.logger.error(error, 'sendRcsSingleMessage');
           throw error;
         }),
       );

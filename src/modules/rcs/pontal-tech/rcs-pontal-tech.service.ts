@@ -247,6 +247,7 @@ export class RcsPontalTechService {
       {
         referenceChatId: outboundMessageDto.referenceChatId,
         rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
+        brokerChatId: crypto.randomUUID({ disableEntropyCache: true }),
       },
       undefined,
       undefined,
@@ -254,7 +255,7 @@ export class RcsPontalTechService {
       error.message,
     );
 
-    this.rcsMessageService.notify(
+    await this.rcsMessageService.notify(
       {
         referenceChatId: outboundMessageDto.referenceChatId,
         referenceMessageId: outboundMessageDto.referenceMessageId,
