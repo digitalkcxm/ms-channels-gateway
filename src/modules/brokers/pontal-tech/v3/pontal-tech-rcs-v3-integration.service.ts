@@ -72,6 +72,33 @@ export class PontalTechRcsV3IntegrationService {
       );
   }
 
+  public sendRcsConversationalWebhook(
+    apiKey: string,
+    model: PontalTechRcsMessageApiRequest,
+    messageId: string,
+  ) {
+    return this.httpService
+      .post<PontalTechSendRcsApiResponse>(
+        '/api/v3/webhook',
+        {
+          ...model,
+          webhook: this.buildCallbackURL(messageId),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+          },
+        },
+      )
+      .pipe(
+        map(({ data }) => data),
+        catchError((error) => {
+          this.logger.error(error, 'sendRcsSingleMessage');
+          throw error;
+        }),
+      );
+  }
+
   private buildCallbackURL(channelConfigId: string) {
     const url = this.configService.getOrThrow<string>('PONTALTECH_WEBHOOK_URL');
 

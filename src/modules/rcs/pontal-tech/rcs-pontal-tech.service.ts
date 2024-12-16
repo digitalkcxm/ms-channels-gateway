@@ -63,6 +63,18 @@ export class RcsPontalTechService {
         outboundMessageDto,
         account,
       ),
+    'conversational-webhook': (
+      pontalTechApiModel: PontalTechRcsMessageApiRequest,
+      channelConfigId: string,
+      outboundMessageDto: OutboundMessageDto,
+      account: RcsAccountDto,
+    ) =>
+      this.sendConversationalWebhook(
+        pontalTechApiModel,
+        channelConfigId,
+        outboundMessageDto,
+        account,
+      ),
   };
 
   public async outbound(outboundMessageDto: OutboundMessageDto) {
@@ -322,6 +334,38 @@ export class RcsPontalTechService {
     );
 
     this.logger.debug(data, 'sendMessage(basic) :: Pontal Tech API response');
+
+    await this.processOutboundResponse(
+      messageId,
+      data,
+      channelConfigId,
+      outboundMessageDto,
+      account,
+    );
+
+    return;
+  }
+
+  private async sendConversationalWebhook(
+    pontalTechApiModel: PontalTechRcsMessageApiRequest,
+    channelConfigId: string,
+    outboundMessageDto: OutboundMessageDto,
+    account: RcsAccountDto,
+  ) {
+    const messageId = crypto.randomUUID({ disableEntropyCache: true });
+
+    const data = await lastValueFrom(
+      this.pontalTechRcsV3IntegrationService.sendRcsConversationalWebhook(
+        account.pontalTechRcsAccount?.apiKey,
+        pontalTechApiModel,
+        messageId,
+      ),
+    );
+
+    this.logger.debug(
+      data,
+      'sendMessage(standard) :: Pontal Tech API response',
+    );
 
     await this.processOutboundResponse(
       messageId,

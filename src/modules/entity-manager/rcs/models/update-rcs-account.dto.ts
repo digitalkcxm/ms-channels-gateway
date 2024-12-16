@@ -14,6 +14,7 @@ export class UpdateRcsAccountDto extends PartialType(
     return {
       referenceId: this.referenceId,
       broker: this.broker,
+      pontalTechRcsAccount: this.pontalTechRcsAccount?.toEntity(),
       ...override,
     };
   }

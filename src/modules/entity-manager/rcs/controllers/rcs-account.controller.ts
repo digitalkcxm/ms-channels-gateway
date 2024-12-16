@@ -54,11 +54,11 @@ export class RcsAccountController {
 
   @Put(':id')
   update(@Param('id') id: string, @Body() dto: UpdateRcsAccountDto) {
-    return this.rcsAccountService.update(id, dto);
+    this.rcsAccountService.update(id, dto);
   }
 
   @Delete(':id')
   delete(@Param('id') id: string) {
-    return this.rcsAccountService.delete(id);
+    this.rcsAccountService.delete(id);
   }
 }

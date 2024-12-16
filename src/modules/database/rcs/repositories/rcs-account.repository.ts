@@ -52,9 +52,7 @@ export class RcsAccountRepository {
         ...entity,
         pontalTechRcsAccount: entity.pontalTechRcsAccount && {
           ...entity.pontalTechRcsAccount,
-          apiKey:
-            entity.pontalTechRcsAccount.apiKey ||
-            this.configService.getOrThrow('PONTALTECH_API_KEY'),
+          apiKey: entity.pontalTechRcsAccount.apiKey,
         },
       },
     );
