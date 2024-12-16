@@ -2,7 +2,6 @@ import { Controller, Get } from '@nestjs/common';
 import {
   HealthCheck,
   HealthCheckService,
-  MemoryHealthIndicator,
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
 
@@ -15,7 +14,6 @@ export class HealthController {
   constructor(
     private readonly db: TypeOrmHealthIndicator,
     private readonly health: HealthCheckService,
-    private readonly memory: MemoryHealthIndicator,
     private readonly rabbitMQHealthCheck: RabbitMQHealthCheckService,
   ) {}
 
@@ -26,7 +24,6 @@ export class HealthController {
     return this.health.check([
       () => this.rabbitMQHealthCheck.check(),
       () => this.db.pingCheck('database'),
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
     ]);
   }
 }
