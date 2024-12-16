@@ -446,6 +446,10 @@ export class RcsMessageService {
       return newStatus;
     }
 
+    if (currentStatus === MessageStatus.ERROR && currentStatus !== newStatus) {
+      return newStatus;
+    }
+
     if (
       currentStatus === MessageStatus.SENT &&
       [MessageStatus.DELIVERED, MessageStatus.READ].includes(newStatus)

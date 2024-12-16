@@ -162,6 +162,7 @@ export type PontalTechRcsWebhookContentTypes =
 export type PontalTechWebhookApiRequest = {
   reference: string;
   event_id: string;
+  session_id?: string;
   direction: PontalTechWebhookDirection;
   user_id: string;
   timestamp: Date;

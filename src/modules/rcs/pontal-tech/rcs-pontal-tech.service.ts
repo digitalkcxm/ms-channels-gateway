@@ -140,7 +140,7 @@ export class RcsPontalTechService {
       );
 
     const rcsInboundMessage: RcsInboundMessage = {
-      brokerChatId: webhook.reference,
+      brokerChatId: webhook.session_id || webhook.reference,
       brokerMessageId: webhook.event_id,
       direction: MessageDirection.OUTBOUND,
       message,
@@ -229,14 +229,14 @@ export class RcsPontalTechService {
 
   private async getChatOrThrow(webhook: PontalTechWebhookApiRequest) {
     const chat = await this.chatService.getByBrokerChat(
-      webhook.reference,
+      webhook.session_id || webhook.reference,
       true,
     );
 
     if (!chat) {
       this.logger.error(webhook, 'process :: chat not ready');
       throw new ChatNotReadyException(
-        webhook.reference,
+        webhook.session_id || webhook.reference,
         BrokerType.PONTAL_TECH,
       );
     }
@@ -396,7 +396,7 @@ export class RcsPontalTechService {
             outboundMessageDto.payload,
             {
               referenceChatId: outboundMessageDto.referenceChatId,
-              brokerChatId: dataMessage.id,
+              brokerChatId: dataMessage.session_id || dataMessage.id,
               rcsAccountId: account.pontalTechRcsAccount.rcsAccountId,
             },
             messageId,
