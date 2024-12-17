@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { redisStore } from 'cache-manager-redis-store';
 import { LoggerModule } from 'nestjs-pino';
+import pino from 'pino';
 
 import { EnvVars } from './config/env-vars';
 import { CompanyTokenGuard } from './guards/company-token.guard';
@@ -60,21 +61,33 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     }),
     LoggerModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService<EnvVars>) => ({
-        pinoHttp: {
-          level: configService.get<string>('LOG_LEVEL', 'debug'),
-          transport: {
-            targets: [
-              {
-                target: 'pino-pretty',
-                options: {
-                  // singleLine: true,
-                },
+      useFactory: (configService: ConfigService<EnvVars>) => {
+        const targets = [];
+
+        if (
+          configService.get<string>('NODE_ENV', 'production') === 'development'
+        ) {
+          targets.push({
+            target: 'pino-pretty',
+            options: {
+              singleLine: true,
+            },
+          });
+        }
+
+        return {
+          pinoHttp: {
+            level: configService.get<string>('LOG_LEVEL', 'debug'),
+            transport: targets.length ? { targets } : null,
+            formatters: {
+              bindings: () => {
+                return {};
               },
-            ],
+            },
+            timestamp: pino.stdTimeFunctions.isoTime,
           },
-        },
-      }),
+        };
+      },
     }),
     DatabaseModule,
     EntityManagerModule,
