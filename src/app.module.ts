@@ -31,7 +31,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
         ),
       }),
     }),
-    ConfigModule.forRoot({ cache: true, isGlobal: true }),
+    ConfigModule.forRoot({ cache: true, isGlobal: true, envFilePath: '.env' }),
     CacheModule.registerAsync({
       inject: [ConfigService],
       useFactory: async (configService: ConfigService<EnvVars>) => {
