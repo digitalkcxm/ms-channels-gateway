@@ -18,7 +18,6 @@ import {
 export type InboundMessageDto = {
   broker: BrokerType;
   channel: ChannelType;
-  messageId: string;
   payload: PontalTechWebhookApiRequest;
 };
 

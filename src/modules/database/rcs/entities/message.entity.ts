@@ -28,6 +28,10 @@ import { ChatEntity } from './chat.entity';
 
 @Entity({ name: 'messages', schema: 'rcs' })
 @Index('idx_messages_chat_id', (entity: MessageEntity) => [entity.chatId])
+@Index('idx_messages_recipient', (entity: MessageEntity) => [entity.recipient])
+@Index('idx_messages_broker_message_id', (entity: MessageEntity) => [
+  entity.brokerMessageId,
+])
 export class MessageEntity {
   @PrimaryGeneratedColumn('uuid', {
     primaryKeyConstraintName: 'pk_messages_id',

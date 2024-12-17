@@ -32,6 +32,5 @@ export type EnvVars = {
   REDIS_PASSWORD?: string;
 
   PONTALTECH_API_URL: string;
-  PONTALTECH_API_KEY: string;
   PONTALTECH_WEBHOOK_URL: string;
 };

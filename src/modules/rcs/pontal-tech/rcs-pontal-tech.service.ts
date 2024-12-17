@@ -152,10 +152,10 @@ export class RcsPontalTechService {
 
     this.logger.debug(rcsInboundMessage, 'rcsInboundMessage');
 
-    const existingMessage = await this.getExistingMessageOrThrow(
-      inboundMessage.messageId,
-      webhook,
-    );
+    const existingMessage =
+      await this.messageService.getByOutboundBrokerMessage(
+        inboundMessage.payload.event_id,
+      );
 
     this.logger.debug(existingMessage, 'existingMessage');
 
@@ -172,8 +172,8 @@ export class RcsPontalTechService {
 
     this.logger.debug(webhook, 'inbound :: webhook');
 
-    const originMessage = await this.messageService.getById(
-      inboundMessage.messageId,
+    const originMessage = await this.messageService.getLastMessageByRecipient(
+      inboundMessage.payload.user_id,
     );
 
     const status =

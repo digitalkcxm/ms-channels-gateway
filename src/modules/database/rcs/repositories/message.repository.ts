@@ -46,6 +46,21 @@ export class MessageRepository {
     });
   }
 
+  async getLastMessageByRecipient(
+    recipient: string,
+    relations?: FindOptionsRelations<MessageEntity>,
+  ) {
+    return await this.messageRepository.findOne({
+      where: {
+        recipient,
+      },
+      relations,
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
   async getByChat(chatId: string) {
     return await this.messageRepository.findOne({
       where: { chatId },

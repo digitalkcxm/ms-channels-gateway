@@ -102,8 +102,9 @@ export class PontalTechRcsV3IntegrationService {
   private buildCallbackURL(channelConfigId: string) {
     const url = this.configService.getOrThrow<string>('PONTALTECH_WEBHOOK_URL');
 
-    const parsedUrl = url.endsWith('/') ? url : `${url}/`;
+    // const parsedUrl = url.endsWith('/') ? url : `${url}/`;
 
-    return new URL(channelConfigId, parsedUrl);
+    // return new URL(channelConfigId, parsedUrl);
+    return url;
   }
 }

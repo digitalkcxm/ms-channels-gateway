@@ -20,7 +20,6 @@ import { RcsInboundMessage } from '@/models/rcs-inbound-message.model';
 import { SyncEventType, SyncModel } from '@/models/sync-message.model';
 import { AwsS3Service } from '@/modules/aws-s3/aws-s3.service';
 import { ChatEntity } from '@/modules/database/rcs/entities/chat.entity';
-import { MessageEntity } from '@/modules/database/rcs/entities/message.entity';
 import { MessageRepository } from '@/modules/database/rcs/repositories/message.repository';
 import { ChannelConfigService } from '@/modules/entity-manager/channels-gateway/services/channel-config.service';
 import { MessageDto } from '@/modules/entity-manager/rcs/models/message.dto';
@@ -76,19 +75,19 @@ export class RcsMessageService {
         true,
       );
 
-      const dbMessage = await this.messageRepository.create({
-        id: messageId,
-        brokerMessageId,
-        referenceMessageId:
-          referenceMessageId ||
-          crypto.randomUUID({ disableEntropyCache: true }),
-        recipient,
-        direction,
-        rawMessage: outboundMessagePayload.content,
-        status,
-        chatId: dbChat.id,
-        errorMessage,
-      });
+      const messageDto = new MessageDto();
+      messageDto.id = messageId;
+      messageDto.brokerMessageId = brokerMessageId;
+      messageDto.referenceMessageId =
+        referenceMessageId || crypto.randomUUID({ disableEntropyCache: true });
+      messageDto.recipient = recipient;
+      messageDto.direction = direction;
+      messageDto.status = status;
+      messageDto.errorMessage = errorMessage;
+      messageDto.rawMessage = outboundMessagePayload.content;
+      messageDto.chatId = dbChat.id;
+
+      const dbMessage = await this.messageService.create(messageDto);
 
       await this.notify(
         {
@@ -137,22 +136,19 @@ export class RcsMessageService {
 
       this.logger.debug(inboundMessage.message, 'replyMessage :: Raw message');
 
-      const messageRepository =
-        queryRunner.manager.getRepository(MessageEntity);
+      const messageDto = new MessageDto();
+      messageDto.brokerMessageId = inboundMessage.brokerMessageId;
+      messageDto.referenceMessageId = crypto.randomUUID({
+        disableEntropyCache: true,
+      });
+      messageDto.recipient = inboundMessage.recipient;
+      messageDto.direction = inboundMessage.direction;
+      messageDto.status = inboundMessage.status;
+      messageDto.errorMessage = inboundMessage.errorMessage;
+      messageDto.rawMessage = inboundMessage.message;
+      messageDto.chatId = dbChat.id;
 
-      const dbMessage = await this.messageRepository.create(
-        {
-          brokerMessageId: inboundMessage.brokerMessageId,
-          referenceMessageId: crypto.randomUUID({ disableEntropyCache: true }),
-          chatId: dbChat.id,
-          direction: inboundMessage.direction,
-          rawMessage: inboundMessage.message,
-          errorMessage: inboundMessage.errorMessage,
-          status: inboundMessage.status,
-          recipient: inboundMessage.recipient,
-        },
-        messageRepository,
-      );
+      const dbMessage = await this.messageService.create(messageDto);
 
       await queryRunner.commitTransaction();
 
