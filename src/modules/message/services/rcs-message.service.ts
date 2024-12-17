@@ -201,7 +201,7 @@ export class RcsMessageService {
   ) {
     try {
       const newStatus = this.getNewStatus(
-        existingMessage.status,
+        existingMessage?.status,
         incomingMessage.status,
       );
 
@@ -215,7 +215,7 @@ export class RcsMessageService {
         'syncStatus',
       );
 
-      if (newStatus !== existingMessage.status) {
+      if (newStatus !== existingMessage?.status) {
         const updatedMessage = await this.messageRepository.update(
           existingMessage.id,
           {
