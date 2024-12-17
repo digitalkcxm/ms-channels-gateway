@@ -11,7 +11,7 @@ import { InboundProducer } from '@/modules/message/producers/inbound.producer';
 export class PontalTechRcsWebhookController {
   constructor(private readonly inboundProducer: InboundProducer) {}
 
-  @Post('pontal-tech/rcs')
+  @Post('pontal-tech/rcs/:messageId')
   @PublicRoute()
   public async webhook(@Body() payload: PontalTechWebhookApiRequest) {
     this.inboundProducer.publish({
