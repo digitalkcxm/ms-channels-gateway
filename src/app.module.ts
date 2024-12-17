@@ -17,7 +17,6 @@ import { MessageModule } from './modules/message/message.module';
 import { RcsModule } from './modules/rcs/rcs.module';
 import { TemplatesModule } from './modules/templates/templates.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
-import 'dotenv/config';
 
 @Module({
   imports: [
@@ -32,7 +31,7 @@ import 'dotenv/config';
         ),
       }),
     }),
-    ConfigModule.forRoot({ cache: true, isGlobal: true, ignoreEnvFile: true }),
+    ConfigModule.forRoot({ cache: true, isGlobal: true }),
     CacheModule.registerAsync({
       inject: [ConfigService],
       useFactory: async (configService: ConfigService<EnvVars>) => {
