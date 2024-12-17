@@ -21,14 +21,13 @@ export class PontalTechRcsV3IntegrationService {
   public sendRcsBasicMessage(
     apiKey: string,
     model: PontalTechRcsMessageApiRequest,
-    messageId: string,
   ) {
     return this.httpService
       .post<PontalTechSendRcsApiResponse>(
         '/api/v3/basic',
         {
           ...model,
-          callback: this.buildCallbackURL(messageId),
+          callback: this.buildCallbackURL(),
         },
         {
           headers: {
@@ -48,14 +47,13 @@ export class PontalTechRcsV3IntegrationService {
   public sendRcsSingleMessage(
     apiKey: string,
     model: PontalTechRcsMessageApiRequest,
-    messageId: string,
   ) {
     return this.httpService
       .post<PontalTechSendRcsApiResponse>(
         '/api/v3/single',
         {
           ...model,
-          callback: this.buildCallbackURL(messageId),
+          callback: this.buildCallbackURL(),
         },
         {
           headers: {
@@ -75,14 +73,13 @@ export class PontalTechRcsV3IntegrationService {
   public sendRcsConversationalWebhook(
     apiKey: string,
     model: PontalTechRcsMessageApiRequest,
-    messageId: string,
   ) {
     return this.httpService
       .post<PontalTechSendRcsApiResponse>(
         '/api/v3/webhook',
         {
           ...model,
-          webhook: this.buildCallbackURL(messageId),
+          webhook: this.buildCallbackURL(),
         },
         {
           headers: {
@@ -99,12 +96,8 @@ export class PontalTechRcsV3IntegrationService {
       );
   }
 
-  private buildCallbackURL(channelConfigId: string) {
+  private buildCallbackURL() {
     const url = this.configService.getOrThrow<string>('PONTALTECH_WEBHOOK_URL');
-
-    // const parsedUrl = url.endsWith('/') ? url : `${url}/`;
-
-    // return new URL(channelConfigId, parsedUrl);
     return url;
   }
 }

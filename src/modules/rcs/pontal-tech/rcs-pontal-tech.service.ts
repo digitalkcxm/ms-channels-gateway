@@ -297,7 +297,6 @@ export class RcsPontalTechService {
       this.pontalTechRcsV3IntegrationService.sendRcsSingleMessage(
         account.pontalTechRcsAccount?.apiKey,
         pontalTechApiModel,
-        messageId,
       ),
     );
 
@@ -329,7 +328,6 @@ export class RcsPontalTechService {
       this.pontalTechRcsV3IntegrationService.sendRcsBasicMessage(
         account.pontalTechRcsAccount?.apiKey,
         pontalTechApiModel,
-        messageId,
       ),
     );
 
@@ -358,7 +356,6 @@ export class RcsPontalTechService {
       this.pontalTechRcsV3IntegrationService.sendRcsConversationalWebhook(
         account.pontalTechRcsAccount?.apiKey,
         pontalTechApiModel,
-        messageId,
       ),
     );
 
