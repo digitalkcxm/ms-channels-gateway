@@ -141,6 +141,7 @@ create-release:
   before_script:
     - DATE=$(date +%d-%m-%YH%H:%M:%S)
     - cp $RELEASE_OPTIONS .releaserc.yml
+    - cat .releaserc.yml
     - npm install -g semantic-release @semantic-release/gitlab @semantic-release/exec
   script:
     - >
