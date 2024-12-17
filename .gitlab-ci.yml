@@ -136,7 +136,7 @@ deploy_homol:
     - microservicos
 
 create-release:
-  image: public.ecr.aws/docker/library/node:20
+  image: public.ecr.aws/docker/library/node:20.15.0
   stage: release
   before_script:
     - DATE=$(date +%d-%m-%YH%H:%M:%S)
