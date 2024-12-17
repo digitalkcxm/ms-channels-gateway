@@ -146,12 +146,19 @@ create-release:
   script:
     - >
       echo -e "${TXT_BLUE}**************************************************************************************************************"
+
       echo -e "${TXT_BLUE}******************************************| ${TXT_CYAN}STARTED AT":" $DATE"
+
       echo -e "${TXT_BLUE}******************************************| ${TXT_CYAN}USER":" $GITLAB_USER_LOGIN"
+
       echo -e "${TXT_BLUE}******************************************| ${TXT_CYAN}CRIANDO TAG RELEASE"
+      
       echo -e "${TXT_BLUE}**************************************************************************************************************"
+      
       echo " "
+      
       semantic-release
+      
   after_script:
     - >
       if [[ "$CI_JOB_STATUS" == "success" ]]; then
