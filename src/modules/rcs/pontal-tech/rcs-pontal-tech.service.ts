@@ -154,7 +154,7 @@ export class RcsPontalTechService {
 
     const existingMessage =
       await this.messageService.getByOutboundBrokerMessage(
-        inboundMessage.payload.event_id,
+        inboundMessage.payload.reference,
       );
 
     this.logger.debug(existingMessage, 'existingMessage');
