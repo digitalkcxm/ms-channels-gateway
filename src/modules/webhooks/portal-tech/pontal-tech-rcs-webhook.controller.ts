@@ -20,4 +20,14 @@ export class PontalTechRcsWebhookController {
       payload,
     });
   }
+
+  @Post('pontal-tech/rcs')
+  @PublicRoute()
+  public async webhookNew(@Body() payload: PontalTechWebhookApiRequest) {
+    this.inboundProducer.publish({
+      channel: ChannelType.RCS,
+      broker: BrokerType.PONTAL_TECH,
+      payload,
+    });
+  }
 }
