@@ -152,10 +152,10 @@ export class RcsPontalTechService {
 
     this.logger.debug(rcsInboundMessage, 'rcsInboundMessage');
 
-    const existingMessage =
-      await this.messageService.getByOutboundBrokerMessage(
-        inboundMessage.payload.reference,
-      );
+    const existingMessage = await this.getExistingMessageOrThrow(
+      inboundMessage.payload.reference,
+      webhook,
+    );
 
     this.logger.debug(existingMessage, 'existingMessage');
 
@@ -209,19 +209,26 @@ export class RcsPontalTechService {
   }
 
   private async getExistingMessageOrThrow(
-    messageId: string,
+    reference: string,
     webhook: PontalTechWebhookApiRequest,
   ) {
-    const existingMessage = await this.messageService.getById(messageId);
+    const existingMessage =
+      await this.messageService.getByOutboundBrokerMessage(reference);
 
     if (
       !existingMessage &&
-      ['single', 'DELIVERED', 'READ', 'EXCEPTION', 'ERROR'].includes(
-        webhook.type,
-      )
+      [
+        'basic',
+        'single',
+        'conversacional',
+        'DELIVERED',
+        'READ',
+        'EXCEPTION',
+        'ERROR',
+      ].includes(webhook.type)
     ) {
       this.logger.error(webhook, 'process :: message not ready');
-      throw new MessageNotReadyException(messageId, BrokerType.PONTAL_TECH);
+      throw new MessageNotReadyException(reference, BrokerType.PONTAL_TECH);
     }
 
     return existingMessage;

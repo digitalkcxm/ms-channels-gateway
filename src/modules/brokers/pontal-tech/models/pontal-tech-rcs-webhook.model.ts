@@ -10,6 +10,8 @@ export type PontalTechRcsWebhookType =
   | 'richCard'
   | 'text'
   | 'video'
+  | 'basic'
+  | 'conversacional'
   | 'single'
   | 'suggestion'
   | 'suggestionResponse'
