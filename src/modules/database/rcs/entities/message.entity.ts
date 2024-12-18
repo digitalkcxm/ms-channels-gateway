@@ -90,6 +90,9 @@ export class MessageEntity {
     | RcsMessageTextContentDto
     | RcsMessageVideoContentDto;
 
+  @Column({ nullable: true, default: 'now()' })
+  receivedAt?: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

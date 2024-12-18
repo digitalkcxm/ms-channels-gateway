@@ -148,6 +148,7 @@ export class RcsPontalTechService {
       rcsAccountId: chat.rcsAccountId,
       status,
       recipient: webhook.user_id,
+      receivedAt: webhook.timestamp,
     };
 
     this.logger.debug(rcsInboundMessage, 'rcsInboundMessage');
@@ -198,6 +199,7 @@ export class RcsPontalTechService {
       rcsAccountId: originMessage.chat.rcsAccountId,
       status,
       recipient: webhook.user_id,
+      receivedAt: webhook.timestamp,
     };
 
     this.logger.debug(rcsInboundMessage, 'rcsInboundMessage');
@@ -278,7 +280,7 @@ export class RcsPontalTechService {
       {
         referenceChatId: outboundMessageDto.referenceChatId,
         referenceMessageId: outboundMessageDto.referenceMessageId,
-        date: dbMessage.createdAt,
+        date: dbMessage.receivedAt,
         direction: MessageDirection.OUTBOUND,
         eventType: SyncEventType.STATUS,
         messageId: dbMessage.id,

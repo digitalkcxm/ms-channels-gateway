@@ -86,6 +86,7 @@ export class RcsMessageService {
       messageDto.errorMessage = errorMessage;
       messageDto.rawMessage = outboundMessagePayload.content;
       messageDto.chatId = dbChat.id;
+      messageDto.receivedAt = new Date();
 
       const dbMessage = await this.messageService.create(messageDto);
 
@@ -97,7 +98,7 @@ export class RcsMessageService {
           referenceChatId: dbChat.referenceChatId,
           referenceMessageId: dbMessage.referenceMessageId,
           messageId: dbMessage.id,
-          date: dbMessage.createdAt,
+          date: dbMessage.receivedAt,
           message: outboundMessagePayload.content,
           errorMessage,
           contact: recipient,
@@ -146,6 +147,7 @@ export class RcsMessageService {
       messageDto.status = inboundMessage.status;
       messageDto.errorMessage = inboundMessage.errorMessage;
       messageDto.rawMessage = inboundMessage.message;
+      messageDto.receivedAt = inboundMessage.receivedAt;
       messageDto.chatId = dbChat.id;
 
       const dbMessage = await this.messageService.create(messageDto);
@@ -160,7 +162,7 @@ export class RcsMessageService {
           referenceChatId: dbChat.referenceChatId,
           referenceMessageId: dbMessage.referenceMessageId,
           messageId: dbMessage.id,
-          date: dbMessage.createdAt,
+          date: dbMessage.receivedAt,
           message: inboundMessage.message,
           contact: inboundMessage.recipient,
         },
@@ -228,7 +230,7 @@ export class RcsMessageService {
             referenceChatId,
             messageId: existingMessage.id,
             referenceMessageId: existingMessage.referenceMessageId,
-            date: updatedMessage.updatedAt,
+            date: updatedMessage.receivedAt,
             message: incomingMessage.message,
             errorMessage: incomingMessage.errorMessage,
             contact: existingMessage.recipient,

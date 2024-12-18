@@ -57,6 +57,10 @@ export class MessageDto {
   rawMessage: any;
 
   @IsDate()
+  @IsOptional()
+  receivedAt: Date;
+
+  @IsDate()
   createdAt: Date;
 
   @IsDate()
@@ -74,6 +78,7 @@ export class MessageDto {
       status: this.status,
       errorMessage: this.errorMessage,
       rawMessage: this.rawMessage,
+      receivedAt: this.receivedAt || this.createdAt,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       ...override,
@@ -97,6 +102,7 @@ export class MessageDto {
     dto.status = entity.status;
     dto.errorMessage = entity.errorMessage;
     dto.rawMessage = entity.rawMessage;
+    dto.receivedAt = (entity.receivedAt || entity.createdAt) as Date;
     dto.createdAt = entity.createdAt as Date;
     dto.updatedAt = entity.updatedAt as Date;
 

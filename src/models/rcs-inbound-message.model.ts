@@ -20,6 +20,7 @@ export type RcsInboundMessage = {
   brokerMessageId: string;
   direction: MessageDirection;
   status: MessageStatus;
+  receivedAt: Date;
   message?:
     | RcsMessageActionContentDto
     | RcsMessageActionCallbackDto
