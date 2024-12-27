@@ -7,11 +7,11 @@ import { TemplateLinkDto } from './template-link.dto';
 
 export class CreateTemplateLinkDto extends OmitType(TemplateLinkDto, [
   'id',
+  'templateId',
   'toEntity',
 ] as const) {
   toEntity(): DeepPartial<TemplateLinkEntity> {
     return {
-      templateId: this.templateId,
       template: this.template?.toEntity(),
       referenceId: this.referenceId,
     };

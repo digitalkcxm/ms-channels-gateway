@@ -188,7 +188,6 @@ export class TemplateDto {
               }),
             ),
           })),
-          title: content.title,
         } as TemplateCarouselContentDto;
     }
   }

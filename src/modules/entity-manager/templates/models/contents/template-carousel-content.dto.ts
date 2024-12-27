@@ -13,6 +13,5 @@ export class TemplateCarouselItemDto {
 export class TemplateCarouselContentDto implements BaseTemplateContentDto {
   readonly type = TemplateContentType.CAROUSEL;
 
-  title: string;
   items: TemplateCarouselItemDto[];
 }
