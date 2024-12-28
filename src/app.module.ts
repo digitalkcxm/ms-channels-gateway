@@ -47,7 +47,6 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
           },
           username: configService.get<string>('REDIS_USERNAME'),
           password: configService.get<string>('REDIS_PASSWORD'),
-          name: 'ms-channels-gateway',
           ttl: defaultTTL,
           clientInfoTag: 'ms-channels-gateway',
         });
